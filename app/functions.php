@@ -33,6 +33,21 @@ if (!function_exists('G')) {
     }
 }
 
+if (!function_exists('parse_condition')) {
+    /**
+     * 将小数的投注条件拆解为数组
+     * @param string $value 以小数形式表示的投注条件
+     * @return array
+     */
+    function parse_condition(string $value): array
+    {
+        if (str_ends_with($value, '.75')) {
+        } elseif (str_ends_with($value, '.25')) {
+        } elseif (str_ends_with($value, '.50') || str_ends_with($value, '.5')) {
+        }
+    }
+}
+
 if (!function_exists('get_odd_score')) {
     /**
      * 根据比赛的赛果数据，盘口对应的赛果

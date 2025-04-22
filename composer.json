@@ -15,7 +15,8 @@
     "illuminate/redis": "^10.48",
     "firebase/php-jwt": "^6.11",
     "workerman/validation": "^3.1",
-    "webman/redis": "^2.1"
+    "webman/redis": "^2.1",
+    "ext-bcmath": "*"
   },
   "autoload": {
     "psr-4": {
