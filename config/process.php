@@ -10,7 +10,7 @@ return [
     'server' => [
         'handler' => Http::class,
         'listen' => 'http://0.0.0.0:8000',
-        'count' => cpu_count() * 4,
+        'count' => yaml('app.http_process_count', cpu_count() * 4),
         'user' => '',
         'group' => '',
         'reusePort' => false,

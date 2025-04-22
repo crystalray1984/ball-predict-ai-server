@@ -1,5 +1,5 @@
 <?php declare(strict_types=1);
 
 return [
-    '' => support\exception\Handler::class,
+    '' => support\exception\ExceptionHandler::class,
 ];

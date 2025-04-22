@@ -1,3 +1,7 @@
 <?php declare(strict_types=1);
 
-return [];
+return [
+    'api' => [
+        \app\api\middleware\CheckUserMiddleware::class,
+    ]
+];

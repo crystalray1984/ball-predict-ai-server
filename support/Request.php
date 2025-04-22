@@ -2,11 +2,17 @@
 
 namespace support;
 
+use app\model\User;
+
 /**
  * Class Request
  * @package support
  */
 class Request extends \Webman\Http\Request
 {
-
+    /**
+     * 当前请求登录的用户
+     * @var User|null
+     */
+    public User|null $user = null;
 }

@@ -4,7 +4,18 @@
   "require": {
     "php": ">=8.1",
     "workerman/webman-framework": "^2.1",
-    "monolog/monolog": "^2.0"
+    "monolog/monolog": "^2.0",
+    "webman/database": "^2.1",
+    "illuminate/pagination": "^10.48",
+    "illuminate/events": "^10.48",
+    "symfony/var-dumper": "^6.4",
+    "php-di/php-di": "^7.0",
+    "psr/container": "^2.0",
+    "symfony/yaml": "^6.4",
+    "illuminate/redis": "^10.48",
+    "firebase/php-jwt": "^6.11",
+    "workerman/validation": "^3.1",
+    "webman/redis": "^2.1"
   },
   "autoload": {
     "psr-4": {
