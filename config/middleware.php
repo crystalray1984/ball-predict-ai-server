@@ -1,7 +1,10 @@
 <?php declare(strict_types=1);
 
 return [
+    '' => [
+        \app\middleware\QueryLog::class,
+    ],
     'api' => [
-        \app\api\middleware\CheckUserMiddleware::class,
+        \app\middleware\CheckUserMiddleware::class,
     ]
 ];

@@ -7,7 +7,7 @@ namespace support;
  */
 class JsonResponse extends Response
 {
-    public function getJsonBody(): array
+    public function getJsonBody(): mixed
     {
         return $this->jsonBody;
     }
@@ -20,7 +20,7 @@ class JsonResponse extends Response
     }
 
     public function __construct(
-        protected array $jsonBody,
+        protected mixed $jsonBody,
         int             $status = 200,
         array           $headers = []
     )

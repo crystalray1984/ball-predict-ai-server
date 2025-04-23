@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace app\api\middleware;
+namespace app\middleware;
 
 use app\model\User;
 use Exception;
