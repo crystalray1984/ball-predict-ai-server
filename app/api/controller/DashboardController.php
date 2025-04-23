@@ -36,12 +36,13 @@ class DashboardController extends Controller
 
     /**
      * 获取准备中的比赛
-     * @param Request $request
      * @return Response
      */
-    public function preparing(Request $request): Response
+    public function preparing(): Response
     {
-
+        return $this->success(
+            $this->dashboardService->preparing()
+        );
     }
 
     /**

@@ -2,6 +2,8 @@
 
 namespace app\api\service;
 
+use app\model\Game;
+use app\model\Odd;
 use app\model\PromotedOdd;
 use app\model\Team;
 use app\model\Tournament;
@@ -174,21 +176,7 @@ class DashboardService
                 //计算结果
                 $result = null;
                 if ($row['has_score']) {
-                    if ($row['variety'] === 'goal') {
-                        //进球
-                        if ($row['period'] === 'period1') {
-                            //上半场
-                        } else {
-                            //全场
-                        }
-                    } elseif ($row['variety'] === 'corner') {
-                        //角球
-                        if ($row['period'] === 'period1') {
-                            //上半场
-                        } else {
-                            //全场
-                        }
-                    }
+                    $result = get_odd_score($row, $row);
                 }
 
                 $output['result'] = $result;
@@ -196,5 +184,70 @@ class DashboardService
                 return $output;
             }, $rows);
         }
+
+        return $rows;
+    }
+
+    /**
+     * 获取准备中的比赛
+     * @return array
+     */
+    public function preparing(): array
+    {
+        $rows = Game::query()
+            ->whereIn('id', Odd::query()->where('status', '=', 'ready')->select('match_id'))
+            ->where('status', '=', '')
+            ->where(
+                'match_time',
+                '<',
+                Carbon::now()
+                    ->addDays()
+                    ->toISOString()
+            )
+            ->orderBy('match_time')
+            ->get([
+                'id',
+                'match.match_time',
+                'match.team1_id',
+                'match.team2_id',
+                'match.tournament_id',
+            ])
+            ->toArray();
+
+        if (!empty($rows)) {
+            //查询赛事
+            $tournaments = Tournament::query()
+                ->whereIn('id', array_unique(
+                    array_column($rows, 'tournament_id')
+                ))
+                ->get(['id', 'name'])
+                ->toArray();
+            $tournaments = array_column($tournaments, null, 'id');
+
+            //查询队伍
+            $teams = array_reduce($tournaments, function (array $result, array $row) {
+                $result[] = $row['team1_id'];
+                $result[] = $row['team2_id'];
+                return $result;
+            }, []);
+            $teams = Team::query()
+                ->whereIn('id', array_unique($teams))
+                ->get(['id', 'name'])
+                ->toArray();
+            $teams = array_column($teams, null, 'id');
+
+            //写入数据
+            $rows = array_map(function (array $row) use ($tournaments, $teams) {
+                return [
+                    'id' => $row['id'],
+                    'match_time' => $row['match_time'],
+                    'tournament' => $tournaments[$row['tournament_id']],
+                    'team1' => $teams[$row['team1_id']],
+                    'team2' => $teams[$row['team2_id']],
+                ];
+            }, $rows);
+        }
+
+        return $rows;
     }
 }
