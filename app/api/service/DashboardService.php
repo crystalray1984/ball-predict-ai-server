@@ -147,7 +147,7 @@ class DashboardService
             $tournaments = array_column($tournaments, null, 'id');
 
             //查询队伍
-            $teams = array_reduce($tournaments, function (array $result, array $row) {
+            $teams = array_reduce($rows, function (array $result, array $row) {
                 $result[] = $row['team1_id'];
                 $result[] = $row['team2_id'];
                 return $result;
@@ -199,7 +199,7 @@ class DashboardService
             ->where('status', '=', '')
             ->where(
                 'match_time',
-                '<',
+                '>',
                 Carbon::now()
                     ->addDays()
                     ->toISOString()
@@ -207,10 +207,10 @@ class DashboardService
             ->orderBy('match_time')
             ->get([
                 'id',
-                'match.match_time',
-                'match.team1_id',
-                'match.team2_id',
-                'match.tournament_id',
+                'match_time',
+                'team1_id',
+                'team2_id',
+                'tournament_id',
             ])
             ->toArray();
 
@@ -225,7 +225,7 @@ class DashboardService
             $tournaments = array_column($tournaments, null, 'id');
 
             //查询队伍
-            $teams = array_reduce($tournaments, function (array $result, array $row) {
+            $teams = array_reduce($rows, function (array $result, array $row) {
                 $result[] = $row['team1_id'];
                 $result[] = $row['team2_id'];
                 return $result;
