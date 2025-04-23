@@ -2,7 +2,7 @@
 
 namespace app\middleware;
 
-use app\model\User;
+use app\model\Admin;
 use Exception;
 use support\attribute\AllowGuest;
 use support\JsonResponse;
@@ -11,18 +11,10 @@ use Webman\Http\Request;
 use Webman\Http\Response;
 use Webman\MiddlewareInterface;
 
-/**
- * 检测用户登录状态的中间件
- */
-class CheckUserMiddleware implements MiddlewareInterface
+class CheckAdminMiddleware implements MiddlewareInterface
 {
-    /**
-     *
-     */
     public function process(Request $request, callable $handler): Response
     {
-        return $handler($request);
-
         //先判断是否为控制器和方法组合
         if (!$request->controller || !$request->action) {
             return $handler($request);
@@ -52,21 +44,21 @@ class CheckUserMiddleware implements MiddlewareInterface
             return $this->fail();
         }
 
-        if (empty($claims['payload']['id']) || empty($claims['payload']['type']) || $claims['payload']['type'] !== 'user') {
+        if (empty($claims['payload']['id']) || empty($claims['payload']['type']) || $claims['payload']['type'] !== 'admin') {
             //无效的用户id
             return $this->fail();
         }
 
-        //检查用户信息
-        /** @var User $user */
-        $user = User::query()->where('id', '=', $claims['payload']['id'])->first();
-        if (!$user || $user->status !== 1 || $user->expire_time->timestamp < time()) {
+        //检查管理员信息
+        /** @var Admin $admin */
+        $admin = Admin::query()->where('id', '=', $claims['payload']['id'])->first();
+        if (!$admin || $admin->status !== 1) {
             return $this->fail();
         }
 
         //将用户实体写入请求中
         if ($request instanceof \support\Request) {
-            $request->user = $user;
+            $request->admin = $admin;
         }
 
         return $handler($request);

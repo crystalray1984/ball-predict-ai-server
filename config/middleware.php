@@ -6,5 +6,8 @@ return [
     ],
     'api' => [
         \app\middleware\CheckUserMiddleware::class,
+    ],
+    'admin' => [
+        \app\middleware\CheckAdminMiddleware::class,
     ]
 ];

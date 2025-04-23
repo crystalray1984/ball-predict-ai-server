@@ -2,6 +2,7 @@
 
 namespace support;
 
+use app\model\Admin;
 use app\model\User;
 
 /**
@@ -15,4 +16,10 @@ class Request extends \Webman\Http\Request
      * @var User|null
      */
     public User|null $user = null;
+
+    /**
+     * 当前请求登录的管理员
+     * @var Admin|null
+     */
+    public Admin|null $admin = null;
 }

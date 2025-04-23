@@ -71,6 +71,7 @@
       <path value="$PROJECT_DIR$/vendor/workerman/validation" />
       <path value="$PROJECT_DIR$/vendor/respect/stringifier" />
       <path value="$PROJECT_DIR$/vendor/webman/redis" />
+      <path value="$PROJECT_DIR$/vendor/tinywan/captcha" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.1" />

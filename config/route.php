@@ -4,6 +4,11 @@ use Webman\Route;
 
 //用户端接口
 Route::group('/api', function () {
+    //公共接口
+    Route::group('/common', function () {
+        //获取验证码图片
+        Route::any('/captcha', [\app\api\controller\CommonController::class, 'captcha']);
+    });
 
     //用户接口
     Route::group('/user', function () {

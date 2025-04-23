@@ -8,7 +8,7 @@ use support\trait\ResolveAttribute;
 /**
  * 标记接口允许匿名访问
  */
-#[Attribute(Attribute::TARGET_METHOD)]
+#[Attribute(Attribute::TARGET_METHOD | Attribute::TARGET_CLASS)]
 class AllowGuest
 {
     use ResolveAttribute;

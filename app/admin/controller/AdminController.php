@@ -1,8 +1,8 @@
 <?php declare(strict_types=1);
 
-namespace app\api\controller;
+namespace app\admin\controller;
 
-use app\api\service\UserService;
+use app\admin\service\AdminService;
 use DI\Attribute\Inject;
 use Respect\Validation\Validator as v;
 use support\attribute\AllowGuest;
@@ -12,15 +12,15 @@ use support\Response;
 use Tinywan\Captcha\Captcha;
 
 /**
- * 用户控制器
+ * 管理端用户控制器
  */
-class UserController extends Controller
+class AdminController extends Controller
 {
     #[Inject]
-    protected UserService $userService;
+    protected AdminService $adminService;
 
     /**
-     * 用户登录
+     * 管理员登录接口
      * @param Request $request
      * @return Response
      */
@@ -40,19 +40,19 @@ class UserController extends Controller
         }
 
         return $this->success(
-            $this->userService->login($params)
+            $this->adminService->login($params)
         );
     }
 
     /**
-     * 获取当前用户的信息
+     * 获取当前登录的管理员信息
      * @param Request $request
      * @return Response
      */
     public function info(Request $request): Response
     {
         return $this->success(
-            $request->user
+            $request->admin
         );
     }
 }

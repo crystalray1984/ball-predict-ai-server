@@ -1,27 +1,24 @@
 <?php declare(strict_types=1);
 
-namespace app\api\service;
+namespace app\admin\service;
 
-use app\model\User;
+use app\model\Admin;
 use support\exception\BusinessError;
 use support\Token;
-use Tinywan\Captcha\Captcha;
 
-/**
- * 用户业务逻辑
- */
-class UserService
+class AdminService
 {
     /**
-     * 用户登录
-     * @return array{
-     *     token: string,
-     *     user: User
-     * }
+     * 管理端用户登录
+     * @param array $params
+     * @return array
      */
     public function login(array $params): array
     {
-        $user = User::query()->where('username', '=', $params['username'])->first();
+        $user = Admin::query()
+            ->where('username', '=', $params['username'])
+            ->first();
+
         if (!$user) {
             throw new BusinessError('账号不存在');
         }
@@ -30,16 +27,12 @@ class UserService
             throw new BusinessError('密码错误');
         }
 
-        if ($user->expire_time->timestamp < time()) {
-            throw new BusinessError('账号已到期');
-        }
-
         if ($user->status !== 1) {
             throw new BusinessError('账号已被禁用');
         }
 
         //生成token
-        $token = Token::create(['id' => $user->id, 'type' => 'user']);
+        $token = Token::create(['id' => $user->id, 'type' => 'admin']);
 
         return [
             'token' => $token,
