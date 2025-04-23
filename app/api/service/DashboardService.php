@@ -201,7 +201,6 @@ class DashboardService
                 'match_time',
                 '>',
                 Carbon::now()
-                    ->addDays()
                     ->toISOString()
             )
             ->orderBy('match_time')
