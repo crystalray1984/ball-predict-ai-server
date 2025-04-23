@@ -29,14 +29,14 @@ class DashboardService
             $query->where(
                 'match.match_time',
                 '>=',
-                Carbon::createFromTimeString($params['start_date'])->toISOString(),
+                Carbon::parse($params['start_date'])->toISOString(),
             );
         }
         if (!empty($params['end_date'])) {
             $query->where(
                 'match.match_time',
                 '<',
-                Carbon::createFromTimeString($params['start_date'])
+                Carbon::parse($params['start_date'])
                     ->addDays()
                     ->toISOString(),
             );
@@ -89,14 +89,14 @@ class DashboardService
             $query->where(
                 'match.match_time',
                 '>=',
-                Carbon::createFromTimeString($params['start_date'])->toISOString(),
+                Carbon::parse($params['start_date'])->toISOString(),
             );
         }
         if (!empty($params['end_date'])) {
             $query->where(
                 'match.match_time',
                 '<',
-                Carbon::createFromTimeString($params['start_date'])
+                Carbon::parse($params['start_date'])
                     ->addDays()
                     ->toISOString(),
             );
@@ -203,7 +203,7 @@ class DashboardService
                 Carbon::now()
                     ->toISOString()
             )
-            ->orderBy('match_time')
+            ->orderBy('id')
             ->get([
                 'id',
                 'match_time',
