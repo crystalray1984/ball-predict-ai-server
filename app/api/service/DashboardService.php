@@ -36,7 +36,7 @@ class DashboardService
             $query->where(
                 'match.match_time',
                 '<',
-                Carbon::parse($params['start_date'])
+                Carbon::parse($params['end_date'])
                     ->addDays()
                     ->toISOString(),
             );
@@ -96,7 +96,7 @@ class DashboardService
             $query->where(
                 'match.match_time',
                 '<',
-                Carbon::parse($params['start_date'])
+                Carbon::parse($params['end_date'])
                     ->addDays()
                     ->toISOString(),
             );
