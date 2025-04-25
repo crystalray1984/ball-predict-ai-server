@@ -15,7 +15,7 @@ use support\Model;
  * @property Carbon $match_time
  * @property string $status
  */
-class Game extends Model
+class Match1 extends Model
 {
     protected $table = 'match';
 

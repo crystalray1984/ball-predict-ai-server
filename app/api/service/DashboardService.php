@@ -2,7 +2,7 @@
 
 namespace app\api\service;
 
-use app\model\Game;
+use app\model\Match1;
 use app\model\Odd;
 use app\model\PromotedOdd;
 use app\model\Team;
@@ -70,7 +70,7 @@ class DashboardService
             'draw' => $data[0] ?? 0,
         ];
 
-        $result['win_rate'] = round($result['win'] * 100 / $total) / 100;
+        $result['win_rate'] = round($result['win'] * 1000 / $total) / 10;
 
         return $result;
     }
@@ -121,6 +121,7 @@ class DashboardService
             'promoted_odd.period',
             'promoted_odd.type',
             'promoted_odd.condition',
+            'promoted_odd.score',
             'match.match_time',
             'match.team1_id',
             'match.team2_id',
@@ -174,12 +175,14 @@ class DashboardService
                 ];
 
                 //计算结果
-                $result = null;
-                if ($row['has_score']) {
-                    $result = get_odd_score($row, $row);
+                if (isset($row['result'])) {
+                    $output['result'] = [
+                        'score' => $row['score'],
+                        'result' => $row['result'],
+                    ];
+                } else {
+                    $output['result'] = null;
                 }
-
-                $output['result'] = $result;
 
                 return $output;
             }, $rows);
@@ -194,7 +197,7 @@ class DashboardService
      */
     public function preparing(): array
     {
-        $rows = Game::query()
+        $rows = Match1::query()
             ->whereIn('id', Odd::query()->where('status', '=', 'ready')->select('match_id'))
             ->where('status', '=', '')
             ->where(

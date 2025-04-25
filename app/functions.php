@@ -81,7 +81,10 @@ if (!function_exists('get_odd_score')) {
      * 根据比赛的赛果数据，计算盘口对应的赛果
      * @param array $match_score 赛果数据
      * @param array $odd 盘口数据
-     * @return array
+     * @return array{
+     *     score: string,
+     *     result: int
+     * }
      */
     function get_odd_score(array $match_score, array $odd): array
     {
@@ -125,44 +128,47 @@ if (!function_exists('get_odd_score')) {
 
         //计算赛果
         $condition = parse_condition($odd['condition']);
+        $result = [
+            'result' => 0,
+        ];
         if ($odd['type'] === 'ah1') {
             //主队
-            $score['display'] = $score['score1'] . ':' . $score['score2'];
-            $score_parts = array_map(
-                fn(string $adjust) => $condition['symbol'] === '-' ?
-                    bcsub($score['score1'], $adjust, 1) :
-                    bcadd($score['score1'], $adjust, 1),
-                $condition['value']
-            );
-            $score['result'] = array_reduce($score_parts, function (int $part_result, string $score_item) use ($score) {
-                return $part_result + bccomp($score_item, (string)$score['score2'], 1);
-            }, 0);
+            $result['score'] = $score['score1'] . ':' . $score['score2'];
+            foreach ($condition['value'] as $value) {
+                $part_score = $condition['symbol'] === '-' ?
+                    bcsub($score['score1'], $value, 1) :
+                    bcadd($score['score1'], $value, 1);
+                $result['result'] += bccomp($part_score, (string)$score['score2'], 1);
+            }
         } elseif ($odd['type'] === 'ah2') {
             //客队
-            $score['display'] = $score['score1'] . ':' . $score['score2'];
-            $score_parts = array_map(
-                fn(string $adjust) => $condition['symbol'] === '-' ?
-                    bcsub($score['score2'], $adjust, 1) :
-                    bcadd($score['score2'], $adjust, 1),
-                $condition['value']
-            );
-            $score['result'] = array_reduce($score_parts, function (int $part_result, string $score_item) use ($score) {
-                return $part_result + bccomp($score_item, (string)$score['score1'], 1);
-            }, 0);
+            $result['score'] = $score['score1'] . ':' . $score['score2'];
+            foreach ($condition['value'] as $value) {
+                $part_score = $condition['symbol'] === '-' ?
+                    bcsub($score['score2'], $value, 1) :
+                    bcadd($score['score2'], $value, 1);
+                $result['result'] += bccomp($part_score, (string)$score['score1'], 1);
+            }
         } elseif ($odd['type'] === 'over') {
             //大球
-            $score['display'] = (string)$score['total'];
-            $score['result'] = array_reduce($condition['value'], function (int $part_result, string $condition_item) use ($score) {
-                return $part_result + bccomp($condition_item, (string)$score['total'], 1);
-            }, 0);
+            $result['score'] = (string)$score['total'];
+            foreach ($condition['value'] as $value) {
+                $result['result'] += bccomp((string)$score['total'], $value, 1);
+            }
         } elseif ($odd['type'] === 'under') {
             //小球
-            $score['display'] = (string)$score['total'];
-            $score['result'] = array_reduce($condition['value'], function (int $part_result, string $condition_item) use ($score) {
-                return $part_result + (0 - bccomp($condition_item, (string)$score['total'], 1));
-            }, 0);
+            $result['score'] = (string)$score['total'];
+            foreach ($condition['value'] as $value) {
+                $result['result'] += bccomp($value, (string)$score['total'], 1);
+            }
         }
 
-        return $score;
+        if ($result['result'] > 0) {
+            $result['result'] = 1;
+        } elseif ($result['result'] < 0) {
+            $result['result'] = -1;
+        }
+
+        return $result;
     }
 }
