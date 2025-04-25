@@ -136,8 +136,8 @@ if (!function_exists('get_odd_score')) {
             $result['score'] = $score['score1'] . ':' . $score['score2'];
             foreach ($condition['value'] as $value) {
                 $part_score = $condition['symbol'] === '-' ?
-                    bcsub($score['score1'], $value, 1) :
-                    bcadd($score['score1'], $value, 1);
+                    bcsub((string)$score['score1'], $value, 1) :
+                    bcadd((string)$score['score1'], $value, 1);
                 $result['result'] += bccomp($part_score, (string)$score['score2'], 1);
             }
         } elseif ($odd['type'] === 'ah2') {
@@ -145,8 +145,8 @@ if (!function_exists('get_odd_score')) {
             $result['score'] = $score['score1'] . ':' . $score['score2'];
             foreach ($condition['value'] as $value) {
                 $part_score = $condition['symbol'] === '-' ?
-                    bcsub($score['score2'], $value, 1) :
-                    bcadd($score['score2'], $value, 1);
+                    bcsub((string)$score['score2'], $value, 1) :
+                    bcadd((string)$score['score2'], $value, 1);
                 $result['result'] += bccomp($part_score, (string)$score['score1'], 1);
             }
         } elseif ($odd['type'] === 'over') {
