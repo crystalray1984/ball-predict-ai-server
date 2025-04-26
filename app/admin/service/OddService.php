@@ -57,7 +57,7 @@ class OddService
         }
 
         //读取盘口数据
-        $odds = $query
+        $rows = $query
             ->orderBy('match.match_time')
             ->orderBy('odd.match_id')
             ->get([
