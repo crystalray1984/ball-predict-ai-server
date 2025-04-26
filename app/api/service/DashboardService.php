@@ -70,7 +70,12 @@ class DashboardService
             'draw' => $data[0] ?? 0,
         ];
 
-        $result['win_rate'] = round($result['win'] * 1000 / $total) / 10;
+        $total = $result['win'] + $result['loss'];
+        if ($total === 0) {
+            $result['win_rate'] = 0;
+        } else {
+            $result['win_rate'] = round($result['win'] * 1000 / $total) / 10;
+        }
 
         return $result;
     }
