@@ -37,23 +37,16 @@ class OddService
         }
 
         //筛选数据
-        switch ($params['matched2']) {
-            case 1:
-                $query->where('odd.status', '=', 'promoted');
-                break;
-            case 0:
-                $query->where('odd.status', '=', 'ignored');
-                break;
-            default:
-                switch ($params['matched1']) {
-                    case 1:
-                        $query->where('odd.status', '=', 'ready');
-                        break;
-                    case 0:
-                        $query->where('odd.status', '=', '');
-                        break;
-                }
-                break;
+        if ($params['matched2'] === 1) {
+            $query->where('odd.status', '=', 'promoted');
+        } elseif ($params['matched2'] === 0) {
+            $query->where('odd.status', '=', 'ignored');
+        } else {
+            if ($params['matched1'] === 1) {
+                $query->where('odd.status', '=', 'ready');
+            } elseif ($params['matched1'] === 0) {
+                $query->where('odd.status', '=', '');
+            }
         }
 
         //读取盘口数据
