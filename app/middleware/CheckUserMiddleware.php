@@ -21,8 +21,6 @@ class CheckUserMiddleware implements MiddlewareInterface
      */
     public function process(Request $request, callable $handler): Response
     {
-        return $handler($request);
-
         //先判断是否为控制器和方法组合
         if (!$request->controller || !$request->action) {
             return $handler($request);

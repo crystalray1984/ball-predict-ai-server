@@ -5,9 +5,9 @@ return [
         \app\middleware\QueryLog::class,
     ],
     'api' => [
-        \app\middleware\CheckUserMiddleware::class,
+//        \app\middleware\CheckUserMiddleware::class,
     ],
     'admin' => [
-        \app\middleware\CheckAdminMiddleware::class,
+//        \app\middleware\CheckAdminMiddleware::class,
     ]
 ];
