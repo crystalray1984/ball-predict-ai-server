@@ -14,6 +14,8 @@ Route::group('/api', function () {
     Route::group('/user', function () {
         //用户登录
         Route::post('/login', [\app\api\controller\UserController::class, 'login']);
+        //获取当前登录用户的信息
+        Route::post('/info', [\app\api\controller\UserController::class, 'info']);
     });
 
     //首页看板接口
@@ -24,6 +26,31 @@ Route::group('/api', function () {
         Route::post('/preparing', [\app\api\controller\DashboardController::class, 'preparing']);
         //已推荐的比赛
         Route::post('/promoted', [\app\api\controller\DashboardController::class, 'promoted']);
+    });
+});
+
+//管理端接口
+Route::group('/admin', function () {
+    //管理用户接口
+    Route::group('/admin', function () {
+        //管理员登录
+        Route::post('/login', [\app\admin\controller\AdminController::class, 'login']);
+        //获取当前登录管理员的信息
+        Route::post('/info', [\app\admin\controller\AdminController::class, 'info']);
+    });
+
+    //系统配置接口
+    Route::group('/setting', function () {
+        //管理员登录
+        Route::post('/get', [\app\admin\controller\SettingController::class, 'get']);
+        //获取当前登录管理员的信息
+        Route::post('/set', [\app\admin\controller\SettingController::class, 'save']);
+    });
+
+    //数据列表接口
+    Route::group('/odd', function () {
+        //管理员登录
+        Route::post('/list', [\app\admin\controller\OddController::class, 'getOddList']);
     });
 });
 
