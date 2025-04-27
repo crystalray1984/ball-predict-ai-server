@@ -23,6 +23,7 @@ class DashboardService
     {
         $query = PromotedOdd::query()
             ->join('match', 'match.id', '=', 'promoted_odd.match_id')
+            ->where('promoted_odd.is_valid', '=', 1)
             ->whereNotNull('promoted_odd.result');
 
         if (!empty($params['start_date'])) {
@@ -88,7 +89,8 @@ class DashboardService
     public function promoted(array $params): array
     {
         $query = PromotedOdd::query()
-            ->join('match', 'match.id', '=', 'promoted_odd.match_id');
+            ->join('match', 'match.id', '=', 'promoted_odd.match_id')
+            ->where('promoted.is_valid', '=', 1);
 
         if (!empty($params['start_date'])) {
             $query->where(
