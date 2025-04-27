@@ -19,12 +19,14 @@ class MatchService
      */
     public function getRequireScoreMatches(): array
     {
-        return Match1::query()
+        $now = time();
+
+        $list = Match1::query()
             ->join('team AS team1', 'team1.id', '=', 'match.team1_id')
             ->join('team AS team2', 'team2.id', '=', 'match.team2_id')
             ->join('odd', 'odd.match_id', '=', 'match.id')
-            ->where('match.match_time', '<=', Carbon::now()->subMinutes(120)->toISOString())
-            ->where('match.match_time', '>=', Carbon::now()->subDays(2)->toISOString())
+            ->where('match.match_time', '<=', Carbon::createFromTimestamp($now)->subMinutes(45)->toISOString())
+            ->where('match.match_time', '>=', Carbon::createFromTimestamp($now)->subDays(2)->toISOString())
             ->where('match.has_score', '=', false)
             ->distinct()
             ->get([
@@ -32,8 +34,35 @@ class MatchService
                 'match.match_time',
                 'team1.name AS team1',
                 'team2.name AS team2',
+                'match.has_period1_score'
             ])
             ->toArray();
+
+        $output = [];
+        foreach ($list as $match) {
+            $match_time = $match['match_time']->timestamp;
+            if ($now - $match_time >= 105 * 60) {
+                //可以获得全场数据了
+                $output[] = [
+                    'id' => $match['id'],
+                    'match_time' => $match['match_time'],
+                    'team1' => $match['team1'],
+                    'team2' => $match['team2'],
+                    'period1' => false,
+                ];
+            } elseif (!$match['has_period1_score']) {
+                //还没有半场数据
+                $output[] = [
+                    'id' => $match['id'],
+                    'match_time' => $match['match_time'],
+                    'team1' => $match['team1'],
+                    'team2' => $match['team2'],
+                    'period1' => true,
+                ];
+            }
+        }
+
+        return $output;
     }
 
     /**
