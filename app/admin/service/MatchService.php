@@ -72,53 +72,107 @@ class MatchService
      */
     public function setMatchScore(array $data): void
     {
-        //查询比赛所有的已推荐盘口
-        $odds = PromotedOdd::query()
-            ->where('match_id', '=', $data['match_id'])
-            ->get([
-                'id',
-                'variety',
-                'period',
-                'type',
-                'condition'
-            ])
-            ->toArray();
+        if ($data['period1']) {
+            //设置半场赛果
 
-        Db::beginTransaction();
-        try {
-            //设置比赛的结果
-            Match1::query()
-                ->where('id', '=', $data['match_id'])
-                ->update([
-                    'score1' => $data['score1'],
-                    'score2' => $data['score2'],
-                    'corner1' => $data['corner1'],
-                    'corner2' => $data['corner2'],
-                    'score1_period1' => $data['score1_period1'],
-                    'score2_period1' => $data['score2_period1'],
-                    'corner1_period1' => $data['corner1'],
-                    'corner2_period1' => $data['corner2_period1'],
-                    'has_score' => true,
-                ]);
+            //查询比赛所有的已推荐盘口
+            $odds = PromotedOdd::query()
+                ->where('match_id', '=', $data['match_id'])
+                ->where('period', '=', 'period1')
+                ->get([
+                    'id',
+                    'variety',
+                    'period',
+                    'type',
+                    'condition'
+                ])
+                ->toArray();
 
-            //设置推荐盘口的结果
-            if (!empty($odds)) {
-                foreach ($odds as $odd) {
-                    $result = get_odd_score($data, $odd);
-                    PromotedOdd::query()
-                        ->where('id', '=', $odd['id'])
-                        ->update([
-                            'score' => $result['score'],
-                            'result' => $result['result'],
-                        ]);
+            Db::beginTransaction();
+            try {
+                //设置比赛的结果
+                Match1::query()
+                    ->where('id', '=', $data['match_id'])
+                    ->update([
+                        'score1_period1' => $data['score1_period1'],
+                        'score2_period1' => $data['score2_period1'],
+                        'corner1_period1' => $data['corner1'],
+                        'corner2_period1' => $data['corner2_period1'],
+                        'has_period1_score' => true,
+                    ]);
+
+                //设置推荐盘口的结果
+                if (!empty($odds)) {
+                    foreach ($odds as $odd) {
+                        $result = get_odd_score($data, $odd);
+                        PromotedOdd::query()
+                            ->where('id', '=', $odd['id'])
+                            ->update([
+                                'score' => $result['score'],
+                                'result' => $result['result'],
+                            ]);
+                    }
                 }
-            }
 
-            Db::commit();
-        } catch (Throwable $exception) {
-            Db::rollBack();
-            throw $exception;
+                Db::commit();
+            } catch (Throwable $exception) {
+                Db::rollBack();
+                throw $exception;
+            }
+        } else {
+            //设置全场赛果
+
+            //查询比赛所有的已推荐盘口
+            $odds = PromotedOdd::query()
+                ->where('match_id', '=', $data['match_id'])
+                ->get([
+                    'id',
+                    'variety',
+                    'period',
+                    'type',
+                    'condition'
+                ])
+                ->toArray();
+
+            Db::beginTransaction();
+            try {
+                //设置比赛的结果
+                Match1::query()
+                    ->where('id', '=', $data['match_id'])
+                    ->update([
+                        'score1' => $data['score1'],
+                        'score2' => $data['score2'],
+                        'corner1' => $data['corner1'],
+                        'corner2' => $data['corner2'],
+                        'score1_period1' => $data['score1_period1'],
+                        'score2_period1' => $data['score2_period1'],
+                        'corner1_period1' => $data['corner1'],
+                        'corner2_period1' => $data['corner2_period1'],
+                        'has_score' => true,
+                        'has_period1_score' => true,
+                    ]);
+
+                //设置推荐盘口的结果
+                if (!empty($odds)) {
+                    foreach ($odds as $odd) {
+                        $result = get_odd_score($data, $odd);
+                        PromotedOdd::query()
+                            ->where('id', '=', $odd['id'])
+                            ->update([
+                                'score' => $result['score'],
+                                'result' => $result['result'],
+                            ]);
+                    }
+                }
+
+                Db::commit();
+            } catch (Throwable $exception) {
+                Db::rollBack();
+                throw $exception;
+            }
         }
+
+
     }
 
     /**
