@@ -4,6 +4,7 @@ namespace app\admin\service;
 
 use app\model\Match1;
 use app\model\PromotedOdd;
+use Carbon\Carbon;
 use support\Db;
 use Throwable;
 
@@ -13,16 +14,36 @@ use Throwable;
 class MatchService
 {
     /**
+     * 获取需要获取赛果的比赛列表
+     * @return array
+     */
+    public function getRequireScoreMatches(): array
+    {
+        return Match1::query()
+            ->join('team AS team1', 'team1.id', '=', 'match.team1_id')
+            ->join('team AS team2', 'team2.id', '=', 'match.team2_id')
+            ->where('match.match_time', '<=', Carbon::now()->subMinutes(150)->toISOString())
+            ->where('match.match_time', '>=', Carbon::now()->subDays(2)->toISOString())
+            ->where('match.has_score', '=', false)
+            ->get([
+                'match.id',
+                'match.match_time',
+                'team1.name AS team1',
+                'team2.name AS team2',
+            ])
+            ->toArray();
+    }
+
+    /**
      * 设置赛果
-     * @param int $match_id 比赛id
      * @param array $data 赛果数据
      * @return void
      */
-    public function setMatchScore(int $match_id, array $data): void
+    public function setMatchScore(array $data): void
     {
         //查询比赛所有的已推荐盘口
         $odds = PromotedOdd::query()
-            ->where('match_id', '=', $match_id)
+            ->where('match_id', '=', $data['match_id'])
             ->get([
                 'id',
                 'variety',
@@ -36,7 +57,7 @@ class MatchService
         try {
             //设置比赛的结果
             Match1::query()
-                ->where('id', '=', $match_id)
+                ->where('id', '=', $data['match_id'])
                 ->update([
                     'score1' => $data['score1'],
                     'score2' => $data['score2'],

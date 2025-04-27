@@ -47,9 +47,17 @@ Route::group('/admin', function () {
         Route::post('/set', [\app\admin\controller\SettingController::class, 'save']);
     });
 
+    //比赛管理接口
+    Route::group('/match', function () {
+        //获取需要拉取赛果的比赛列表
+        Route::post('/require_score_list', [\app\admin\controller\MatchController::class, 'getRequireScoreMatches']);
+        //设置赛果
+        Route::post('/set_score', [\app\admin\controller\MatchController::class, 'setMatchScore']);
+    });
+
     //数据列表接口
     Route::group('/odd', function () {
-        //管理员登录
+        //获取盘口抓取数据列表
         Route::post('/list', [\app\admin\controller\OddController::class, 'getOddList']);
     });
 });
