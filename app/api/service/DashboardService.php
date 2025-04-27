@@ -23,8 +23,7 @@ class DashboardService
     {
         $query = PromotedOdd::query()
             ->join('match', 'match.id', '=', 'promoted_odd.match_id')
-            ->where('promoted_odd.is_valid', '=', 1)
-            ->whereNotNull('promoted_odd.result');
+            ->where('promoted_odd.is_valid', '=', 1);
 
         if (!empty($params['start_date'])) {
             $query->where(
@@ -65,7 +64,7 @@ class DashboardService
         }
 
         $data = array_column($data, 'count', 'result');
-        
+
         $result = [
             'total' => $total,
             'win' => $data[1] ?? 0,
