@@ -89,4 +89,24 @@ class MatchService
             throw $exception;
         }
     }
+
+    /**
+     * 批量设置赛果
+     * @param array $list 赛果列表
+     * @return void
+     */
+    public function multiSetMatchScore(array $list): void
+    {
+        if (empty($list)) return;
+        Db::beginTransaction();
+        try {
+            foreach ($list as $data) {
+                $this->setMatchScore($data);
+            }
+            Db::commit();
+        } catch (Throwable $exception) {
+            Db::rollBack();
+            throw $exception;
+        }
+    }
 }

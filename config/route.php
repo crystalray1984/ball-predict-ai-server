@@ -51,6 +51,8 @@ Route::group('/admin', function () {
     Route::group('/match', function () {
         //获取需要拉取赛果的比赛列表
         Route::post('/require_score_list', [\app\admin\controller\MatchController::class, 'getRequireScoreMatches']);
+        //批量设置赛果
+        Route::post('/multi_set_score', [\app\admin\controller\MatchController::class, 'multiSetScore']);
         //设置赛果
         Route::post('/set_score', [\app\admin\controller\MatchController::class, 'setMatchScore']);
     });

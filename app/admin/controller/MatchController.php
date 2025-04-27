@@ -18,6 +18,34 @@ class MatchController extends Controller
     protected MatchService $matchService;
 
     /**
+     * 批量设置赛果
+     * @param Request $request
+     * @return Response
+     */
+    public function multiSetScore(Request $request): Response
+    {
+        $data = $request->post();
+        v::arrayType()
+            ->notEmpty()
+            ->each(
+                v::arrayType()
+                    ->key('match_id', v::intType()->notEmpty())
+                    ->key('score1', v::intType()->min(0))
+                    ->key('score2', v::intType()->min(0))
+                    ->key('corner1', v::intType()->min(0))
+                    ->key('corner2', v::intType()->min(0))
+                    ->key('score1_period1', v::intType()->min(0))
+                    ->key('score2_period1', v::intType()->min(0))
+                    ->key('corner1_period1', v::intType()->min(0))
+                    ->key('corner2_period1', v::intType()->min(0))
+            )
+            ->check($data);
+
+        $this->matchService->multiSetMatchScore($data);
+        return $this->success();
+    }
+
+    /**
      * 设置赛果
      * @param Request $request
      * @return Response
