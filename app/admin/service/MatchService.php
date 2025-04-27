@@ -26,6 +26,7 @@ class MatchService
             ->where('match.match_time', '<=', Carbon::now()->subMinutes(150)->toISOString())
             ->where('match.match_time', '>=', Carbon::now()->subDays(2)->toISOString())
             ->where('match.has_score', '=', false)
+            ->distinct()
             ->get([
                 'match.id',
                 'match.match_time',
