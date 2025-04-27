@@ -29,6 +29,7 @@ class MatchService
             ->where('match.match_time', '>=', Carbon::createFromTimestamp($now)->subDays(2)->toISOString())
             ->where('match.has_score', '=', false)
             ->distinct()
+            ->orderBy('match.match_time')
             ->get([
                 'match.id',
                 'match.match_time',
