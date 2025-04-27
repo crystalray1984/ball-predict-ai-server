@@ -22,7 +22,7 @@ class MatchController extends Controller
      * @param Request $request
      * @return Response
      */
-    public function multiSetScore(Request $request): Response
+    public function multiSetMatchScore(Request $request): Response
     {
         $data = $request->post();
         v::arrayType()
