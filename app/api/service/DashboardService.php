@@ -90,7 +90,7 @@ class DashboardService
     {
         $query = PromotedOdd::query()
             ->join('match', 'match.id', '=', 'promoted_odd.match_id')
-            ->where('promoted.is_valid', '=', 1);
+            ->where('promoted_odd.is_valid', '=', 1);
 
         if (!empty($params['start_date'])) {
             $query->where(
