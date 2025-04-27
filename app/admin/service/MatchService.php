@@ -97,7 +97,7 @@ class MatchService
                     ->update([
                         'score1_period1' => $data['score1_period1'],
                         'score2_period1' => $data['score2_period1'],
-                        'corner1_period1' => $data['corner1'],
+                        'corner1_period1' => $data['corner1_period1'],
                         'corner2_period1' => $data['corner2_period1'],
                         'has_period1_score' => true,
                     ]);
@@ -105,6 +105,13 @@ class MatchService
                 //设置推荐盘口的结果
                 if (!empty($odds)) {
                     foreach ($odds as $odd) {
+                        //角球无数据的判断
+                        if ($odd['variety'] === 'corner') {
+                            if (!is_int($data['corner1_period1']) || !is_int($data['corner2_period1'])) {
+                                continue;
+                            }
+                        }
+
                         $result = get_odd_score($data, $odd);
                         PromotedOdd::query()
                             ->where('id', '=', $odd['id'])
@@ -147,7 +154,7 @@ class MatchService
                         'corner2' => $data['corner2'],
                         'score1_period1' => $data['score1_period1'],
                         'score2_period1' => $data['score2_period1'],
-                        'corner1_period1' => $data['corner1'],
+                        'corner1_period1' => $data['corner1_period1'],
                         'corner2_period1' => $data['corner2_period1'],
                         'has_score' => true,
                         'has_period1_score' => true,
@@ -156,6 +163,17 @@ class MatchService
                 //设置推荐盘口的结果
                 if (!empty($odds)) {
                     foreach ($odds as $odd) {
+                        //角球无数据的判断
+                        if ($odd['variety'] === 'corner') {
+                            if (!is_int($data['corner1_period1']) || !is_int($data['corner2_period1'])) {
+                                continue;
+                            }
+                        } else {
+                            if (!is_int($data['corner1']) || !is_int($data['corner2'])) {
+                                continue;
+                            }
+                        }
+
                         $result = get_odd_score($data, $odd);
                         PromotedOdd::query()
                             ->where('id', '=', $odd['id'])
