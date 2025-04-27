@@ -40,7 +40,7 @@ class MatchService
 
         $output = [];
         foreach ($list as $match) {
-            $match_time = $match['match_time']->timestamp;
+            $match_time = Carbon::parse($match['match_time'])->timestamp;
             if ($now - $match_time >= 105 * 60) {
                 //可以获得全场数据了
                 $output[] = [
