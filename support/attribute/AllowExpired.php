@@ -6,10 +6,10 @@ use Attribute;
 use support\trait\ResolveAttribute;
 
 /**
- * 标记接口允许匿名访问
+ * 是否允许已过期的用户调用此接口
  */
-#[Attribute(Attribute::TARGET_METHOD | Attribute::TARGET_CLASS)]
-class AllowGuest
+#[Attribute(Attribute::TARGET_METHOD)]
+class AllowExpired
 {
     use ResolveAttribute;
 }

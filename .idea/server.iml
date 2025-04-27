@@ -64,6 +64,7 @@
       <excludeFolder url="file://$MODULE_DIR$/vendor/workerman/validation" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/workerman/webman-framework" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/workerman/workerman" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/sqids/sqids" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

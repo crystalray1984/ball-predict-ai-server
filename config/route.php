@@ -62,6 +62,37 @@ Route::group('/admin', function () {
         //获取盘口抓取数据列表
         Route::post('/list', [\app\admin\controller\OddController::class, 'getOddList']);
     });
+
+    //代理管理接口
+    Route::group('/agent', function () {
+        //获取代理列表
+        Route::post('/list', [\app\admin\controller\AgentController::class, 'list']);
+        //获取代理详情
+        Route::post('/get', [\app\admin\controller\AgentController::class, 'get']);
+        //保存代理
+        Route::post('/save', [\app\admin\controller\AgentController::class, 'save']);
+    });
+
+    //用户管理接口
+    Route::group('/user', function () {
+        //获取代理列表
+        Route::post('/list', [\app\admin\controller\AgentController::class, 'list']);
+        //获取代理详情
+        Route::post('/get', [\app\admin\controller\AgentController::class, 'get']);
+        //保存代理
+        Route::post('/save', [\app\admin\controller\AgentController::class, 'save']);
+    });
+});
+
+//代理端接口
+Route::group('/agent', function () {
+    //代理端用户接口
+    Route::group('/agent', function () {
+        //代理登录
+        Route::post('/login', [\app\admin\controller\AdminController::class, 'login']);
+        //获取当前登录代理的信息
+        Route::post('/info', [\app\admin\controller\AdminController::class, 'info']);
+    });
 });
 
 Route::disableDefaultRoute();

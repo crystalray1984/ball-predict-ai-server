@@ -5,7 +5,6 @@ namespace app\admin\controller;
 use app\admin\service\AdminService;
 use DI\Attribute\Inject;
 use Respect\Validation\Validator as v;
-use support\attribute\AllowGuest;
 use support\Controller;
 use support\Request;
 use support\Response;
@@ -24,7 +23,6 @@ class AdminController extends Controller
      * @param Request $request
      * @return Response
      */
-    #[AllowGuest]
     public function login(Request $request): Response
     {
         $params = v::input($request->post(), [

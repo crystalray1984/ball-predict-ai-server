@@ -2,6 +2,7 @@
 
 namespace app\model;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
 use support\Model;
 
 /**
@@ -15,12 +16,14 @@ use support\Model;
  */
 class Admin extends Model
 {
+    use SoftDeletes;
+
     protected $table = 'admin';
 
     public function jsonSerialize(): array
     {
         $array = parent::toArray();
-        unset($array['password']);
+        $array['password'] = '';
         unset($array['deleted_at']);
         return $array;
     }

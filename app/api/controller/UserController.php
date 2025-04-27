@@ -5,7 +5,6 @@ namespace app\api\controller;
 use app\api\service\UserService;
 use DI\Attribute\Inject;
 use Respect\Validation\Validator as v;
-use support\attribute\AllowGuest;
 use support\Controller;
 use support\Request;
 use support\Response;
@@ -24,7 +23,6 @@ class UserController extends Controller
      * @param Request $request
      * @return Response
      */
-    #[AllowGuest]
     public function login(Request $request): Response
     {
         $params = v::input($request->post(), [
@@ -41,6 +39,31 @@ class UserController extends Controller
 
         return $this->success(
             $this->userService->login($params)
+        );
+    }
+
+    /**
+     * 用户注册
+     * @param Request $request
+     * @return Response
+     */
+    public function register(Request $request): Response
+    {
+        $params = v::input($request->post(), [
+            'username' => v::stringType()->notEmpty()->setName('username'),
+            'password' => v::stringType()->notEmpty()->setName('password'),
+            'code_key' => v::stringType()->notEmpty()->setName('code_key'),
+            'code' => v::stringType()->notEmpty()->setName('code'),
+            'invite_code' => v::stringType()->notEmpty()->setName('invite_code'),
+        ]);
+
+        //校验验证码
+        if (!Captcha::check($params['code'], $params['code_key'])) {
+            return $this->fail('验证码错误');
+        }
+
+        return $this->success(
+            $this->userService->register($params)
         );
     }
 

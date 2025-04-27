@@ -2,6 +2,7 @@
 
 namespace app\api\service;
 
+use app\model\Agent;
 use app\model\User;
 use support\exception\BusinessError;
 use support\Token;
@@ -30,16 +31,66 @@ class UserService
             throw new BusinessError('密码错误');
         }
 
-        if ($user->expire_time->timestamp < time()) {
-            throw new BusinessError('账号已到期');
-        }
-
         if ($user->status !== 1) {
             throw new BusinessError('账号已被禁用');
         }
 
         //生成token
         $token = Token::create(['id' => $user->id, 'type' => 'user']);
+
+        return [
+            'token' => $token,
+            'user' => $user,
+        ];
+    }
+
+    /**
+     * 用户注册
+     * @param array $params
+     * @return array
+     */
+    public function register(array $params): array
+    {
+        //先检查用户名是否存在
+        $usernameExists = User::query()
+            ->where('username', '=', $params['username'])
+            ->exists();
+
+        if ($usernameExists) {
+            throw new BusinessError('账号已被使用');
+        }
+
+        //再检查邀请码对应的代理
+        $agent = Agent::query()
+            ->where('code', '=', $params['invite_code'])
+            ->first();
+        if (!$agent || $agent->status !== 1) {
+            throw new BusinessError('无效的邀请码');
+        }
+
+        //根据代理确定用户归属
+        if (!empty($agent->parent_id)) {
+            $agent1_id = $agent->parent_id;
+            $agent2_id = $agent->id;
+        } else {
+            $agent1_id = $agent->id;
+            $agent2_id = 0;
+        }
+
+        //创建用户
+        $userId = User::insertGetId([
+            'username' => $params['username'],
+            'password' => md5($params['password']),
+            'status' => 1,
+            'expire_time' => User::raw('CURRENT_TIMESTAMP'),
+            'agent1_id' => $agent1_id,
+            'agent2_id' => $agent2_id,
+        ]);
+
+        $user = User::query()->where('id', '=', $userId)->first();
+
+        //生成token
+        $token = Token::create(['id' => $userId, 'type' => 'user']);
 
         return [
             'token' => $token,

@@ -3,11 +3,9 @@
 return [
     '' => [
         \app\middleware\QueryLog::class,
+//        \app\middleware\CheckTokenMiddleware::class,
     ],
-    'api' => [
-//        \app\middleware\CheckUserMiddleware::class,
-    ],
-    'admin' => [
-//        \app\middleware\CheckAdminMiddleware::class,
-    ]
+    'api' => [],
+    'admin' => [],
+    'agent' => []
 ];

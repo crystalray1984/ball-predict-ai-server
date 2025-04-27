@@ -23,7 +23,7 @@ class MatchService
             ->join('team AS team1', 'team1.id', '=', 'match.team1_id')
             ->join('team AS team2', 'team2.id', '=', 'match.team2_id')
             ->join('odd', 'odd.match_id', '=', 'match.id')
-            ->where('match.match_time', '<=', Carbon::now()->subMinutes(150)->toISOString())
+            ->where('match.match_time', '<=', Carbon::now()->subMinutes(120)->toISOString())
             ->where('match.match_time', '>=', Carbon::now()->subDays(2)->toISOString())
             ->where('match.has_score', '=', false)
             ->distinct()

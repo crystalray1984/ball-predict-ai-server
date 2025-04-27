@@ -105,3 +105,20 @@ if (!function_exists('json_enc')) {
         );
     }
 }
+
+if (!function_exists('array_find')) {
+    /**
+     * 通过回调查询数组中是否存在满足条件的数据
+     * @template T
+     * @param T[] $array
+     * @param callable $callable
+     * @return T|null
+     */
+    function array_find(array $array, callable $callable): mixed
+    {
+        foreach ($array as $key => $value) {
+            if ($callable($value, $key)) return $value;
+        }
+        return null;
+    }
+}
