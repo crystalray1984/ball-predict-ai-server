@@ -165,12 +165,14 @@ class MatchService
                     foreach ($odds as $odd) {
                         //角球无数据的判断
                         if ($odd['variety'] === 'corner') {
-                            if (!is_int($data['corner1_period1']) || !is_int($data['corner2_period1'])) {
-                                continue;
-                            }
-                        } else {
-                            if (!is_int($data['corner1']) || !is_int($data['corner2'])) {
-                                continue;
+                            if ($odd['period'] === 'period1') {
+                                if (!is_int($data['corner1_period1']) || !is_int($data['corner2_period1'])) {
+                                    continue;
+                                }
+                            } else {
+                                if (!is_int($data['corner1']) || !is_int($data['corner2'])) {
+                                    continue;
+                                }
                             }
                         }
 
