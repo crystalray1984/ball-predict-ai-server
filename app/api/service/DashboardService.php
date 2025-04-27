@@ -43,7 +43,9 @@ class DashboardService
             );
         }
 
-        $data = $query->groupBy('promoted_odd.result')
+        $total = $query->count();
+
+        $data = $query->whereNotNull('promoted_odd.result')->groupBy('promoted_odd.result')
             ->select([
                 'promoted_odd.result',
             ])
@@ -54,7 +56,7 @@ class DashboardService
         if (empty($data)) {
             //没有数据
             return [
-                'total' => 0,
+                'total' => $total,
                 'win' => 0,
                 'loss' => 0,
                 'draw' => 0,
@@ -63,7 +65,7 @@ class DashboardService
         }
 
         $data = array_column($data, 'count', 'result');
-        $total = array_sum($data);
+        
         $result = [
             'total' => $total,
             'win' => $data[1] ?? 0,
