@@ -25,7 +25,8 @@
       "app\\": "./app"
     },
     "files": [
-      "./support/helpers.php"
+      "./support/helpers.php",
+      "./support/helpers2.php"
     ]
   },
   "scripts": {
