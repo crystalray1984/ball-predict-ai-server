@@ -4,9 +4,9 @@ namespace app\api\service;
 
 use app\model\Agent;
 use app\model\User;
+use Carbon\Carbon;
 use support\exception\BusinessError;
 use support\Token;
-use Tinywan\Captcha\Captcha;
 
 /**
  * 用户业务逻辑
@@ -60,21 +60,25 @@ class UserService
             throw new BusinessError('账号已被使用');
         }
 
-        //再检查邀请码对应的代理
-        $agent = Agent::query()
-            ->where('code', '=', $params['invite_code'])
-            ->first();
-        if (!$agent || $agent->status !== 1) {
-            throw new BusinessError('无效的邀请码');
-        }
+        $agent1_id = 0;
+        $agent2_id = 0;
 
-        //根据代理确定用户归属
-        if (!empty($agent->parent_id)) {
-            $agent1_id = $agent->parent_id;
-            $agent2_id = $agent->id;
-        } else {
-            $agent1_id = $agent->id;
-            $agent2_id = 0;
+        if (!empty($params['invite_code'])) {
+            //再检查邀请码对应的代理
+            $agent = Agent::query()
+                ->where('code', '=', $params['invite_code'])
+                ->first();
+            if (!$agent || $agent->status !== 1) {
+                throw new BusinessError('无效的邀请码');
+            }
+
+            //根据代理确定用户归属
+            if (!empty($agent->parent_id)) {
+                $agent1_id = $agent->parent_id;
+                $agent2_id = $agent->id;
+            } else {
+                $agent1_id = $agent->id;
+            }
         }
 
         //创建用户
@@ -82,7 +86,7 @@ class UserService
             'username' => $params['username'],
             'password' => md5($params['password']),
             'status' => 1,
-            'expire_time' => User::raw('CURRENT_TIMESTAMP'),
+            'expire_time' => Carbon::now()->addMinutes(5)->toISOString(),
             'agent1_id' => $agent1_id,
             'agent2_id' => $agent2_id,
         ]);

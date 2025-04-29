@@ -23,7 +23,7 @@ class AgentService
         }
 
         return $query
-            ->orderBy('desc', 'id')
+            ->orderBy('id', 'desc')
             ->get([
                 'id',
                 'parent_id',

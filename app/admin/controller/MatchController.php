@@ -55,6 +55,7 @@ class MatchController extends Controller
             'score2_period1' => v::intType()->min(0)->setName('score2_period1'),
             'corner1_period1' => v::intType()->min(0)->setName('corner1_period1'),
             'corner2_period1' => v::intType()->min(0)->setName('corner2_period1'),
+            'period1' => v::boolType()->setName('period1'),
         ]);
 
         $this->matchService->setMatchScore($params);

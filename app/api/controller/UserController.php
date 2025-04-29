@@ -54,7 +54,7 @@ class UserController extends Controller
             'password' => v::stringType()->notEmpty()->setName('password'),
             'code_key' => v::stringType()->notEmpty()->setName('code_key'),
             'code' => v::stringType()->notEmpty()->setName('code'),
-            'invite_code' => v::stringType()->notEmpty()->setName('invite_code'),
+            'invite_code' => v::optional(v::stringType())->setName('invite_code'),
         ]);
 
         //校验验证码

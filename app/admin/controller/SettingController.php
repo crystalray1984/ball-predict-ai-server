@@ -5,6 +5,7 @@ namespace app\admin\controller;
 use app\admin\service\SettingService;
 use DI\Attribute\Inject;
 use Respect\Validation\Validator as v;
+use support\attribute\CheckAdminToken;
 use support\Controller;
 use support\Request;
 use support\Response;
