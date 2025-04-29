@@ -108,6 +108,7 @@ class OddService
                     'score',
                     'back',
                     'special',
+                    'special_odd',
                 ])
                 ->toArray();
 
@@ -135,6 +136,9 @@ class OddService
                 //推荐数据
                 $promoted = $promotes[$row['id']] ?? null;
                 if ($promoted) {
+                    if (!empty($promoted['special_odd'])) {
+                        $promoted['special_odd'] = json_decode($promoted['special_odd']);
+                    }
                     //计算结果
                     if (isset($promoted['result'])) {
                         $promoted['result'] = [
