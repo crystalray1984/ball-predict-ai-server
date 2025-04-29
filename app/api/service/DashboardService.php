@@ -87,7 +87,7 @@ class DashboardService
      * @param array $params
      * @return array
      */
-    public function promoted(array $params, Carbon|string|null $expireTime = null): array
+    public function promoted(array $params): array
     {
         $query = PromotedOdd::query()
             ->join('match', 'match.id', '=', 'promoted_odd.match_id')
@@ -118,14 +118,6 @@ class DashboardService
             default:
                 $query->orderBy('promoted_odd.id', $params['sort_order'] ?? 'desc');
                 break;
-        }
-
-        if (!empty($expireTime)) {
-            if (is_string($expireTime)) {
-                $query->where('created_at', '<', $expireTime);
-            } elseif ($expireTime instanceof Carbon) {
-                $query->where('created_at', '>', $expireTime->toISOString());
-            }
         }
 
         //查询

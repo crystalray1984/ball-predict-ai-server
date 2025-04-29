@@ -6,7 +6,6 @@ use app\model\Admin;
 use app\model\Agent;
 use app\model\User;
 use Exception;
-use support\attribute\AllowExpired;
 use support\attribute\CheckToken;
 use support\JsonResponse;
 use support\Token;
@@ -94,16 +93,6 @@ class CheckTokenMiddleware implements MiddlewareInterface
                 'code' => 402,
                 'msg' => '账户已被禁用',
             ]);
-        }
-
-        if ($user->expire_time->timestamp < time()) {
-            //用户已过期
-            if (!AllowExpired::getAttribute($request->controller, $request->action)) {
-                return new JsonResponse([
-                    'code' => 403,
-                    'msg' => '账户已到期',
-                ]);
-            }
         }
 
         //设置实体上的用户信息

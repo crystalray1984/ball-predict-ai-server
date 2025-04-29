@@ -76,11 +76,11 @@ Route::group('/admin', function () {
     //用户管理接口
     Route::group('/user', function () {
         //获取代理列表
-        Route::post('/list', [\app\admin\controller\AgentController::class, 'list']);
+        Route::post('/list', [\app\admin\controller\UserController::class, 'list']);
         //获取代理详情
-        Route::post('/get', [\app\admin\controller\AgentController::class, 'get']);
+        Route::post('/get', [\app\admin\controller\UserController::class, 'get']);
         //保存代理
-        Route::post('/save', [\app\admin\controller\AgentController::class, 'save']);
+        Route::post('/save', [\app\admin\controller\UserController::class, 'save']);
     });
 });
 

@@ -3,6 +3,7 @@
 namespace app\api\controller;
 
 use app\api\service\DashboardService;
+use Carbon\Carbon;
 use DI\Attribute\Inject;
 use Respect\Validation\Validator as v;
 use support\Controller;
@@ -59,13 +60,20 @@ class DashboardController extends Controller
             'sort_order' => v::optional(v::in(['asc', 'desc']))->setName('sort_order'),
         ]);
 
-        $expireTime = null;
         if ($request->user) {
-            $expireTime = $request->user->expire_time;
+            if (is_string($request->user->expire_time)) {
+                $expireTime = Carbon::parse($request->user->expire_time);
+            } else {
+                $expireTime = $request->user->expire_time;
+            }
+            if ($expireTime->unix() < time()) {
+                //账户已过期
+                return $this->fail('账户已过期', 403);
+            }
         }
 
         return $this->success(
-            $this->dashboardService->promoted($params, $expireTime)
+            $this->dashboardService->promoted($params)
         );
     }
 }
