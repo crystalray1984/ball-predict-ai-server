@@ -38,7 +38,7 @@ class OddService
 
         //筛选数据
         if ($params['matched2'] === 1) {
-            $query->where('odd.status', '=', 'promoted');
+            $query->whereIn('odd.status', ['promoted', 'skip']);
         } elseif ($params['matched2'] === 0) {
             $query->where('odd.status', '=', 'ignored');
         } else {
