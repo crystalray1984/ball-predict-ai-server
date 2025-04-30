@@ -38,7 +38,7 @@ class OddService
 
         //筛选数据
         if ($params['matched2'] === 1) {
-            $query->where('odd.status', '=', 'promoted');
+            $query->whereIn('odd.status', ['promoted', 'skip']);
         } elseif ($params['matched2'] === 0) {
             $query->where('odd.status', '=', 'ignored');
         } else {
@@ -62,6 +62,7 @@ class OddService
                 'odd.condition',
                 'odd.surebet_value',
                 'odd.crown_value',
+                'odd.crown_condition2',
                 'odd.crown_value2',
                 'odd.status',
                 'match.match_time',
@@ -129,6 +130,7 @@ class OddService
                     'team2' => $teams[$row['team2_id']],
                     'surebet_value' => $row['surebet_value'],
                     'crown_value' => $row['crown_value'],
+                    'crown_condition2' => $row['crown_condition2'],
                     'crown_value2' => $row['crown_value2'],
                     'status' => $row['status'],
                 ];
