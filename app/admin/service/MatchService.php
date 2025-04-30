@@ -30,6 +30,7 @@ class MatchService
             ->where('match.match_time', '<=', Carbon::createFromTimestamp($now)->subMinutes(45)->toISOString())
             ->where('match.match_time', '>=', Carbon::createFromTimestamp($now)->subDays(2)->toISOString())
             ->where('match.has_score', '=', false)
+            ->where('match.error_status', '=', 0)
             ->distinct()
             ->orderBy('match.match_time')
             ->get([
@@ -294,6 +295,7 @@ class MatchService
                 'name' => $row['tournament_name'],
             ];
             unset(
+                $row['status'],
                 $row['team1_id'],
                 $row['team1_name'],
                 $row['team2_id'],

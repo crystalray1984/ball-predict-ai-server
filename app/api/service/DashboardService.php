@@ -142,7 +142,9 @@ class DashboardService
             'match.corner2',
             'match.corner1_period1',
             'match.corner2_period1',
-            'match.has_score'
+            'match.has_score',
+            'match.has_period1_score',
+            'match.error_status',
         ])->toArray();
 
         if (!empty($rows)) {
@@ -180,10 +182,9 @@ class DashboardService
                     'tournament' => $tournaments[$row['tournament_id']],
                     'team1' => $teams[$row['team1_id']],
                     'team2' => $teams[$row['team2_id']],
+                    'error_status' => $row['error_status'],
                 ];
-
-                //计算结果
-                if (isset($row['result'])) {
+                if ($row['error_status'] === 0 && isset($row['result'])) {
                     $output['result'] = [
                         'score' => $row['score'],
                         'result' => $row['result'],
