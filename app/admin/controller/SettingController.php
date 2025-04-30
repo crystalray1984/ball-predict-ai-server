@@ -19,6 +19,7 @@ class SettingController extends Controller
      * 读取系统配置
      * @return Response
      */
+    #[CheckAdminToken]
     public function get(): Response
     {
         return $this->success(
@@ -31,6 +32,7 @@ class SettingController extends Controller
      * @param Request $request
      * @return Response
      */
+    #[CheckAdminToken]
     public function save(Request $request): Response
     {
         $params = $request->post();

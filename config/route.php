@@ -55,6 +55,12 @@ Route::group('/admin', function () {
         Route::post('/multi_set_score', [\app\admin\controller\MatchController::class, 'multiSetMatchScore']);
         //设置赛果
         Route::post('/set_score', [\app\admin\controller\MatchController::class, 'setMatchScore']);
+        //获取赛事列表
+        Route::post('/tournament_list', [\app\admin\controller\MatchController::class, 'getTournamentList']);
+        //获取赛事列表
+        Route::post('/match_list', [\app\admin\controller\MatchController::class, 'getMatchList']);
+        //设置赛事的异常状态
+        Route::post('/set_error_status', [\app\admin\controller\MatchController::class, 'setMatchErrorStatus']);
     });
 
     //数据列表接口

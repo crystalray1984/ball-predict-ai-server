@@ -5,6 +5,7 @@ namespace app\admin\controller;
 use app\admin\service\UserService;
 use DI\Attribute\Inject;
 use Respect\Validation\Validator as v;
+use support\attribute\CheckAdminToken;
 use support\Controller;
 use support\Request;
 use support\Response;
@@ -22,6 +23,7 @@ class UserController extends Controller
      * @param Request $request
      * @return Response
      */
+    #[CheckAdminToken]
     public function list(Request $request): Response
     {
         $params = v::input($request->post(), [
@@ -41,6 +43,7 @@ class UserController extends Controller
      * @param Request $request
      * @return Response
      */
+    #[CheckAdminToken]
     public function get(Request $request): Response
     {
         $params = v::input($request->post(), [
@@ -57,6 +60,7 @@ class UserController extends Controller
      * @param Request $request
      * @return Response
      */
+    #[CheckAdminToken]
     public function save(Request $request): Response
     {
         $params = v::input($request->post(), [

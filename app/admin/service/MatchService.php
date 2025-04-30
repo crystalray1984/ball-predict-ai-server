@@ -3,7 +3,9 @@
 namespace app\admin\service;
 
 use app\model\Match1;
+use app\model\MatchView;
 use app\model\PromotedOdd;
+use app\model\Tournament;
 use Carbon\Carbon;
 use support\Db;
 use Throwable;
@@ -214,5 +216,114 @@ class MatchService
             Db::rollBack();
             throw $exception;
         }
+    }
+
+    /**
+     * 获取赛事列表
+     * @param array $params
+     * @return array
+     */
+    public function getTournamentList(array $params): array
+    {
+        $query = Tournament::query();
+        if (!empty($params['name'])) {
+            $query->where('name', 'like', '%' . $params['name'] . '%');
+        }
+        return $query
+            ->orderBy('name', 'asc')
+            ->get(['id', 'name'])
+            ->toArray();
+    }
+
+    /**
+     * 获取比赛列表
+     * @param array $params
+     * @return array
+     */
+    public function getMatchList(array $params): array
+    {
+        $query = MatchView::query();
+
+        if (!empty($params['start_date'])) {
+            $query->where(
+                'v_match.match_time',
+                '>=',
+                Carbon::parse($params['start_date'])->toISOString(),
+            );
+        }
+        if (!empty($params['end_date'])) {
+            $query->where(
+                'v_match.match_time',
+                '<',
+                Carbon::parse($params['end_date'])
+                    ->addDays()
+                    ->toISOString(),
+            );
+        }
+        if (!empty($params['tournament_id'])) {
+            $query->where('tournament_id', '=', $params['tournament_id']);
+        }
+        if (!empty($params['team_id'])) {
+            $query->where(function ($where) use ($params) {
+                $where->where('team1_id', '=', $params['team_id'])
+                    ->orWhere('team2_id', '=', $params['team_id']);
+            });
+        } elseif (!empty($params['team'])) {
+            $query->where(function ($where) use ($params) {
+                $where->where('team1_name', 'like', '%' . $params['team'] . '%')
+                    ->orWhere('team2_name', 'like', '%' . $params['team'] . '%');
+            });
+        }
+        $count = $query->count();
+        $list = $query
+            ->orderBy('v_match.match_time', 'DESC')
+            ->get()
+            ->toArray();
+
+        $list = array_map(function (array $row) {
+            $row['team1'] = [
+                'id' => $row['team1_id'],
+                'name' => $row['team1_name'],
+            ];
+            $row['team2'] = [
+                'id' => $row['team2_id'],
+                'name' => $row['team2_name'],
+            ];
+            $row['tournament'] = [
+                'id' => $row['tournament_id'],
+                'name' => $row['tournament_name'],
+            ];
+            unset(
+                $row['team1_id'],
+                $row['team1_name'],
+                $row['team2_id'],
+                $row['team2_name'],
+                $row['tournament_id'],
+                $row['tournament_name'],
+                $row['created_at'],
+                $row['updated_at'],
+            );
+            return $row;
+        }, $list);
+
+        return [
+            'count' => $count,
+            'list' => $list,
+        ];
+    }
+
+    /**
+     * 设置比赛的异常状态
+     * @param int $match_id
+     * @param int $error_status
+     * @return void
+     */
+    public function setMatchErrorStatus(int $match_id, int $error_status): void
+    {
+        Match1::query()
+            ->where('id', '=', $match_id)
+            ->update([
+                'error_status' => $error_status,
+            ]);
     }
 }

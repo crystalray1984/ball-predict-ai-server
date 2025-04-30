@@ -6,7 +6,7 @@ use Carbon\Carbon;
 use support\Model;
 
 /**
- * 比赛表
+ * 比赛信息视图
  * @property int $id
  * @property int $tournament_id
  * @property int $crown_match_id
@@ -23,10 +23,13 @@ use support\Model;
  * @property int|null $corner1_period1
  * @property int|null $corner2_period1
  * @property int $error_status
+ * @property string $team1_name
+ * @property string $team2_name
+ * @property string $tournament_name
  */
-class Match1 extends Model
+class MatchView extends Model
 {
-    protected $table = 'match';
+    protected $table = 'v_match';
 
     protected $casts = [
         'match_time' => 'datetime',
