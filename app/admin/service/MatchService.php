@@ -76,25 +76,78 @@ class MatchService
      */
     public function setMatchScore(array $data): void
     {
+        //首先读取所有需要更新的推荐盘口
+        $query = PromotedOdd::query()
+            ->where('match_id', '=', $data['match_id']);
         if ($data['period1']) {
-            //设置半场赛果
+            $query->where('period', '=', 'period1');
+        }
+        $odds = $query
+            ->get([
+                'id',
+                'variety',
+                'period',
+                'type',
+                'condition',
+                'type2',
+                'condition2',
+            ])
+            ->toArray();
 
-            //查询比赛所有的已推荐盘口
-            $odds = PromotedOdd::query()
-                ->where('match_id', '=', $data['match_id'])
-                ->where('period', '=', 'period1')
-                ->get([
-                    'id',
-                    'variety',
-                    'period',
-                    'type',
-                    'condition'
-                ])
-                ->toArray();
+        //然后进行赛果计算
+        $updates = [];
+        foreach ($odds as $odd) {
+            //角球无数据的判断
+            if ($odd['variety'] === 'corner') {
+                if ($odd['period'] === 'period1') {
+                    if (!is_int($data['corner1_period1']) || !is_int($data['corner2_period1'])) {
+                        continue;
+                    }
+                } else {
+                    if (!is_int($data['corner1']) || !is_int($data['corner2'])) {
+                        continue;
+                    }
+                }
+            }
 
-            Db::beginTransaction();
-            try {
-                //设置比赛的结果
+            //计算第一赛果
+            $update = [];
+            $result1 = get_odd_score($data, $odd);
+            $update['score'] = $result1['score'];
+            $update['result1'] = $result1['result'];
+
+            if (isset($odd['type2'])) {
+                //有设置了第二盘口的，就计算第二赛果
+                $result2 = get_odd_score($data, [
+                    'variety' => $odd['variety'],
+                    'period' => $odd['variety'],
+                    'type' => $odd['type2'],
+                    'condition' => $odd['condition2'],
+                ]);
+                $update['result2'] = $result2['result'];
+
+                //两个结果合并起来作为最终推荐的结果
+                if ($result1['result'] > 0 || $result2['result'] > 0) {
+                    //两个盘口只要有一个赢了就是赢
+                    $update['result'] = 1;
+                } elseif ($result1['result'] < 0 || $result2['result'] < 0) {
+                    //没有赢的盘，那么两个盘口中有一个输就是输
+                    $update['result'] = -1;
+                } else {
+                    $update['result'] = 0;
+                }
+            } else {
+                //没有设置第二盘口就直接把第一盘口的结果当成最终结果
+                $update['result'] = $update['result1'];
+            }
+
+            $updates[$odd['id']] = $update;
+        }
+
+        Db::beginTransaction();
+        try {
+            //首先设置赛果
+            if ($data['period1']) {
                 Match1::query()
                     ->where('id', '=', $data['match_id'])
                     ->update([
@@ -104,50 +157,7 @@ class MatchService
                         'corner2_period1' => $data['corner2_period1'],
                         'has_period1_score' => true,
                     ]);
-
-                //设置推荐盘口的结果
-                if (!empty($odds)) {
-                    foreach ($odds as $odd) {
-                        //角球无数据的判断
-                        if ($odd['variety'] === 'corner') {
-                            if (!is_int($data['corner1_period1']) || !is_int($data['corner2_period1'])) {
-                                continue;
-                            }
-                        }
-
-                        $result = get_odd_score($data, $odd);
-                        PromotedOdd::query()
-                            ->where('id', '=', $odd['id'])
-                            ->update([
-                                'score' => $result['score'],
-                                'result' => $result['result'],
-                            ]);
-                    }
-                }
-
-                Db::commit();
-            } catch (Throwable $exception) {
-                Db::rollBack();
-                throw $exception;
-            }
-        } else {
-            //设置全场赛果
-
-            //查询比赛所有的已推荐盘口
-            $odds = PromotedOdd::query()
-                ->where('match_id', '=', $data['match_id'])
-                ->get([
-                    'id',
-                    'variety',
-                    'period',
-                    'type',
-                    'condition'
-                ])
-                ->toArray();
-
-            Db::beginTransaction();
-            try {
-                //设置比赛的结果
+            } else {
                 Match1::query()
                     ->where('id', '=', $data['match_id'])
                     ->update([
@@ -162,41 +172,20 @@ class MatchService
                         'has_score' => true,
                         'has_period1_score' => true,
                     ]);
-
-                //设置推荐盘口的结果
-                if (!empty($odds)) {
-                    foreach ($odds as $odd) {
-                        //角球无数据的判断
-                        if ($odd['variety'] === 'corner') {
-                            if ($odd['period'] === 'period1') {
-                                if (!is_int($data['corner1_period1']) || !is_int($data['corner2_period1'])) {
-                                    continue;
-                                }
-                            } else {
-                                if (!is_int($data['corner1']) || !is_int($data['corner2'])) {
-                                    continue;
-                                }
-                            }
-                        }
-
-                        $result = get_odd_score($data, $odd);
-                        PromotedOdd::query()
-                            ->where('id', '=', $odd['id'])
-                            ->update([
-                                'score' => $result['score'],
-                                'result' => $result['result'],
-                            ]);
-                    }
-                }
-
-                Db::commit();
-            } catch (Throwable $exception) {
-                Db::rollBack();
-                throw $exception;
             }
+
+            //然后设置推荐盘口的结果
+            foreach ($updates as $oddId => $update) {
+                PromotedOdd::query()
+                    ->where('id', '=', $oddId)
+                    ->update($update);
+            }
+
+            Db::rollBack();
+        } catch (Throwable $e) {
+            Db::rollBack();
+            throw $e;
         }
-
-
     }
 
     /**

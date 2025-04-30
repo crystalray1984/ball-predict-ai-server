@@ -164,6 +164,10 @@ if (!function_exists('get_odd_score')) {
             foreach ($condition['value'] as $value) {
                 $result['result'] += bccomp($value, (string)$score['total'], 1);
             }
+        } elseif ($odd['type'] === 'draw') {
+            //平球
+            $result['score'] = $score['score1'] . ':' . $score['score2'];
+            $result['result'] += $score['score1'] === $score['score2'] ? 1 : -1;
         }
 
         if ($result['result'] > 0) {
