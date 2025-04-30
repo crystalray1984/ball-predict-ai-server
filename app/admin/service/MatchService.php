@@ -2,6 +2,8 @@
 
 namespace app\admin\service;
 
+use app\model\ManualPromoteOdd;
+use app\model\ManualPromoteRecord;
 use app\model\Match1;
 use app\model\MatchView;
 use app\model\PromotedOdd;
@@ -179,6 +181,21 @@ class MatchService
                 PromotedOdd::query()
                     ->where('id', '=', $oddId)
                     ->update($update);
+            }
+
+            //找到这些推荐的盘口中，那些是手动推荐的盘口而且是赢了的，反过来去找他们的手动推荐的其他场次，标记为不再推荐
+            $winOdds = array_filter($updates, fn(array $update) => $update['result'] === 1);
+            if (!empty($winOdds)) {
+                $winOddIds = array_keys($winOdds);
+                ManualPromoteOdd::query()
+                    ->whereIn(
+                        'record_id',
+                        ManualPromoteOdd::query()
+                            ->whereIn('promoted_odd_id', $winOddIds)
+                            ->select(['record_id'])
+                    )
+                    ->where('promoted_odd_id', '=', 0)
+                    ->update(['promoted_odd_id' => -1]);
             }
 
             Db::rollBack();
