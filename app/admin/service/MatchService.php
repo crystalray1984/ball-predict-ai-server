@@ -198,7 +198,7 @@ class MatchService
                     ->update(['promoted_odd_id' => -1]);
             }
 
-            Db::rollBack();
+            Db::commit();
         } catch (Throwable $e) {
             Db::rollBack();
             throw $e;
