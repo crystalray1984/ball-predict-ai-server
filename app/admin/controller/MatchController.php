@@ -68,7 +68,12 @@ class MatchController extends Controller
     {
         $params = v::input($request->post(), [
             'match_id' => v::intType()->notEmpty()->setName('match_id'),
-            'error_status' => v::intType()->min(0)->setName('error_status'),
+            'error_status' => v::stringType()->in([
+                '',
+                'delayed',
+                'cancelled',
+                'interrupted'
+            ])->setName('error_status'),
         ]);
 
         $this->matchService->setMatchErrorStatus($params['match_id'], $params['error_status']);

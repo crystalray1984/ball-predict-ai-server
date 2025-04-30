@@ -184,7 +184,7 @@ class DashboardService
                     'team2' => $teams[$row['team2_id']],
                     'error_status' => $row['error_status'],
                 ];
-                if ($row['error_status'] === 0 && isset($row['result'])) {
+                if ($row['error_status'] === '' && isset($row['result'])) {
                     $output['result'] = [
                         'score' => $row['score'],
                         'result' => $row['result'],

@@ -1,0 +1,16 @@
+<?php declare(strict_types=1);
+
+namespace app\model;
+
+use Illuminate\Database\Eloquent\SoftDeletes;
+use support\Model;
+
+/**
+ * 手动推荐的盘口
+ */
+class ManualPromoteOdd extends Model
+{
+    use SoftDeletes;
+
+    protected $table = 'manual_promote_odd';
+}
