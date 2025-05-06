@@ -3,7 +3,7 @@
 return [
     '' => [
         \app\middleware\QueryLog::class,
-//        \app\middleware\CheckTokenMiddleware::class,
+        \app\middleware\CheckTokenMiddleware::class,
     ],
     'api' => [],
     'admin' => [],
