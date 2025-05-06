@@ -3,7 +3,6 @@
 namespace app\middleware;
 
 use Exception;
-use support\attribute\CheckToken;
 use support\JsonResponse;
 use support\Token;
 use Webman\Http\Request;
@@ -59,7 +58,7 @@ abstract class CheckTokenMiddleware implements MiddlewareInterface
         }
 
         //检查是否存在与token类型对应的注解
-        $attr = array_find($attrs, fn(CheckToken $attr) => $attr->type === $claims['payload']['type']);
+        $attr = array_find($attrs, fn($attr) => $attr->type === $claims['payload']['type']);
         if (!$attr) {
             return $handler($request);
         }
