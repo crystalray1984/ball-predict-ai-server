@@ -17,7 +17,7 @@ class Agent extends Model
 {
     protected $table = 'agent';
 
-    protected $unguarded = true;
+    protected static $unguarded = true;
 
     public function jsonSerialize(): array
     {
