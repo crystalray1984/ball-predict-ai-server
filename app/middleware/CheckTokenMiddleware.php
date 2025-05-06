@@ -31,6 +31,7 @@ abstract class CheckTokenMiddleware implements MiddlewareInterface
         $attrs = call_user_func([$attrClass, 'getAllAttributes'], $request->controller, $request->action);
 
         echo $request->path() . PHP_EOL;
+        echo $attrClass . PHP_EOL;
         var_dump($attrs);
 
         if (empty($attrs)) {
