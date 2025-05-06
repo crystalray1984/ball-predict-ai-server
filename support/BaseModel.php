@@ -4,5 +4,5 @@ namespace support;
 
 abstract class BaseModel extends Model
 {
-    protected $dateFormat = 'c';
+    protected $dateFormat = 'Y-m-d\TH:i:s.uZ';
 }
