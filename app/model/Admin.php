@@ -20,6 +20,8 @@ class Admin extends Model
 
     protected $table = 'admin';
 
+    protected $unguarded = true;
+
     public function jsonSerialize(): array
     {
         $array = parent::toArray();

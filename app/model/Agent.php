@@ -17,6 +17,8 @@ class Agent extends Model
 {
     protected $table = 'agent';
 
+    protected $unguarded = true;
+
     public function jsonSerialize(): array
     {
         $array = parent::toArray();

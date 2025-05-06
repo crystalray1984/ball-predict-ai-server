@@ -23,6 +23,8 @@ class User extends Model
 
     protected $table = 'user';
 
+    protected $unguarded = true;
+
     public function jsonSerialize(): array
     {
         $array = parent::toArray();
