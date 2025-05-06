@@ -27,7 +27,12 @@ class User extends Model
 
     protected $casts = [
         'expire_time' => 'datetime:c',
+        'created_at' => 'datetime:c',
+        'updated_at' => 'datetime:c',
+        'deleted_at' => 'datetime:c',
     ];
+
+    protected $hidden = ['password', 'deleted_at'];
 
     public function jsonSerialize(): array
     {
