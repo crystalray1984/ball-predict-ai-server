@@ -2,9 +2,6 @@
 
 namespace app\middleware;
 
-use app\model\Admin;
-use app\model\Agent;
-use app\model\User;
 use Exception;
 use support\attribute\CheckToken;
 use support\JsonResponse;
@@ -16,8 +13,12 @@ use Webman\MiddlewareInterface;
 /**
  * 检查token的中间件
  */
-class CheckTokenMiddleware implements MiddlewareInterface
+abstract class CheckTokenMiddleware implements MiddlewareInterface
 {
+    protected abstract function getAttributeClass(): string;
+
+    protected abstract function checkToken(int $id, Request $request, callable $handler): Response;
+
     public function process(Request $request, callable $handler): Response
     {
         //先判断是否为控制器和方法组合
@@ -26,7 +27,8 @@ class CheckTokenMiddleware implements MiddlewareInterface
         }
 
         //再检查方法上是否存在检查token的注解
-        $attrs = CheckToken::getAllAttributes($request->controller, $request->action);
+        $attrClass = $this->getAttributeClass();
+        $attrs = call_user_func([$attrClass, 'getAllAttributes'], $request->controller, $request->action);
 
         echo $request->path() . PHP_EOL;
         var_dump($attrs);
@@ -61,133 +63,9 @@ class CheckTokenMiddleware implements MiddlewareInterface
             return $this->fail();
         }
 
-        //根据不同的token类型做检查
-        return match ($attr->type) {
-            'user' => $this->checkUserToken($claims['payload']['id'], $request, $handler),
-            'agent' => $this->checkAgentToken($claims['payload']['id'], $request, $handler),
-            'admin' => $this->checkAdminToken($claims['payload']['id'], $request, $handler),
-            default => $this->fail(),
-        };
+        return $this->checkToken($claims['payload']['id'], $request, $handler);
     }
 
-    /**
-     * 检查用户token
-     * @param int $id
-     * @param Request $request
-     * @param callable $handler
-     * @return Response
-     */
-    protected function checkUserToken(int $id, Request $request, callable $handler): Response
-    {
-        /**
-         * @var User $user
-         */
-        $user = get_user($id);
-
-        if (!$user) {
-            //用户不存在
-            return $this->fail();
-        }
-
-        if ($user->status !== 1) {
-            //用户已禁用
-            return new JsonResponse([
-                'code' => 402,
-                'msg' => '账户已被禁用',
-            ]);
-        }
-
-        //设置实体上的用户信息
-        if ($request instanceof \support\Request) {
-            $request->user = $user;
-        }
-
-        return $handler($request);
-    }
-
-    /**
-     * 检查代理token
-     * @param int $id
-     * @param Request $request
-     * @param callable $handler
-     * @return Response
-     */
-    protected function checkAgentToken(int $id, Request $request, callable $handler): Response
-    {
-        /**
-         * @var Agent $agent
-         */
-        $agent = get_agent($id);
-
-        if (!$agent) {
-            //不存在
-            return $this->fail();
-        }
-
-        if ($agent->status !== 1) {
-            //用户已禁用
-            return new JsonResponse([
-                'code' => 402,
-                'msg' => '账户已被禁用',
-            ]);
-        }
-
-        //二级代理需要检查一级代理的状态
-        if ($agent->parent_id > 0) {
-            $parent = get_agent($agent->parent_id);
-            if (!$parent) {
-                return $this->fail();
-            }
-            if ($parent->status !== 1) {
-                return new JsonResponse([
-                    'code' => 402,
-                    'msg' => '账户已被禁用',
-                ]);
-            }
-        }
-
-        //设置实体上的用户信息
-        if ($request instanceof \support\Request) {
-            $request->agent = $agent;
-        }
-
-        return $handler($request);
-    }
-
-    /**
-     * 检查管理员token
-     * @param int $id
-     * @param Request $request
-     * @param callable $handler
-     * @return Response
-     */
-    protected function checkAdminToken(int $id, Request $request, callable $handler): Response
-    {
-        /**
-         * @var Admin $admin
-         */
-        $admin = get_admin($id);
-
-        if (!$admin) {
-            //不存在
-            return $this->fail();
-        }
-
-        if ($admin->status !== 1) {
-            //用户已禁用
-            return new JsonResponse([
-                'code' => 402,
-                'msg' => '账户已被禁用',
-            ]);
-        }
-
-        //设置实体上的用户信息
-        if ($request instanceof \support\Request) {
-            $request->admin = $admin;
-        }
-
-        return $handler($request);
-    }
 
     /**
      * 返回未登录的响应
