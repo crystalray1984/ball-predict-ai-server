@@ -27,6 +27,10 @@ class CheckTokenMiddleware implements MiddlewareInterface
 
         //再检查方法上是否存在检查token的注解
         $attrs = CheckToken::getAllAttributes($request->controller, $request->action);
+
+        echo $request->path() . PHP_EOL;
+        var_dump($attrs);
+
         if (empty($attrs)) {
             //不需要检查token
             return $handler($request);
