@@ -5,6 +5,7 @@ namespace app\api\controller;
 use app\api\service\UserService;
 use DI\Attribute\Inject;
 use Respect\Validation\Validator as v;
+use support\attribute\CheckUserToken;
 use support\Controller;
 use support\Request;
 use support\Response;
@@ -72,6 +73,7 @@ class UserController extends Controller
      * @param Request $request
      * @return Response
      */
+    #[CheckUserToken]
     public function info(Request $request): Response
     {
         return $this->success(
