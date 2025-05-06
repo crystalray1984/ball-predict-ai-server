@@ -60,7 +60,7 @@ abstract class CheckTokenMiddleware implements MiddlewareInterface
         //检查是否存在与token类型对应的注解
         $attr = array_find($attrs, fn(CheckToken $attr) => $attr->type === $claims['payload']['type']);
         if (!$attr) {
-            return $this->fail();
+            return $handler($request);
         }
 
         return $this->checkToken($claims['payload']['id'], $request, $handler);
