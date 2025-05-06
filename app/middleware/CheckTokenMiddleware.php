@@ -78,9 +78,7 @@ class CheckTokenMiddleware implements MiddlewareInterface
         /**
          * @var User $user
          */
-        $user = User::query()
-            ->where('id', '=', $id)
-            ->first();
+        $user = get_user($id);
 
         if (!$user) {
             //用户不存在
