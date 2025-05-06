@@ -22,11 +22,11 @@ class Admin extends Model
 
     protected static $unguarded = true;
 
-    public function jsonSerialize(): array
-    {
-        $array = parent::toArray();
-        $array['password'] = '';
-        unset($array['deleted_at']);
-        return $array;
-    }
+    protected $casts = [
+        'created_at' => 'datetime:c',
+        'updated_at' => 'datetime:c',
+        'deleted_at' => 'datetime:c',
+    ];
+
+    protected $hidden = ['password', 'deleted_at'];
 }

@@ -33,12 +33,4 @@ class User extends Model
     ];
 
     protected $hidden = ['password', 'deleted_at'];
-
-    public function jsonSerialize(): array
-    {
-        $array = parent::toArray();
-        $array['password'] = '';
-        unset($array['deleted_at']);
-        return $array;
-    }
 }
