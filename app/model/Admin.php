@@ -3,7 +3,7 @@
 namespace app\model;
 
 use Illuminate\Database\Eloquent\SoftDeletes;
-use support\Model;
+use support\BaseModel;
 
 /**
  * 管理端用户
@@ -14,19 +14,13 @@ use support\Model;
  * @property int $status
  * @property int $is_super
  */
-class Admin extends Model
+class Admin extends BaseModel
 {
     use SoftDeletes;
 
     protected $table = 'admin';
 
     protected static $unguarded = true;
-
-    protected $casts = [
-        'created_at' => 'datetime:c',
-        'updated_at' => 'datetime:c',
-        'deleted_at' => 'datetime:c',
-    ];
 
     protected $hidden = ['password', 'deleted_at'];
 }

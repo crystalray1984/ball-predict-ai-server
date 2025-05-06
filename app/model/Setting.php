@@ -2,12 +2,12 @@
 
 namespace app\model;
 
-use support\Model;
+use support\BaseModel;
 
 /**
  * 配置表
  */
-class Setting extends Model
+class Setting extends BaseModel
 {
     protected $table = 'setting';
 

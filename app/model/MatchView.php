@@ -3,6 +3,7 @@
 namespace app\model;
 
 use Carbon\Carbon;
+use support\BaseModel;
 use support\Model;
 
 /**
@@ -27,7 +28,7 @@ use support\Model;
  * @property string $team2_name
  * @property string $tournament_name
  */
-class MatchView extends Model
+class MatchView extends BaseModel
 {
     protected $table = 'v_match';
 

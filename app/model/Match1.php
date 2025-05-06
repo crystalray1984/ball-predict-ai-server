@@ -3,6 +3,7 @@
 namespace app\model;
 
 use Carbon\Carbon;
+use support\BaseModel;
 use support\Model;
 
 /**
@@ -24,7 +25,7 @@ use support\Model;
  * @property int|null $corner2_period1
  * @property int $error_status
  */
-class Match1 extends Model
+class Match1 extends BaseModel
 {
     protected $table = 'match';
 

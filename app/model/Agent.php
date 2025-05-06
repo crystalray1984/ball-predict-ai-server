@@ -2,7 +2,7 @@
 
 namespace app\model;
 
-use support\Model;
+use support\BaseModel;
 
 /**
  * 代理表
@@ -13,16 +13,11 @@ use support\Model;
  * @property string $password
  * @property int $status
  */
-class Agent extends Model
+class Agent extends BaseModel
 {
     protected $table = 'agent';
 
     protected static $unguarded = true;
-
-    protected $casts = [
-        'created_at' => 'datetime:c',
-        'updated_at' => 'datetime:c',
-    ];
 
     protected $hidden = ['password'];
 }

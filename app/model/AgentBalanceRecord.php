@@ -2,9 +2,9 @@
 
 namespace app\model;
 
-use support\Model;
+use support\BaseModel;
 
-class AgentBalanceRecord extends Model
+class AgentBalanceRecord extends BaseModel
 {
 
 }

@@ -4,7 +4,7 @@ namespace app\model;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use support\Model;
+use support\BaseModel;
 
 /**
  * 用户表
@@ -17,7 +17,7 @@ use support\Model;
  * @property int $agent1_id
  * @property int $agent2_id
  */
-class User extends Model
+class User extends BaseModel
 {
     use SoftDeletes;
 
@@ -26,10 +26,7 @@ class User extends Model
     protected static $unguarded = true;
 
     protected $casts = [
-        'expire_time' => 'datetime:c',
-        'created_at' => 'datetime:c',
-        'updated_at' => 'datetime:c',
-        'deleted_at' => 'datetime:c',
+        'expire_time' => 'datetime',
     ];
 
     protected $hidden = ['password', 'deleted_at'];

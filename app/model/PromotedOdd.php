@@ -3,6 +3,7 @@
 namespace app\model;
 
 use Carbon\Carbon;
+use support\BaseModel;
 use support\Model;
 
 /**
@@ -17,7 +18,7 @@ use support\Model;
  * @property string $type
  * @property string $condition
  */
-class PromotedOdd extends Model
+class PromotedOdd extends BaseModel
 {
     protected $table = 'promoted_odd';
 

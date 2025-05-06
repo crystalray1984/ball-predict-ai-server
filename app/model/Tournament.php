@@ -2,7 +2,7 @@
 
 namespace app\model;
 
-use support\Model;
+use support\BaseModel;
 
 /**
  * 赛事表
@@ -10,7 +10,7 @@ use support\Model;
  * @property int $crown_tournament_id
  * @property string $name
  */
-class Tournament extends Model
+class Tournament extends BaseModel
 {
     protected $table = 'tournament';
 }

@@ -3,12 +3,12 @@
 namespace app\model;
 
 use Illuminate\Database\Eloquent\SoftDeletes;
-use support\Model;
+use support\BaseModel;
 
 /**
  * 手动推荐的盘口
  */
-class ManualPromoteOdd extends Model
+class ManualPromoteOdd extends BaseModel
 {
     use SoftDeletes;
 

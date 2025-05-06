@@ -2,7 +2,7 @@
 
 namespace app\model;
 
-use support\Model;
+use support\BaseModel;
 
 /**
  * 队伍表
@@ -10,7 +10,7 @@ use support\Model;
  * @property int $crown_team_id
  * @property string $name
  */
-class Team extends Model
+class Team extends BaseModel
 {
     protected $table = 'team';
 }

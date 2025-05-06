@@ -3,6 +3,7 @@
 namespace app\model;
 
 use Carbon\Carbon;
+use support\BaseModel;
 use support\Model;
 
 /**
@@ -22,7 +23,7 @@ use support\Model;
  * @property Carbon $surebet_updated_at
  * @property Carbon $crown_updated_at
  */
-class Odd extends Model
+class Odd extends BaseModel
 {
     protected $table = 'odd';
 
