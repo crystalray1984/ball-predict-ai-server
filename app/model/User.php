@@ -25,6 +25,10 @@ class User extends Model
 
     protected static $unguarded = true;
 
+    protected $casts = [
+        'expire_time' => 'datetime',
+    ];
+
     public function jsonSerialize(): array
     {
         $array = parent::toArray();
