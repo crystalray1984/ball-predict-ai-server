@@ -116,6 +116,8 @@ class MatchService
             $update = [];
             $result1 = get_odd_score($data, $odd);
             $update['score'] = $result1['score'];
+            $update['score1'] = $result1['score1'];
+            $update['score2'] = $result1['score2'];
             $update['result1'] = $result1['result'];
 
             if (isset($odd['type2'])) {

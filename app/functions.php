@@ -133,6 +133,8 @@ if (!function_exists('get_odd_score')) {
         $condition = parse_condition($odd['condition']);
         $result = [
             'result' => 0,
+            'score1' => $score['score1'],
+            'score2' => $score['score2'],
         ];
         if ($odd['type'] === 'ah1') {
             //主队
