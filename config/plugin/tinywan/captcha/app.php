@@ -13,7 +13,7 @@ return [
         // 是否使用背景图（不建议开启）
         'useImgBg' => false,
         // 是否使用混淆曲线
-        'useCurve' => true,
+        'useCurve' => false,
         // 是否添加杂点
         'useNoise' => true,
         // 验证码图片高度
@@ -21,7 +21,7 @@ return [
         // 验证码图片宽度
         'imageW' => 0,
         // 验证码位数
-        'length' => 5,
+        'length' => 4,
         // 验证码字符大小
         'fontSize' => 25,
         // 验证码过期时间 不设置默认60秒
