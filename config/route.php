@@ -2,6 +2,10 @@
 
 use Webman\Route;
 
+Route::fallback(function (\support\Request $request) {
+    return G(\app\middleware\Cors::class)->process($request, fn() => not_found());
+});
+
 //用户端接口
 Route::group('/api', function () {
     //公共接口

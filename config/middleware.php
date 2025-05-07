@@ -2,6 +2,7 @@
 
 return [
     '' => [
+        \app\middleware\Cors::class,
         \app\middleware\QueryLog::class,
         \app\middleware\CheckUserTokenMiddleware::class,
         \app\middleware\CheckAdminTokenMiddleware::class,
