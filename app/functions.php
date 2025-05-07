@@ -268,3 +268,40 @@ if (!function_exists('get_admin')) {
         return $admin;
     }
 }
+
+if (!function_exists('get_settings')) {
+    /**
+     * 读取系统配置
+     * @param string[] $keys
+     * @param bool $allowCache
+     * @return array
+     */
+    function get_settings(array $keys, bool $allowCache = true): array
+    {
+        if (empty($keys)) return [];
+
+        //先判断缓存是否存在
+        if ($allowCache) {
+            $exists = \support\Redis::exists('settings');
+            if ($exists) {
+                $cache = \support\Redis::hmget('settings', $keys);
+                return array_map(fn(string|null $value) => is_string($value) && $value !== '' ? json_decode($value, true) : null, $cache);
+            }
+        }
+
+        if ($allowCache) {
+            $data = \app\model\Setting::query()->get()->toArray();
+            $data = array_column($data, 'value', 'name');
+            \support\Redis::del('settings');
+            \support\Redis::hmset('settings', $data);
+            $data = array_filter($data, fn(string $key) => in_array($key, $keys), ARRAY_FILTER_USE_KEY);
+        } else {
+            $data = \app\model\Setting::query()
+                ->whereIn('name', $keys)
+                ->get()
+                ->toArray();
+            $data = array_column($data, 'value', 'name');
+        }
+        return array_map(fn(string|null $value) => is_string($value) && $value !== '' ? json_decode($value, true) : null, $data);
+    }
+}
