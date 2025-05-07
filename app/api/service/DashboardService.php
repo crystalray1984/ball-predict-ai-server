@@ -130,6 +130,8 @@ class DashboardService
             'promoted_odd.type',
             'promoted_odd.condition',
             'promoted_odd.score',
+            'promoted_odd.score1',
+            'promoted_odd.score2',
             'match.match_time',
             'match.team1_id',
             'match.team2_id',
@@ -187,6 +189,8 @@ class DashboardService
                 if ($row['error_status'] === '' && isset($row['result'])) {
                     $output['result'] = [
                         'score' => $row['score'],
+                        'score1' => $row['score1'],
+                        'score2' => $row['score2'],
                         'result' => $row['result'],
                     ];
                 } else {
