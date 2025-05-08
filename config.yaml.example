@@ -23,3 +23,8 @@ jwt:
   key: 'ball-predict-ai-server'
   #默认过期时间（秒）
   expire: 604800
+
+#Luffa机器人配置
+luffa:
+  uid: ''
+  secret: ''

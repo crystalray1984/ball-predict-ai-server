@@ -17,7 +17,8 @@
     "workerman/validation": "^3.1",
     "webman/redis": "^2.1",
     "ext-bcmath": "*",
-    "tinywan/captcha": "^0.0.4"
+    "tinywan/captcha": "^0.0.4",
+    "guzzlehttp/guzzle": "^7.9"
   },
   "autoload": {
     "psr-4": {
