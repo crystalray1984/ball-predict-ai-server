@@ -80,5 +80,11 @@ class LuffaReceiver
                 ]);
             }
         }
+
+        if (!empty($reply)) {
+            foreach ($reply as $uid) {
+                Luffa::send($uid, 'Hello');
+            }
+        }
     }
 }
