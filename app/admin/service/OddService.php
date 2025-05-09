@@ -97,7 +97,6 @@ class OddService
             //查询推荐盘口
             $promotes = PromotedOdd::query()
                 ->whereIn('odd_id', array_column($rows, 'id'))
-                ->where('is_valid', '=', 1)
                 ->get([
                     'id',
                     'odd_id',
@@ -110,6 +109,7 @@ class OddService
                     'back',
                     'special',
                     'special_odd',
+                    'is_valid',
                 ])
                 ->toArray();
 

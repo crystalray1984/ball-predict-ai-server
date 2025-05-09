@@ -28,3 +28,7 @@ jwt:
 luffa:
   uid: ''
   secret: ''
+  #提醒消息的通知目标
+  notification:
+    - type: 1
+      uid: ''
