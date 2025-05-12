@@ -56,6 +56,7 @@ class UserController extends Controller
             'cid' => v::optional(v::stringType())->setName('cid'),
             'nickname' => v::optional(v::stringType())->setName('nickname'),
             'avatar_frame' => v::optional(v::alwaysValid())->setName('avatar_frame'),
+            'address' => v::optional(v::stringType())->setName('address'),
         ]);
 
         return $this->success(

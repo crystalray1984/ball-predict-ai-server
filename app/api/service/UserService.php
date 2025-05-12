@@ -72,6 +72,7 @@ class UserService
             $luffaUser->avatar = $params['avatar'] ?? null;
             $luffaUser->cid = $params['cid'] ?? null;
             $luffaUser->avatar_frame = $params['avatar_frame'] ?? null;
+            $luffaUser->address = $params['address'] ?? null;
 
             Db::beginTransaction();
             try {
