@@ -3,7 +3,7 @@
 use Webman\Route;
 
 Route::fallback(function (\support\Request $request) {
-    return G(\app\middleware\Cors::class)->process($request, fn() => not_found());
+    return G(\app\middleware\Cors::class)->process($request, fn() => response('', 404));
 });
 
 //用户端接口
