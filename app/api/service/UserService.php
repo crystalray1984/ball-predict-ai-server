@@ -63,7 +63,7 @@ class UserService
             $user = new User();
             $user->username = 'luffa:' . $params['uid'];
             $user->password = '';
-            $user->expire_time = Carbon::now()->toISOString();
+            $user->expire_time = Carbon::now()->addDays(365)->toISOString();
             $user->email = 'luffa:' . $params['uid'];
 
             $luffaUser = new LuffaUser();
