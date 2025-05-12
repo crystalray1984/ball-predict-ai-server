@@ -3,10 +3,13 @@
 namespace app\api\service;
 
 use app\model\Agent;
+use app\model\LuffaUser;
 use app\model\User;
 use Carbon\Carbon;
+use support\Db;
 use support\exception\BusinessError;
 use support\Token;
+use Throwable;
 
 /**
  * 用户业务逻辑
@@ -33,6 +36,54 @@ class UserService
 
         if ($user->status !== 1) {
             throw new BusinessError('账号已被禁用');
+        }
+
+        //生成token
+        $token = Token::create(['id' => $user->id, 'type' => 'user']);
+
+        return [
+            'token' => $token,
+            'user' => $user,
+        ];
+    }
+
+    /**
+     * Luffa授权登录
+     * @param array $params
+     * @return array
+     */
+    public function luffaLogin(array $params): array
+    {
+        //查询用户
+        $luffaUser = LuffaUser::query()->where('uid', '=', $params['uid'])->first();
+        if ($luffaUser) {
+            $user = get_user($luffaUser->user_id);
+        } else {
+            //创建用户
+            $user = new User();
+            $user->username = 'luffa:' . $params['uid'];
+            $user->password = '';
+            $user->expire_time = Carbon::now()->toISOString();
+            $user->email = 'luffa:' . $params['uid'];
+
+            $luffaUser = new LuffaUser();
+            $luffaUser->uid = $params['uid'];
+            $luffaUser->nickname = $params['nickname'] ?? null;
+            $luffaUser->avatar = $params['avatar'] ?? null;
+            $luffaUser->cid = $params['cid'] ?? null;
+            $luffaUser->avatar_frame = $params['avatar_frame'] ?? null;
+
+            Db::beginTransaction();
+            try {
+                $user->save();
+                $luffaUser->user_id = $user->id;
+                $luffaUser->save();
+
+                Db::commit();
+            } catch (Throwable $e) {
+                Db::rollBack();
+                throw $e;
+            }
         }
 
         //生成token

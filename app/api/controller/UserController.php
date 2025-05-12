@@ -44,6 +44,26 @@ class UserController extends Controller
     }
 
     /**
+     * Luffa用户登录
+     * @param Request $request
+     * @return Response
+     */
+    public function luffaLogin(Request $request): Response
+    {
+        $params = v::input($request->post(), [
+            'uid' => v::stringType()->notEmpty()->setName('uid'),
+            'avatar' => v::optional(v::stringType())->setName('avatar'),
+            'cid' => v::optional(v::stringType())->setName('cid'),
+            'nickname' => v::optional(v::stringType())->setName('nickname'),
+            'avatar_frame' => v::optional(v::alwaysValid())->setName('avatar_frame'),
+        ]);
+
+        return $this->success(
+            $this->userService->luffaLogin($params)
+        );
+    }
+
+    /**
      * 用户注册
      * @param Request $request
      * @return Response

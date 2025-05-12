@@ -18,6 +18,8 @@ Route::group('/api', function () {
     Route::group('/user', function () {
         //用户登录
         Route::post('/login', [\app\api\controller\UserController::class, 'login']);
+        //Luffa小程序授权登录
+        Route::post('/luffa_login', [\app\api\controller\UserController::class, 'luffaLogin']);
         //获取当前登录用户的信息
         Route::post('/info', [\app\api\controller\UserController::class, 'info']);
     });
