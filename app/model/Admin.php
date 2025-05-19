@@ -20,7 +20,5 @@ class Admin extends BaseModel
 
     protected $table = 'admin';
 
-    protected static $unguarded = true;
-
     protected $hidden = ['password', 'deleted_at'];
 }

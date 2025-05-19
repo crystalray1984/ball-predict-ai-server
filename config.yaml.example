@@ -3,7 +3,7 @@ app:
   http_process_count: 1
 
 #Postgres数据库配置
-pgsql:
+mysql:
   host: ''
   port: 0
   username: ''
@@ -12,15 +12,15 @@ pgsql:
 
 #Redis配置
 redis:
-  host: '106.55.103.148'
-  port: 6897
-  password: '123456'
-  database: 9
+  host: ''
+  port: 6379
+  password: ''
+  database: 0
 
 #JWT配置
 jwt:
   #签名密钥
-  key: 'ball-predict-ai-server'
+  key: ''
   #默认过期时间（秒）
   expire: 604800
 

@@ -17,7 +17,5 @@ class Agent extends BaseModel
 {
     protected $table = 'agent';
 
-    protected static $unguarded = true;
-
     protected $hidden = ['password'];
 }

@@ -2,7 +2,7 @@
   "name": "workerman/webman",
   "type": "project",
   "require": {
-    "php": ">=8.1",
+    "php": ">=8.2",
     "workerman/webman-framework": "^2.1",
     "monolog/monolog": "^2.0",
     "webman/database": "^2.1",

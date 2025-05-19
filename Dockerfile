@@ -1,4 +1,4 @@
-FROM php:8.1-cli-alpine
+FROM php:8.2-cli-alpine
 
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
     apk update && \
@@ -12,6 +12,7 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
     libzip-dev \
     openssl-dev \
     libpq-dev \
+    rabbitmq-c-dev \
     libpng-dev \
     libwebp-dev \
     libjpeg-turbo-dev \
@@ -23,11 +24,11 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
     --with-jpeg=/usr/include/ \
     --with-freetype=/usr/include/ && \
     # 安装php扩展
-    docker-php-ext-install sockets pcntl pdo_pgsql bcmath zip gd && \
+    docker-php-ext-install sockets pcntl pdo_mysql pdo_pgsql bcmath zip gd && \
     # 安装pecl扩展
-    pecl install redis uuid event && \
+    pecl install redis uuid amqp event && \
     # 启用pecl扩展
-    docker-php-ext-enable redis uuid && \
+    docker-php-ext-enable redis uuid amqp && \
     # 启用event
     docker-php-ext-enable --ini-name event.ini event && \
     # 安装composer
