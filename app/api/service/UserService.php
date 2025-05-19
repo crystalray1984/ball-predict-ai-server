@@ -52,21 +52,25 @@ class UserService
      * @param array $params
      * @return array
      */
-    public function luffaLogin(array $params): array
+    public function luffaLogin(string $network, array $params): array
     {
         //查询用户
-        $luffaUser = LuffaUser::query()->where('uid', '=', $params['uid'])->first();
+        $luffaUser = LuffaUser::query()
+            ->where('network', '=', $network)
+            ->where('uid', '=', $params['uid'])
+            ->first();
         if ($luffaUser) {
             $user = get_user($luffaUser->user_id);
         } else {
             //创建用户
             $user = new User();
-            $user->username = 'luffa:' . $params['uid'];
+            $user->username = implode(':', ['luffa', $network, $params['uid']]);
             $user->password = '';
-            $user->expire_time = Carbon::now()->addDays(365)->toISOString();
-            $user->email = 'luffa:' . $params['uid'];
+            $user->expire_time = Carbon::now()->addDays(1)->toISOString();
+            $user->email = implode(':', ['luffa', $network, $params['uid']]);
 
             $luffaUser = new LuffaUser();
+            $luffaUser->network = $network;
             $luffaUser->uid = $params['uid'];
             $luffaUser->nickname = $params['nickname'] ?? null;
             $luffaUser->avatar = $params['avatar'] ?? null;

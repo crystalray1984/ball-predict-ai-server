@@ -51,16 +51,21 @@ class UserController extends Controller
     public function luffaLogin(Request $request): Response
     {
         $params = v::input($request->post(), [
-            'uid' => v::stringType()->notEmpty()->setName('uid'),
-            'avatar' => v::optional(v::stringType())->setName('avatar'),
-            'cid' => v::optional(v::stringType())->setName('cid'),
-            'nickname' => v::optional(v::stringType())->setName('nickname'),
-            'avatar_frame' => v::optional(v::alwaysValid())->setName('avatar_frame'),
-            'address' => v::optional(v::stringType())->setName('address'),
+            'network' => v::in(['endless', 'eds'])->setName('network'),
+            'info' => v::arrayType()->notEmpty()->setName('info'),
+        ]);
+
+        $params['info'] = v::input($params['info'], [
+            'uid' => v::stringType()->notEmpty()->setName('info.uid'),
+            'avatar' => v::optional(v::stringType())->setName('info.avatar'),
+            'cid' => v::optional(v::stringType())->setName('info.cid'),
+            'nickname' => v::optional(v::stringType())->setName('info.nickname'),
+            'avatar_frame' => v::optional(v::alwaysValid())->setName('info.avatar_frame'),
+            'address' => v::optional(v::stringType())->setName('info.address'),
         ]);
 
         return $this->success(
-            $this->userService->luffaLogin($params)
+            $this->userService->luffaLogin($params['network'], $params['info'])
         );
     }
 
