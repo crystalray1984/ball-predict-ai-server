@@ -39,7 +39,7 @@ return [
     //EDS测试链支付
     'eds' => [
         //收款地址
-        'income_address' => '',
+        'income_address' => '8Lj8623aFoTNtY9gM81KGz9HxWotBEYnkMtwd1kqcLxW',
         'config' => [
             //日会员
             'day' => [
