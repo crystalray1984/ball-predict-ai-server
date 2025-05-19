@@ -60,7 +60,6 @@ class UserController extends Controller
             'avatar' => v::optional(v::stringType())->setName('info.avatar'),
             'cid' => v::optional(v::stringType())->setName('info.cid'),
             'nickname' => v::optional(v::stringType())->setName('info.nickname'),
-            'avatar_frame' => v::optional(v::alwaysValid())->setName('info.avatar_frame'),
             'address' => v::optional(v::stringType())->setName('info.address'),
         ]);
 
