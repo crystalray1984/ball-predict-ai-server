@@ -20,6 +20,20 @@ class OrderController extends Controller
     protected OrderService $orderService;
 
     /**
+     * 获取Luffa购买配置
+     */
+    public function getLuffaConfig(Request $request): Response
+    {
+        $params = v::input($request->post(), [
+            'network' => v::in(['endless', 'eds'])->setName('network'),
+        ]);
+
+        return $this->success(
+            config("payment.{$params['network']}.config")
+        );
+    }
+
+    /**
      * Luffa购买会员下单
      */
     #[CheckUserToken]

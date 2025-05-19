@@ -9,25 +9,25 @@ return [
             //日会员
             'day' => [
                 //增加的会员时长
-                'duration' => 86400,
+                'days' => 1,
                 'price' => 180
             ],
             //周会员
             'week' => [
                 //增加的会员时长
-                'duration' => 7 * 86400,
+                'days' => 7,
                 'price' => 1180,
             ],
             //月会员
             'month' => [
                 //增加的会员时长
-                'duration' => 30 * 86400,
+                'days' => 30,
                 'price' => 4200,
             ],
             //季度会员
             'quarter' => [
                 //增加的会员时长
-                'duration' => 90 * 86400,
+                'days' => 90,
                 'price' => 11880,
             ],
         ],
@@ -40,25 +40,25 @@ return [
             //日会员
             'day' => [
                 //增加的会员时长
-                'duration' => 86400,
+                'days' => 1,
                 'price' => 1,
             ],
             //周会员
             'week' => [
                 //增加的会员时长
-                'duration' => 7 * 86400,
+                'days' => 7,
                 'price' => 2,
             ],
             //月会员
             'month' => [
                 //增加的会员时长
-                'duration' => 30 * 86400,
+                'days' => 30,
                 'price' => 3,
             ],
             //季度会员
             'quarter' => [
                 //增加的会员时长
-                'duration' => 90 * 86400,
+                'days' => 90,
                 'price' => 4,
             ],
         ],

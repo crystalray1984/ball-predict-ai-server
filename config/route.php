@@ -28,6 +28,8 @@ Route::group('/api', function () {
     Route::group('/order', function () {
         //Luffa订单接口
         Route::group('/luffa', function () {
+            //获取Luffa购买配置
+            Route::post('/config', [\app\api\controller\OrderController::class, 'getLuffaConfig']);
             //创建Luffa订单
             Route::post('/create', [\app\api\controller\OrderController::class, 'createLuffaOrder']);
             //完成Luffa订单
