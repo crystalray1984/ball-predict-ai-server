@@ -2,9 +2,12 @@
 
 namespace app\api\controller;
 
+use app\api\service\OrderService;
+use DI\Attribute\Inject;
 use Respect\Validation\Validator as v;
 use support\attribute\CheckUserToken;
 use support\Controller;
+use support\Log;
 use support\Request;
 use support\Response;
 
@@ -13,6 +16,9 @@ use support\Response;
  */
 class OrderController extends Controller
 {
+    #[Inject]
+    protected OrderService $orderService;
+
     /**
      * Luffa购买会员下单
      */
@@ -20,17 +26,32 @@ class OrderController extends Controller
     public function createLuffaOrder(Request $request): Response
     {
         $params = v::input($request->post(), [
-            'type' => v::in(['week', 'month', 'year'])->setName('type'),
-            'network' => v::optional(v::in(['endless', 'eds']))->setName('network'),
+            'type' => v::in(['day', 'week', 'month', 'quarter'])->setName('type'),
+            'network' => v::in(['endless', 'eds'])->setName('network'),
         ]);
+
+        return $this->success(
+            $this->orderService->createLuffaOrder(
+                $request->user->id,
+                $params['network'],
+                $params['type'],
+            )
+        );
     }
 
     /**
      * Luffa订单完成
      */
     #[CheckUserToken]
-    public function completeLuffaOrder()
+    public function completeLuffaOrder(Request $request): Response
     {
+        $params = v::input($request->post(), [
+            'order_id' => v::intType()->notEmpty()->setName('order_id'),
+            'hash' => v::stringType()->notEmpty()->setName('hash'),
+        ]);
 
+        Log::info('Luffa订单完成 ' . json_enc($params));
+
+        return $this->success();
     }
 }
