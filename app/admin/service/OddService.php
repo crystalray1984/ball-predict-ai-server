@@ -38,16 +38,33 @@ class OddService
         }
 
         //筛选数据
-        if ($params['matched2'] === 1) {
-            $query->whereIn('odd.status', ['promoted', 'skip']);
-        } elseif ($params['matched2'] === 0) {
-            $query->where('odd.status', '=', 'ignored');
-        } else {
-            if ($params['matched1'] === 1) {
-                $query->where('odd.status', '=', 'ready');
-            } elseif ($params['matched1'] === 0) {
-                $query->where('odd.status', '=', '');
-            }
+        $params['matched2'] = $params['matched2'] ?? -1;
+        switch ($params['matched2']) {
+            case 1:
+                $query->where('odd.status', '=', 'promoted');
+                break;
+            case 0:
+                $query->where('odd.status', '=', 'ignored');
+                break;
+            case 'titan007':
+                $query->where('odd.status', '=', 'promoted')
+                    ->where('odd.final_rule', '=', 'titan007');
+                break;
+            case 'crown':
+                $query->where('odd.status', '=', 'promoted')
+                    ->where('odd.final_rule', '=', 'crown');
+                break;
+            case 'crown_special':
+                $query->where('odd.status', '=', 'promoted')
+                    ->where('odd.final_rule', '=', 'crown_special');
+                break;
+            default:
+                if ($params['matched1'] === 1) {
+                    $query->where('odd.status', '=', 'ready');
+                } elseif ($params['matched1'] === 0) {
+                    $query->where('odd.status', '=', '');
+                }
+                break;
         }
 
         if (isset($params['variety'])) {
@@ -57,9 +74,13 @@ class OddService
             $query->where('odd.period', '=', $params['period']);
         }
         if (isset($params['promoted']) && $params['promoted'] !== -1) {
-            $query->leftJoin('promoted_odd', function (JoinClause $join) {
-                $join->on('promoted_odd.odd_id', '=', 'odd.id')
-                    ->where('promoted_odd.is_valid', '=', 1);
+            $query->leftJoin('promoted_odd', function (JoinClause $join) use ($params) {
+                $join->on('promoted_odd.odd_id', '=', 'odd.id');
+                if ($params['promoted'] === 1) {
+                    $join->where('promoted_odd.is_valid', '=', 1);
+                } else if ($params['promoted'] === 2) {
+                    $join->where('promoted_odd.is_valid', '=', 0);
+                }
             });
             if ($params['promoted']) {
                 $query->whereNotNull('promoted_odd.id');
@@ -84,10 +105,13 @@ class OddService
                 'odd.crown_condition2',
                 'odd.crown_value2',
                 'odd.status',
+                'odd.final_rule',
                 'match.match_time',
                 'match.team1_id',
                 'match.team2_id',
                 'match.tournament_id',
+                'match.has_score',
+                'match.has_period1_score',
             ])
             ->toArray();
 
@@ -126,7 +150,6 @@ class OddService
                     'condition',
                     'score',
                     'back',
-                    'final_rule',
                     'skip',
                     'is_valid',
                 ])
@@ -152,6 +175,9 @@ class OddService
                     'crown_condition2' => $row['crown_condition2'],
                     'crown_value2' => $row['crown_value2'],
                     'status' => $row['status'],
+                    'final_rule' => $row['final_rule'],
+                    'has_score' => $row['has_score'],
+                    'has_period1_score' => $row['has_period1_score'],
                 ];
 
                 //推荐数据
