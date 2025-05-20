@@ -28,8 +28,11 @@ class OddController extends Controller
         $params = v::input($request->post(), [
             'start_date' => v::optional(v::stringType()->date())->setName('start_date'),
             'end_date' => v::optional(v::stringType()->date())->setName('end_date'),
+            'variety' => v::optional(v::in(['goal', 'corner']))->setName('variety'),
+            'period' => v::optional(v::in(['period1', 'regularTime']))->setName('period'),
             'matched1' => v::optional(v::in([0, 1, -1]))->setName('matched1'),
             'matched2' => v::optional(v::in([0, 1, -1]))->setName('matched2'),
+            'promoted' => v::optional(v::in([0, 1, -1]))->setName('promoted'),
         ]);
 
         return $this->success(

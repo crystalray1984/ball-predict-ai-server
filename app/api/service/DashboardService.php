@@ -44,7 +44,8 @@ class DashboardService
 
         $total = $query->count();
 
-        $data = $query->whereNotNull('promoted_odd.result')->groupBy('promoted_odd.result')
+        $data = $query->whereNotNull('promoted_odd.result')
+            ->groupBy('promoted_odd.result')
             ->select([
                 'promoted_odd.result',
             ])

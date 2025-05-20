@@ -58,6 +58,8 @@ class Migration
                 $this->to->table($to)->insert($list);
                 $lastId = last($list)[$incrementKey];
             }
+            $lastId++;
+            $this->to->select("SELECT setval('public.{$to}_{$incrementKey}_seq', $lastId, false)");
         } else {
             //常规迁移
             $list = $this->from->table($from)
@@ -149,6 +151,8 @@ class Migration
             $this->to->table($to)->insert($list);
             $lastId = last($list)['id'];
         }
+        $lastId++;
+        $this->to->select("SELECT setval('public.team_id_seq', $lastId, false)");
     }
 
     /**
@@ -183,6 +187,8 @@ class Migration
             $this->to->table($to)->insert($list);
             $lastId = last($list)['id'];
         }
+        $lastId++;
+        $this->to->select("SELECT setval('public.match_id_seq', $lastId, false)");
     }
 
     /**
@@ -223,6 +229,8 @@ class Migration
             $this->to->table($to)->insert($list);
             $lastId = last($list)['id'];
         }
+        $lastId++;
+        $this->to->select("SELECT setval('public.odd_id_seq', $lastId, false)");
     }
 
     /**
@@ -258,6 +266,8 @@ class Migration
             $this->to->table($to)->insert($list);
             $lastId = last($list)['id'];
         }
+        $lastId++;
+        $this->to->select("SELECT setval('public.promoted_odd_id_seq', $lastId, false)");
     }
 }
 

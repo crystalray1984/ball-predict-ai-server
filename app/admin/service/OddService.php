@@ -7,6 +7,7 @@ use app\model\PromotedOdd;
 use app\model\Team;
 use app\model\Tournament;
 use Carbon\Carbon;
+use Illuminate\Database\Query\JoinClause;
 
 class OddService
 {
@@ -49,9 +50,27 @@ class OddService
             }
         }
 
+        if (isset($params['variety'])) {
+            $query->where('odd.variety', '=', $params['variety']);
+        }
+        if (isset($params['period'])) {
+            $query->where('odd.period', '=', $params['period']);
+        }
+        if (isset($params['promoted']) && $params['promoted'] !== -1) {
+            $query->leftJoin('promoted_odd', function (JoinClause $join) {
+                $join->on('promoted_odd.odd_id', '=', 'odd.id')
+                    ->where('promoted_odd.is_valid', '=', 1);
+            });
+            if ($params['promoted']) {
+                $query->whereNotNull('promoted_odd.id');
+            } else {
+                $query->whereNull('promoted_odd.id');
+            }
+        }
+
         //读取盘口数据
         $rows = $query
-            ->orderBy('match.match_time')
+            ->orderBy('match.match_time', 'DESC')
             ->orderBy('odd.match_id')
             ->get([
                 'odd.id',
@@ -107,8 +126,8 @@ class OddService
                     'condition',
                     'score',
                     'back',
-                    'special',
-                    'special_odd',
+                    'final_rule',
+                    'skip',
                     'is_valid',
                 ])
                 ->toArray();
@@ -138,9 +157,6 @@ class OddService
                 //推荐数据
                 $promoted = $promotes[$row['id']] ?? null;
                 if ($promoted) {
-                    if (!empty($promoted['special_odd'])) {
-                        $promoted['special_odd'] = json_decode($promoted['special_odd']);
-                    }
                     //计算结果
                     if (isset($promoted['result'])) {
                         $promoted['result'] = [
