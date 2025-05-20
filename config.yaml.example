@@ -3,19 +3,21 @@ app:
   http_process_count: 1
 
 #Postgres数据库配置
-mysql:
-  host: ''
-  port: 0
-  username: ''
-  password: ''
-  database: 'cloud_chain'
+pgsql:
+  master:
+    host: ''
+    port: 0
+    username: ''
+    password: ''
+    database: ''
 
 #Redis配置
 redis:
-  host: ''
-  port: 6379
-  password: ''
-  database: 0
+  master:
+    host: ''
+    port: 6379
+    password: ''
+    database: 0
 
 #JWT配置
 jwt:
@@ -23,6 +25,17 @@ jwt:
   key: ''
   #默认过期时间（秒）
   expire: 604800
+
+#rabbitmq配置
+rabbitmq:
+  master:
+    hostname: ''
+    port: 5672
+    vhost: '/'
+    username: ''
+    password: ''
+    timeout: 10
+    heartbeat: 25
 
 #Luffa机器人配置
 luffa:
