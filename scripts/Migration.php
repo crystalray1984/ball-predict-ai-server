@@ -104,7 +104,7 @@ class Migration
 
         //队伍表
         $this->truncate('team');
-        $this->copyTable('team');
+        $this->copyTeamTable();
 
         //比赛表
         $this->truncate('match');
@@ -117,6 +117,38 @@ class Migration
         //推荐盘口表
         $this->truncate('promoted_odd');
         $this->copyPromotedOddTable();
+    }
+
+    /**
+     * 迁移队伍表数据
+     * @return void
+     */
+    protected function copyTeamTable(): void
+    {
+        $from = 'team';
+        $to = 'team';
+        $lastId = 0;
+        while (true) {
+            echo "迁移 $from -> $to last_id=$lastId\n";
+            $list = $this->from->table($from)
+                ->where('id', '>', $lastId)
+                ->orderBy('id')
+                ->limit(500)
+                ->get()
+                ->map(fn($row) => (array)$row)
+                ->toArray();
+            if (empty($list)) {
+                break;
+            }
+
+            //数据处理
+            foreach ($list as $k => $row) {
+                unset($list[$k]['titan007_team_id'], $list[$k]['titan007_team_id']);
+            }
+
+            $this->to->table($to)->insert($list);
+            $lastId = last($list)['id'];
+        }
     }
 
     /**
