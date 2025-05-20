@@ -212,8 +212,11 @@ class Migration
                 unset($list[$k]['surebet_updated_at'], $list[$k]['crown_updated_at']);
                 if ($row['status'] === 'ready') {
                     $list[$k]['ready_at'] = $row['surebet_updated_at'];
+                    $list[$k]['final_at'] = null;
                 } else if (!empty($row['status'])) {
                     $list[$k]['final_at'] = $list[$k]['ready_at'] = $row['surebet_updated_at'];
+                } else {
+                    $list[$k]['final_at'] = $list[$k]['ready_at'] = null;
                 }
             }
 
