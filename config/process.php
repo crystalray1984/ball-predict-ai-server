@@ -55,11 +55,11 @@ if (yaml('app.monitor', false) === true) {
 }
 
 //luffa消息进程
-$processes['luffa_receiver'] = [
-    'handler' => \app\process\LuffaReceiver::class,
-    'count' => 1,
-    'reloadable' => true,
-    'constructor' => []
-];
+//$processes['luffa_receiver'] = [
+//    'handler' => \app\process\LuffaReceiver::class,
+//    'count' => 1,
+//    'reloadable' => true,
+//    'constructor' => []
+//];
 
 return $processes;
