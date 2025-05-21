@@ -59,6 +59,23 @@ class MatchController extends Controller
     }
 
     /**
+     * 获取单个比赛信息
+     * @param Request $request
+     * @return Response
+     */
+    #[CheckAdminToken]
+    public function getMatch(Request $request): Response
+    {
+        $params = v::input($request->post(), [
+            'id' => v::intType()->min(1)->setName('id'),
+        ]);
+
+        return $this->success(
+            $this->matchService->getMatch($params['id'])
+        );
+    }
+
+    /**
      * 设置比赛异常状态
      * @param Request $request
      * @return Response
@@ -114,10 +131,10 @@ class MatchController extends Controller
             'score2' => v::intType()->min(0)->setName('score2'),
             'corner1' => v::intType()->min(0)->setName('corner1'),
             'corner2' => v::intType()->min(0)->setName('corner2'),
-            'score1_period1' => v::intType()->min(0)->setName('score1_period1'),
-            'score2_period1' => v::intType()->min(0)->setName('score2_period1'),
-            'corner1_period1' => v::intType()->min(0)->setName('corner1_period1'),
-            'corner2_period1' => v::intType()->min(0)->setName('corner2_period1'),
+            'score1_period1' => v::optional(v::intType()->min(0))->setName('score1_period1'),
+            'score2_period1' => v::optional(v::intType()->min(0))->setName('score2_period1'),
+            'corner1_period1' => v::optional(v::intType()->min(0))->setName('corner1_period1'),
+            'corner2_period1' => v::optional(v::intType()->min(0))->setName('corner2_period1'),
             'period1' => v::boolType()->setName('period1'),
         ]);
 

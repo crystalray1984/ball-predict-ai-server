@@ -10,6 +10,7 @@ use app\model\PromotedOdd;
 use app\model\Tournament;
 use Carbon\Carbon;
 use support\Db;
+use support\exception\BusinessError;
 use Throwable;
 
 /**
@@ -286,6 +287,7 @@ class MatchService
         $count = $query->count();
         $list = $query
             ->orderBy('v_match.match_time', 'DESC')
+            ->forPage($params['page'] ?? DEFAULT_PAGE, $params['page_size'] ?? DEFAULT_PAGE_SIZE)
             ->get()
             ->toArray();
 
@@ -320,6 +322,47 @@ class MatchService
             'count' => $count,
             'list' => $list,
         ];
+    }
+
+    /**
+     * 获取单个比赛的信息
+     * @param int $match_id
+     * @return array
+     */
+    public function getMatch(int $match_id): array
+    {
+        $match = MatchView::query()
+            ->where('id', '=', $match_id)
+            ->first();
+        if (!$match) {
+            throw new BusinessError('未找到指定的比赛');
+        }
+        $match = $match->toArray();
+        
+        $match['team1'] = [
+            'id' => $match['team1_id'],
+            'name' => $match['team1_name'],
+        ];
+        $match['team2'] = [
+            'id' => $match['team2_id'],
+            'name' => $match['team2_name'],
+        ];
+        $match['tournament'] = [
+            'id' => $match['tournament_id'],
+            'name' => $match['tournament_name'],
+        ];
+        unset(
+            $match['status'],
+            $match['team1_id'],
+            $match['team1_name'],
+            $match['team2_id'],
+            $match['team2_name'],
+            $match['tournament_id'],
+            $match['tournament_name'],
+            $match['created_at'],
+            $match['updated_at'],
+        );
+        return $match;
     }
 
     /**

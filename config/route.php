@@ -63,8 +63,10 @@ Route::group('/admin', function () {
         Route::post('/set_score', [\app\admin\controller\MatchController::class, 'setMatchScore']);
         //获取赛事列表
         Route::post('/tournament_list', [\app\admin\controller\MatchController::class, 'getTournamentList']);
-        //获取赛事列表
+        //获取比赛列表
         Route::post('/match_list', [\app\admin\controller\MatchController::class, 'getMatchList']);
+        //获取单个比赛
+        Route::post('/match', [\app\admin\controller\MatchController::class, 'getMatch']);
         //设置赛事的异常状态
         Route::post('/set_error_status', [\app\admin\controller\MatchController::class, 'setMatchErrorStatus']);
     });
@@ -73,6 +75,8 @@ Route::group('/admin', function () {
     Route::group('/odd', function () {
         //获取盘口抓取数据列表
         Route::post('/list', [\app\admin\controller\OddController::class, 'getOddList']);
+        //通过比赛id获取盘口列表
+        Route::post('/list_by_match', [\app\admin\controller\OddController::class, 'getOddsByMatch']);
     });
 
     //代理管理接口

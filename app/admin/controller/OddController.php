@@ -39,4 +39,21 @@ class OddController extends Controller
             $this->oddService->getOddList($params)
         );
     }
+
+    /**
+     * 通过比赛获取盘口列表
+     * @param Request $request
+     * @return Response
+     */
+    #[CheckAdminToken]
+    public function getOddsByMatch(Request $request): Response
+    {
+        $params = v::input($request->post(), [
+            'match_id' => v::intType()->min(1)->setName('match_id'),
+        ]);
+
+        return $this->success(
+            $this->oddService->getOddsByMatch($params['match_id'])
+        );
+    }
 }
