@@ -22,7 +22,7 @@ foreach ($odds as $odd) {
             'corner1',
             'corner2',
             'score1_period1',
-            'score2_period2',
+            'score2_period1',
             'corner1_period1',
             'corner2_period1'
         ]);
