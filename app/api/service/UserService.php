@@ -41,6 +41,13 @@ class UserService
         //生成token
         $token = Token::create(['id' => $user->id, 'type' => 'user']);
 
+        if (is_string($user->expire_time)) {
+            $expireTime = Carbon::parse($user->expire_time);
+        } else {
+            $expireTime = $user->expire_time;
+        }
+        $user->is_expired = $expireTime->unix() <= time();
+
         return [
             'token' => $token,
             'user' => $user,
@@ -92,6 +99,13 @@ class UserService
 
         //生成token
         $token = Token::create(['id' => $user->id, 'type' => 'user']);
+
+        if (is_string($user->expire_time)) {
+            $expireTime = Carbon::parse($user->expire_time);
+        } else {
+            $expireTime = $user->expire_time;
+        }
+        $user->is_expired = $expireTime->unix() <= time();
 
         return [
             'token' => $token,

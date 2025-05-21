@@ -8,6 +8,7 @@ use app\model\PromotedOdd;
 use app\model\Team;
 use app\model\Tournament;
 use Carbon\Carbon;
+use DateTimeInterface;
 
 /**
  * 首页看板业务
@@ -87,7 +88,7 @@ class DashboardService
      * @param array $params
      * @return array
      */
-    public function promoted(array $params): array
+    public function promoted(array $params, DateTimeInterface|null $expires = null): array
     {
         $query = PromotedOdd::query()
             ->join('match', 'match.id', '=', 'promoted_odd.match_id')
@@ -100,7 +101,14 @@ class DashboardService
                 Carbon::parse($params['start_date'])->toISOString(),
             );
         }
-        if (!empty($params['end_date'])) {
+
+        if (!empty($expires)) {
+            $query->where(
+                'match.match_time',
+                '<',
+                Carbon::create($expires)->toISOString(),
+            );
+        } else if (!empty($params['end_date'])) {
             $query->where(
                 'match.match_time',
                 '<',

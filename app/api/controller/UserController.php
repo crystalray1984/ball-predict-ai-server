@@ -3,6 +3,7 @@
 namespace app\api\controller;
 
 use app\api\service\UserService;
+use Carbon\Carbon;
 use DI\Attribute\Inject;
 use Respect\Validation\Validator as v;
 use support\attribute\CheckUserToken;
@@ -101,8 +102,16 @@ class UserController extends Controller
     #[CheckUserToken]
     public function info(Request $request): Response
     {
+        $user = $request->user;
+        if (is_string($user->expire_time)) {
+            $expireTime = Carbon::parse($user->expire_time);
+        } else {
+            $expireTime = $user->expire_time;
+        }
+        $user->is_expired = $expireTime->unix() <= time();
+
         return $this->success(
-            $request->user
+            $user
         );
     }
 }

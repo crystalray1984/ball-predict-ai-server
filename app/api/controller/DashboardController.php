@@ -6,6 +6,7 @@ use app\api\service\DashboardService;
 use Carbon\Carbon;
 use DI\Attribute\Inject;
 use Respect\Validation\Validator as v;
+use support\attribute\CheckUserToken;
 use support\Controller;
 use support\Request;
 use support\Response;
@@ -60,20 +61,37 @@ class DashboardController extends Controller
             'sort_order' => v::optional(v::in(['asc', 'desc']))->setName('sort_order'),
         ]);
 
-        if ($request->user) {
-            if (is_string($request->user->expire_time)) {
-                $expireTime = Carbon::parse($request->user->expire_time);
-            } else {
-                $expireTime = $request->user->expire_time;
-            }
-            if ($expireTime->unix() < time()) {
-                //账户已过期
-                return $this->fail('账户已过期', 403);
-            }
+        return $this->success(
+            $this->dashboardService->promoted($params)
+        );
+    }
+
+    /**
+     * 带有用户有效期判断的获取已推荐盘口列表
+     * @param Request $request
+     * @return Response
+     */
+    #[CheckUserToken]
+    public function promotedV2(Request $request): Response
+    {
+        $params = v::input($request->post(), [
+            'start_date' => v::optional(v::stringType()->date())->setName('start_date'),
+            'end_date' => v::optional(v::stringType()->date())->setName('end_date'),
+            'sort' => v::optional(v::in(['match_time', 'promote']))->setName('sort'),
+            'sort_order' => v::optional(v::in(['asc', 'desc']))->setName('sort_order'),
+        ]);
+
+        if (is_string($request->user->expire_time)) {
+            $expireTime = Carbon::parse($request->user->expire_time);
+        } else {
+            $expireTime = $request->user->expire_time;
         }
 
         return $this->success(
-            $this->dashboardService->promoted($params)
+            [
+                'is_expired' => $expireTime->unix() <= time(),
+                'list' => $this->dashboardService->promoted($params, $expireTime),
+            ]
         );
     }
 }
