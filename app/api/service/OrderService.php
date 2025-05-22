@@ -70,7 +70,7 @@ class OrderService
         }
 
         //调用接口检查订单是否完成
-        $transaction = Endless::create($order->network)->getTransaction($hash);
+        $transaction = Endless::create($order->channel)->getTransaction($hash);
         if (empty($transaction)) {
             //订单未支付
             throw new BusinessError('订单未支付');
