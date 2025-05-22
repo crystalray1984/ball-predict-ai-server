@@ -2,6 +2,8 @@
 
 namespace app\admin\controller;
 
+use app\admin\service\DashboardService;
+use DI\Attribute\Inject;
 use support\attribute\CheckAdminToken;
 use support\Controller;
 use support\Response;
@@ -11,13 +13,16 @@ use support\Response;
  */
 class DashboardController extends Controller
 {
+    #[Inject]
+    protected DashboardService $dashboardService;
+
     /**
      * 概览面板的数据统计
      * @return Response
      */
     #[CheckAdminToken]
-    public function dashboardSummary(): Response
+    public function summary(): Response
     {
-
+        return $this->success($this->dashboardService->getSummary());
     }
 }

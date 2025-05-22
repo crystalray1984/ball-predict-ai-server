@@ -102,6 +102,12 @@ Route::group('/admin', function () {
         //保存代理
         Route::post('/save', [\app\admin\controller\UserController::class, 'save']);
     });
+
+    //概览页统计接口
+    Route::group('/dashboard', function () {
+        //概览数据统计
+        Route::post('/summary', [\app\admin\controller\DashboardController::class, 'summary']);
+    });
 });
 
 //代理端接口

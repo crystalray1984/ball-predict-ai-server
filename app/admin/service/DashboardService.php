@@ -3,6 +3,7 @@
 namespace app\admin\service;
 
 use app\model\PromotedOdd;
+use app\model\User;
 use Carbon\Carbon;
 
 /**
@@ -46,7 +47,7 @@ class DashboardService
             ->when(isset($end), fn($query) => $query->where('match.match_time', '<', $end->toISOString()))
             ->groupBy('promoted_odd.result')
             ->selectRaw('COUNT(1) AS total')
-            ->select(['promoted_odd.result'])
+            ->addSelect(['promoted_odd.result'])
             ->get()
             ->toArray();
 
@@ -74,12 +75,19 @@ class DashboardService
             $win_rate = round($win * 1000 / $total) / 10;
         }
 
+        //用户数
+        $user_count = User::query()
+            ->when(isset($start), fn($query) => $query->where('created_at', '>=', $start->toISOString()))
+            ->when(isset($end), fn($query) => $query->where('created_at', '<', $end->toISOString()))
+            ->count();
+
         return [
             'total' => $total,
             'win' => $win,
             'loss' => $loss,
             'draw' => $draw,
             'win_rate' => $win_rate,
+            'user' => $user_count,
         ];
     }
 }
