@@ -119,14 +119,15 @@ class DashboardService
         }
 
         //排序
-        switch ($params['order'] ?? null) {
-            case 'match_time':
-                $query->orderBy('match.match_time', $params['sort_order'] ?? 'desc');
-                break;
-            default:
-                $query->orderBy('promoted_odd.id', $params['sort_order'] ?? 'desc');
-                break;
-        }
+//        switch ($params['order'] ?? null) {
+//            case 'match_time':
+//                $query->orderBy('match.match_time', $params['sort_order'] ?? 'desc');
+//                break;
+//            default:
+//                $query->orderBy('promoted_odd.id', $params['sort_order'] ?? 'desc');
+//                break;
+//        }
+        $query->orderBy('match.match_time', 'desc');
 
         //查询
         $rows = $query->get([
