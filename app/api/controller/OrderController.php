@@ -56,7 +56,6 @@ class OrderController extends Controller
     /**
      * Luffa订单完成
      */
-    #[CheckUserToken]
     public function completeLuffaOrder(Request $request): Response
     {
         $params = v::input($request->post(), [
