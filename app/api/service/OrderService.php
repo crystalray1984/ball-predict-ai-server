@@ -123,7 +123,7 @@ class OrderService
                         bcdiv($transaction['timestamp'], '1000', 0)
                     )->toISOString(),
                     'status' => 1,
-                    'channel_order_no' => $hash,
+                    'channel_trade_no' => $hash,
                     'channel_order_info' => json_enc($transaction),
                 ]);
 
