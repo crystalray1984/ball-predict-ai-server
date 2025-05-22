@@ -16,7 +16,6 @@ class DashboardService
      */
     public function getSummary(): array
     {
-        $end = Carbon::today()->addDays();
         $today_start = Carbon::today();
         $days_7_start = Carbon::today()->subDays(6);
         $days_30_start = Carbon::today()->subDays(29);
@@ -43,10 +42,44 @@ class DashboardService
             ->join('match', 'match.id', '=', 'promoted_odd.match_id')
             ->where('promoted_odd.is_valid', '=', 1)
             ->whereNotNull('promoted_odd.result')
-            ->when(isset($start), fn($query) => $query->where('match.match_time', '>=', $start->to))
+            ->when(isset($start), fn($query) => $query->where('match.match_time', '>=', $start->toISOString()))
+            ->when(isset($end), fn($query) => $query->where('match.match_time', '<', $end->toISOString()))
             ->groupBy('promoted_odd.result')
             ->selectRaw('COUNT(1) AS total')
             ->select(['promoted_odd.result'])
-            ->get();
+            ->get()
+            ->toArray();
+
+        $win = 0;
+        $loss = 0;
+        $draw = 0;
+        $win_rate = 0;
+
+        if (!empty($promoted)) {
+            $promoted = array_column($promoted, 'total', 'result');
+            if (isset($promoted[1])) {
+                $win = $promoted[1];
+            }
+            if (isset($promoted[0])) {
+                $draw = $promoted[0];
+            }
+            if (isset($promoted[-1])) {
+                $loss = $promoted[-1];
+            }
+        }
+
+        $total = $win + $loss;
+
+        if ($total > 0) {
+            $win_rate = round($win * 1000 / $total) / 10;
+        }
+
+        return [
+            'total' => $total,
+            'win' => $win,
+            'loss' => $loss,
+            'draw' => $draw,
+            'win_rate' => $win_rate,
+        ];
     }
 }
