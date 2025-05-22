@@ -64,8 +64,9 @@ class OrderController extends Controller
             'hash' => v::stringType()->notEmpty()->setName('hash'),
         ]);
 
-        Log::info('Luffa订单完成 ' . json_enc($params));
+        Log::channel('important')->info('Luffa订单完成 ' . json_enc($params));
 
+        $this->orderService->completeLuffaOrder($params['order_id'], $params['hash']);
         return $this->success();
     }
 }
