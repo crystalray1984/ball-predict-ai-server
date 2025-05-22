@@ -16,7 +16,7 @@ class OrderService
         $config = $config[$network];
 
         //订单信息
-        $order_info = $config[$type];
+        $order_info = $config['config'][$type];
 
         //创建订单信息
         $order = new Order();
