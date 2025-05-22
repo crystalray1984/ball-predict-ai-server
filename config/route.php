@@ -77,6 +77,10 @@ Route::group('/admin', function () {
         Route::post('/list', [\app\admin\controller\OddController::class, 'getOddList']);
         //通过比赛id获取盘口列表
         Route::post('/list_by_match', [\app\admin\controller\OddController::class, 'getOddsByMatch']);
+        //导出盘口列表
+        Route::post('/export', [\app\admin\controller\OddController::class, 'exportOddList']);
+        //根据现有的原始盘口，补充推荐盘口
+        Route::post('/add', [\app\admin\controller\OddController::class, 'addOdd']);
     });
 
     //代理管理接口

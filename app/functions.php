@@ -305,3 +305,36 @@ if (!function_exists('get_settings')) {
         return array_map(fn(string|null $value) => is_string($value) && $value !== '' ? json_decode($value, true) : null, $data);
     }
 }
+
+/**
+ * 获取反向盘口
+ */
+if (!function_exists('get_reverse_odd')) {
+    /**
+     * 获取反向盘口
+     * @param string $type
+     * @param string $condition
+     * @return string[]
+     */
+    function get_reverse_odd(string $type, string $condition): array
+    {
+        switch ($type) {
+            case 'ah1':
+                $type = 'ah2';
+                $condition = bcsub('0', $condition, 2);
+                break;
+            case 'ah2':
+                $type = 'ah1';
+                $condition = bcsub('0', $condition, 2);
+                break;
+            case 'over':
+                $type = 'under';
+                break;
+            case 'under':
+                $type = 'over';
+                break;
+        }
+
+        return [$type, $condition];
+    }
+}

@@ -2,12 +2,17 @@
 
 namespace app\admin\service;
 
+use app\model\Match1;
 use app\model\Odd;
 use app\model\PromotedOdd;
 use app\model\Team;
 use app\model\Tournament;
 use Carbon\Carbon;
 use Illuminate\Database\Query\JoinClause;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx\Workbook;
+use support\exception\BusinessError;
 
 class OddService
 {
@@ -322,5 +327,228 @@ class OddService
         }
 
         return $rows;
+    }
+
+    /**
+     * 补充推荐数据
+     * @param array $params
+     * @return void
+     */
+    public function add(array $params): void
+    {
+        //先查询比赛数据
+        $match = Match1::query()
+            ->where('id', '=', $params['match_id'])
+            ->first();
+        if (!$match) {
+            throw new BusinessError('未找到对应的比赛');
+        }
+        if (!$match->has_score) {
+            throw new BusinessError('该比赛尚未有赛果');
+        }
+
+        $odd = Odd::query()
+            ->where('id', '=', $params['odd_id'])
+            ->where('match_id', '=', $params['match_id'])
+            ->first();
+
+        if (!$odd) {
+            throw new BusinessError('未找到原始盘口');
+        }
+
+        $promoted = PromotedOdd::query()
+            ->where('odd_id', '=', $params['odd_id'])
+            ->first();
+
+        if ($promoted) {
+            if ($promoted->is_valid) {
+                throw new BusinessError('该盘口已在推荐列表中');
+            }
+        } else {
+            $promoted = new PromotedOdd();
+            $promoted->match_id = $match->id;
+            $promoted->odd_id = $params['odd_id'];
+            $promoted->variety = $odd->variety;
+            $promoted->period = $odd->period;
+        }
+        $promoted->back = $params['back'] ? 1 : 0;
+        if ($params['back']) {
+            [$type, $condition] = get_reverse_odd($odd->type, $odd->condition);
+            $promoted->type = $type;
+            $promoted->condition = $condition;
+        } else {
+            $promoted->type = $odd->type;
+            $promoted->condition = $odd->condition;
+        }
+        $promoted->is_valid = 1;
+        $promoted->skip = '';
+
+        //重新计算赛果
+        $result = get_odd_score($match->toArray(), $promoted->toArray());
+        $promoted->result1 = $result['result'];
+        $promoted->result = $promoted->result1;
+        $promoted->score = $result['score'];
+        $promoted->score1 = $result['score1'];
+        $promoted->score2 = $result['score2'];
+
+        $promoted->save();
+
+        $odd->status = 'promoted';
+        $odd->save();
+    }
+
+    /**
+     * 导出数据列表
+     * @param array $data 通过getOddList获取到的数据
+     * @return string
+     */
+    public function exportOddList(array $data): string
+    {
+        //构建导出的数据
+        $rows = [
+            [
+                '盘口id',
+                '比赛id',
+                '联赛',
+                '比赛时间',
+                '主队',
+                '客队',
+                '时段',
+                '玩法',
+                '方向',
+                '盘口',
+                '推送水位',
+                '第一次皇冠水位',
+                '第二次皇冠盘口',
+                '第二次皇冠水位',
+                '状态',
+                '二次比对规则',
+                '是否推荐',
+                '推荐方向',
+                '推荐盘口',
+                '结果',
+                '对应赛果'
+            ]
+        ];
+
+        //生成数据
+        foreach ($data as $row) {
+            //二次比对规则
+            $final_rule = '';
+            if ($row['status'] === 'promoted') {
+                $final_rule = match ($row['final_rule']) {
+                    'titan007' => '球探网趋势',
+                    'crown' => '皇冠水位',
+                    'crown_special' => '皇冠变盘',
+                    default => '',
+                };
+            }
+
+            $promoted_text = '';
+            $promoted_type = '';
+            $promoted_condition = '';
+            $result = '';
+            $result_score = '';
+
+            if ($row['promoted']) {
+                if ($row['promoted']['is_valid']) {
+                    $promoted_text = '推荐';
+                } else {
+                    $promoted_text = match ($row['promoted']['skip']) {
+                        '' => '筛选率过滤',
+                        'manual_promote' => '手动推荐优先',
+                        'same_type' => '同盘口过滤',
+                        'setting' => '规则过滤',
+                        default => '',
+                    };
+                }
+
+                $promoted_type = match ($row['promoted']['type']) {
+                    'ah1' => '主胜',
+                    'ah2' => '客胜',
+                    'over' => '大球',
+                    'under' => '小球',
+                    default => '',
+                };
+                $promoted_condition = match ($row['promoted']['type']) {
+                    'ah1', 'ah2' => (bccomp($row['promoted']['condition'], '0', 2) > 0 ? '+' : '') . (float)$row['promoted']['condition'],
+                    default => (string)(float)$row['promoted']['condition'],
+                };
+                if (!$row['promoted']['result']) {
+                    $result = '待定';
+                } else {
+                    $result = match ($row['promoted']['result']['result']) {
+                        0 => '和',
+                        1 => '赢',
+                        -1 => '输',
+                        default => '',
+                    };
+                    $result_score = $row['promoted']['result']['score'];
+                }
+            }
+
+
+            $add_row = [
+                $row['id'],
+                $row['match_id'],
+                $row['tournament']['name'],
+                Carbon::parse($row['match_time'])->toDateTimeString(),
+                $row['team1']['name'],
+                $row['team2']['name'],
+                match ($row['period']) {
+                    'regularTime' => '全场',
+                    'period1' => '半场',
+                    default => '',
+                },
+                match ($row['variety']) {
+                    'goal' => '进球',
+                    'corner' => '角球',
+                    default => '',
+                },
+                match ($row['type']) {
+                    'ah1' => '主胜',
+                    'ah2' => '客胜',
+                    'over' => '大球',
+                    'under' => '小球',
+                    default => '',
+                },
+                match ($row['type']) {
+                    'ah1', 'ah2' => (bccomp($row['condition'], '0', 2) > 0 ? '+' : '') . (float)$row['condition'],
+                    default => (string)(float)$row['condition'],
+                },
+                $row['surebet_value'],
+                $row['crown_value'],
+                isset($row['crown_condition2']) ? match ($row['type']) {
+                    'ah1', 'ah2' => (bccomp($row['crown_condition2'], '0', 2) > 0 ? '+' : '') . (float)$row['crown_condition2'],
+                    default => (string)(float)$row['crown_condition2'],
+                } : '',
+                $row['crown_value2'] ?? '',
+                match ($row['status']) {
+                    '' => '第一次比对失败',
+                    'ready' => '等待二次比对',
+                    'promoted' => '二次比对成功',
+                    'ignored' => '二次比对失败',
+                },
+                $final_rule,
+                $promoted_text,
+                $promoted_type,
+                $promoted_condition,
+                $result,
+                $result_score,
+            ];
+
+            $rows[] = $add_row;
+        }
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $sheet->fromArray($rows, '');
+
+        //输出数据
+        $writer = new Xlsx($spreadsheet);
+        $filePath = runtime_path() . '/' . uniqid() . '.xlsx';
+        $writer->save($filePath);
+        return $filePath;
     }
 }

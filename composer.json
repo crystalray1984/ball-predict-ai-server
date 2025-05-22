@@ -18,7 +18,8 @@
     "webman/redis": "^2.1",
     "ext-bcmath": "*",
     "tinywan/captcha": "^0.0.4",
-    "guzzlehttp/guzzle": "^7.9"
+    "guzzlehttp/guzzle": "^7.9",
+    "phpoffice/phpspreadsheet": "^4.2"
   },
   "autoload": {
     "psr-4": {
