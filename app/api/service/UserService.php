@@ -8,6 +8,7 @@ use app\model\User;
 use Carbon\Carbon;
 use support\Db;
 use support\exception\BusinessError;
+use support\Redis;
 use support\Token;
 use Throwable;
 
@@ -169,5 +170,31 @@ class UserService
             'token' => $token,
             'user' => $user,
         ];
+    }
+
+    /**
+     * 增加VIP天数
+     * @return void
+     */
+    public function addExpires(int $user_id, int $days): void
+    {
+        $user = User::query()
+            ->where('id', '=', $user_id)
+            ->first(['expire_time']);
+        if (!$user) {
+            throw new BusinessError('用户不存在');
+        }
+
+        /** @var Carbon $expire_time */
+        $expire_time = $user->expire_time;
+
+        if ($expire_time->timestamp < time()) {
+            $expire_time = Carbon::now()->addDays($days);
+        } else {
+            $expire_time = $expire_time->addDays($days);
+        }
+
+        User::query()->where('id', '=', $user_id)->update(['expire_time' => $expire_time->toISOString()]);
+        Redis::del(CACHE_USER_KEY . $user_id);
     }
 }

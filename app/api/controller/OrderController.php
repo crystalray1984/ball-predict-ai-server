@@ -56,7 +56,6 @@ class OrderController extends Controller
     /**
      * Luffa订单完成
      */
-    #[CheckUserToken]
     public function completeLuffaOrder(Request $request): Response
     {
         $params = v::input($request->post(), [
@@ -64,8 +63,9 @@ class OrderController extends Controller
             'hash' => v::stringType()->notEmpty()->setName('hash'),
         ]);
 
-        Log::info('Luffa订单完成 ' . json_enc($params));
+        Log::channel('important')->info('Luffa订单完成 ' . json_enc($params));
 
+        $this->orderService->completeLuffaOrder($params['order_id'], $params['hash']);
         return $this->success();
     }
 }
