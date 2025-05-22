@@ -193,6 +193,6 @@ class UserService
             $expire_time = $expire_time->addDays($days);
         }
 
-        User::query()->where('id', '=', $user_id)->update(['expire_time' => $expire_time]);
+        User::query()->where('id', '=', $user_id)->update(['expire_time' => $expire_time->toISOString()]);
     }
 }
