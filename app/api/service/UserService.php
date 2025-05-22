@@ -8,6 +8,7 @@ use app\model\User;
 use Carbon\Carbon;
 use support\Db;
 use support\exception\BusinessError;
+use support\Redis;
 use support\Token;
 use Throwable;
 
@@ -194,5 +195,6 @@ class UserService
         }
 
         User::query()->where('id', '=', $user_id)->update(['expire_time' => $expire_time->toISOString()]);
+        Redis::del(CACHE_USER_KEY . $user_id);
     }
 }
