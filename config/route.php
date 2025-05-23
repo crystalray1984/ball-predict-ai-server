@@ -81,6 +81,8 @@ Route::group('/admin', function () {
         Route::post('/export', [\app\admin\controller\OddController::class, 'exportOddList']);
         //根据现有的原始盘口，补充推荐盘口
         Route::post('/add', [\app\admin\controller\OddController::class, 'addOdd']);
+        //删除已经推荐的记录
+        Route::post('/remove_promoted', [\app\admin\controller\OddController::class, 'removePromoted']);
     });
 
     //代理管理接口

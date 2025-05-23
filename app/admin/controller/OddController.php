@@ -112,4 +112,20 @@ class OddController extends Controller
         $this->oddService->add($params);
         return $this->success();
     }
+
+    /**
+     * 删除推荐
+     * @param Request $request
+     * @return Response
+     */
+    #[CheckAdminToken]
+    public function removePromoted(Request $request): Response
+    {
+        $params = v::input($request->post(), [
+            'id' => v::intType()->min(1)->setName('id'),
+        ]);
+
+        $this->oddService->removePromoted($params['id']);
+        return $this->success();
+    }
 }

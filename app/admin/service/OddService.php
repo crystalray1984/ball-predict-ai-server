@@ -551,4 +551,26 @@ class OddService
         $writer->save($filePath);
         return $filePath;
     }
+
+    /**
+     * 删除已经推荐出来的记录
+     * @param int $id
+     * @return void
+     */
+    public function removePromoted(int $id): void
+    {
+        $row = PromotedOdd::query()
+            ->where('id', '=', $id)
+            ->first();
+        if (!$row) {
+            throw new BusinessError('未找到推荐记录');
+        }
+
+        if (!$row->is_valid) {
+            throw new BusinessError('未找到推荐记录');
+        }
+
+        $row->is_valid = 0;
+        $row->save();
+    }
 }
