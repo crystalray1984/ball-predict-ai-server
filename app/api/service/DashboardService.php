@@ -211,18 +211,11 @@ class DashboardService
      */
     public function preparing(): array
     {
-        //角球判断
-        $settings = get_settings(['corner_enable']);
-        $corner_enable = !empty($settings['corner_enable']);
-
         $rows = Match1::query()
             ->whereIn(
                 'id',
                 Odd::query()
                     ->where('status', '=', 'ready')
-                    ->when(!$corner_enable, function ($query) {
-                        $query->where('variety', '!=', 'corner');
-                    })
                     ->select('match_id')
             )
             ->where('status', '=', '')
