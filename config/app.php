@@ -11,4 +11,6 @@ return [
     'runtime_path' => base_path(false) . DIRECTORY_SEPARATOR . 'runtime',
     'controller_suffix' => '',
     'controller_reuse' => true,
+    //新用户获得的免费VIP时长
+    'new_user_expires' => 7200,
 ];

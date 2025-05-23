@@ -10,28 +10,32 @@ return [
             'day' => [
                 //增加的会员时长
                 'days' => 1,
-                'price' => 180,
+//                'price' => 180,
+                'price' => 1,
                 'currency' => 'EDS',
             ],
             //周会员
             'week' => [
                 //增加的会员时长
                 'days' => 7,
-                'price' => 1180,
+//                'price' => 1180,
+                'price' => 2,
                 'currency' => 'EDS',
             ],
             //月会员
             'month' => [
                 //增加的会员时长
                 'days' => 30,
-                'price' => 4200,
+//                'price' => 4200,
+                'price' => 3,
                 'currency' => 'EDS',
             ],
             //季度会员
             'quarter' => [
                 //增加的会员时长
                 'days' => 90,
-                'price' => 11880,
+//                'price' => 11880,
+                'price' => 4,
                 'currency' => 'EDS',
             ],
         ],

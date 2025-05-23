@@ -71,10 +71,12 @@ class UserService
             $user = get_user($luffaUser->user_id);
         } else {
             //创建用户
+            $vip_seconds = config('app.new_user_expires');
+
             $user = new User();
             $user->username = implode(':', ['luffa', $network, $params['uid']]);
             $user->password = '';
-            $user->expire_time = Carbon::now()->addDays(1)->toISOString();
+            $user->expire_time = Carbon::now()->addSeconds($vip_seconds)->toISOString();
             $user->email = implode(':', ['luffa', $network, $params['uid']]);
 
             $luffaUser = new LuffaUser();
