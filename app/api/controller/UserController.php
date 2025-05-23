@@ -114,4 +114,26 @@ class UserController extends Controller
             $user
         );
     }
+
+    /**
+     * 读取VIP购买记录
+     * @param Request $request
+     * @return Response
+     */
+    #[CheckUserToken]
+    public function getVipRecords(Request $request): Response
+    {
+        $params = v::input($request->post(), [
+            'page' => v::optional(v::intType()->min(1))->setName('page'),
+            'page_size' => v::optional(v::intType()->min(1))->setName('page_size'),
+        ]);
+
+        return $this->success(
+            $this->userService->getVipRecords(
+                $request->user->id,
+                $params['page'] ?? DEFAULT_PAGE,
+                $params['page_size'] ?? DEFAULT_PAGE_SIZE
+            )
+        );
+    }
 }

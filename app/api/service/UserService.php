@@ -4,6 +4,7 @@ namespace app\api\service;
 
 use app\model\Agent;
 use app\model\LuffaUser;
+use app\model\Order;
 use app\model\User;
 use Carbon\Carbon;
 use support\Db;
@@ -198,5 +199,46 @@ class UserService
 
         User::query()->where('id', '=', $user_id)->update(['expire_time' => $expire_time->toISOString()]);
         Redis::del(CACHE_USER_KEY . $user_id);
+    }
+
+    /**
+     * 获取VIP购买记录
+     * @param int $user_id
+     * @param int $page
+     * @param int $page_size
+     * @return array
+     */
+    public function getVipRecords(int $user_id, int $page = DEFAULT_PAGE, int $page_size = DEFAULT_PAGE_SIZE): array
+    {
+        $query = Order::query()
+            ->where('user_id', '=', $user_id)
+            ->where('status', '=', 1)
+            ->where('type', '=', 1);
+
+        $total = $query->count();
+
+        $list = $query
+            ->orderBy('payment_at', 'desc')
+            ->forPage($page, $page_size)
+            ->get([
+                'id',
+                'type',
+                'amount',
+                'channel',
+                'payment_at',
+                'extra',
+                'currency',
+            ])
+            ->toArray();
+
+        foreach ($list as $k => $row) {
+            $list[$k]['amount'] = strval(floatval($row['amount']));
+            $list[$k]['extra'] = json_decode($row['extra'], true);
+        }
+
+        return [
+            'total' => $total,
+            'list' => $list,
+        ];
     }
 }

@@ -23,6 +23,7 @@ class OrderService
 
         //订单信息
         $order_info = $config['config'][$type];
+        $order_info['type'] = $type;
 
         //创建订单信息
         $order = new Order();
