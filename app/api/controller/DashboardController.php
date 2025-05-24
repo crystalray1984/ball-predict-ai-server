@@ -75,8 +75,11 @@ class DashboardController extends Controller
             'sort_order' => v::optional(v::in(['asc', 'desc']))->setName('sort_order'),
         ]);
 
-        return $this->success(
-            $this->dashboardService->promoted($params, $request->user->expire_time)
-        );
+        $list = $this->dashboardService->promoted($params, $request->user->expire_time);
+
+        return $this->success([
+            'is_expired' => $request->user->is_expired ? 1 : 0,
+            'list' => $list,
+        ]);
     }
 }
