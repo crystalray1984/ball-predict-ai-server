@@ -64,7 +64,7 @@ class OddService
                 break;
             default:
                 if ($params['matched1'] === 1) {
-                    $query->where('odd.status', '=', 'ready');
+                    $query->where('odd.status', '!=', '');
                 } elseif ($params['matched1'] === 0) {
                     $query->where('odd.status', '=', '');
                 }

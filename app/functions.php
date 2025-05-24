@@ -1,8 +1,8 @@
 <?php declare(strict_types=1);
 
 use app\model\Admin;
-use app\model\Agent;
 use app\model\User;
+use Illuminate\Database\Eloquent\Model;
 use support\Container;
 
 if (!function_exists('enable_debug')) {
@@ -187,15 +187,15 @@ if (!function_exists('get_user')) {
      * 通过id获取用户信息
      * @param int $id
      * @param bool $allowCache
-     * @return User|null
+     * @return User|Model|null
      */
-    function get_user(int $id, bool $allowCache = true): User|null
+    function get_user(int $id, bool $allowCache = true): User|Model|null
     {
         if ($allowCache) {
             //尝试通过缓存获取用户信息
             $cache = \support\Redis::get(CACHE_USER_KEY . $id);
             if (is_string($cache) && !empty($cache)) {
-                return new User(json_decode($cache, true));
+                return User::make(json_decode($cache, true));
             }
         }
 
@@ -211,49 +211,20 @@ if (!function_exists('get_user')) {
     }
 }
 
-if (!function_exists('get_agent')) {
-    /**
-     * 通过id获取代理信息
-     * @param int $id
-     * @param bool $allowCache
-     * @return Agent|null
-     */
-    function get_agent(int $id, bool $allowCache = true): Agent|null
-    {
-        if ($allowCache) {
-            //尝试通过缓存获取用户信息
-            $cache = \support\Redis::get(CACHE_AGENT_KEY . $id);
-            if (is_string($cache) && !empty($cache)) {
-                return new Agent(json_decode($cache, true));
-            }
-        }
-
-        /**
-         * @var Agent|null $agent
-         */
-        $agent = Agent::query()->where('id', '=', $id)->first();
-        if ($agent) {
-            \support\Redis::setEx(CACHE_AGENT_KEY . $id, 3600, json_encode($agent));
-        }
-
-        return $agent;
-    }
-}
-
 if (!function_exists('get_admin')) {
     /**
      * 通过id获取管理员信息
      * @param int $id
      * @param bool $allowCache
-     * @return Admin|null
+     * @return Admin|Model|null
      */
-    function get_admin(int $id, bool $allowCache = true): Admin|null
+    function get_admin(int $id, bool $allowCache = true): Model|Admin|null
     {
         if ($allowCache) {
             //尝试通过缓存获取用户信息
             $cache = \support\Redis::get(CACHE_ADMIN_KEY . $id);
             if (is_string($cache) && !empty($cache)) {
-                return new Admin(json_decode($cache, true));
+                return Admin::make(json_decode($cache, true));
             }
         }
 

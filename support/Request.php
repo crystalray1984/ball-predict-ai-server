@@ -3,7 +3,6 @@
 namespace support;
 
 use app\model\Admin;
-use app\model\Agent;
 use app\model\User;
 
 /**
@@ -23,10 +22,4 @@ class Request extends \Webman\Http\Request
      * @var Admin|null
      */
     public Admin|null $admin = null;
-
-    /**
-     * 当前请求登录的代理
-     * @var Agent|null
-     */
-    public Agent|null $agent = null;
 }

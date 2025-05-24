@@ -7,24 +7,21 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use support\BaseModel;
 
 /**
- * 用户表
+ * 第三方用户连接表
  * @property int $id
- * @property string $nickname
- * @property string $avatar
- * @property int $status
- * @property string $reg_source
- * @property Carbon $expire_time
+ * @property int $user_id
+ * @property string $platform
+ * @property string $platform_id
+ * @property string $account
+ * @property string $password
+ * @property string $extra
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property Carbon|null $deleted_at
  */
-class User extends BaseModel
+class UserConnect extends BaseModel
 {
     use SoftDeletes;
 
-    protected $table = 'user';
-
-    protected $casts = [
-        'expire_time' => 'datetime',
-    ];
+    protected $table = 'user_connect';
 }

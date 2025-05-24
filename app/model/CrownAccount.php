@@ -3,23 +3,24 @@
 namespace app\model;
 
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use support\BaseModel;
 
 /**
- * 管理端用户
- *
+ * 皇冠账号表
  * @property int $id
  * @property string $username
  * @property string $password
  * @property int $status
+ * @property string $use_by
+ * @property Carbon $use_expires
  * @property Carbon $created_at
  * @property Carbon $updated_at
- * @property Carbon|null $deleted_at
  */
-class Admin extends BaseModel
+class CrownAccount extends BaseModel
 {
-    use SoftDeletes;
+    protected $table = 'crown_account';
 
-    protected $table = 'admin';
+    protected $casts = [
+        'use_expires' => 'datetime',
+    ];
 }
