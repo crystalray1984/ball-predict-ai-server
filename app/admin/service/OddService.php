@@ -155,6 +155,7 @@ class OddService
                     'back',
                     'skip',
                     'is_valid',
+                    'final_rule',
                 ])
                 ->toArray();
 
@@ -331,6 +332,7 @@ class OddService
                 '方向',
                 '盘口',
                 '推送水位',
+                '一次比对时间',
                 '第一次皇冠水位',
                 '第二次皇冠盘口',
                 '第二次皇冠水位',
@@ -339,6 +341,7 @@ class OddService
                 '是否推荐',
                 '推荐方向',
                 '推荐盘口',
+                '推荐规则',
                 '结果',
                 '对应赛果'
             ]
@@ -362,6 +365,7 @@ class OddService
             $promoted_condition = '';
             $result = '';
             $result_score = '';
+            $promoted_rule = '';
 
             if ($row['promoted']) {
                 if ($row['promoted']['is_valid']) {
@@ -398,6 +402,14 @@ class OddService
                     };
                     $result_score = $row['promoted']['result']['score'];
                 }
+
+                $promoted_rule = match ($row['promoted']['final_rule']) {
+                    'special' => '特殊',
+                    'special_config' => '变盘',
+                    'titan007' => '球探网',
+                    'corner' => '角球',
+                    default => '',
+                };
             }
 
 
@@ -430,6 +442,7 @@ class OddService
                     default => (string)(float)$row['condition'],
                 },
                 $row['surebet_value'],
+                !empty($row['ready_at']) ? Carbon::parse($row['ready_at'])->toDateTimeString() : '',
                 $row['crown_value'],
                 isset($row['crown_condition2']) ? match ($row['type']) {
                     'ah1', 'ah2' => (bccomp($row['crown_condition2'], '0', 2) > 0 ? '+' : '') . (float)$row['crown_condition2'],
@@ -446,6 +459,7 @@ class OddService
                 $promoted_text,
                 $promoted_type,
                 $promoted_condition,
+                $promoted_rule,
                 $result,
                 $result_score,
             ];
