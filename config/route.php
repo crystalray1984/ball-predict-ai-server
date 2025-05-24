@@ -22,6 +22,8 @@ Route::group('/api', function () {
         Route::post('/luffa_login', [\app\api\controller\UserController::class, 'luffaLogin']);
         //获取当前登录用户的信息
         Route::post('/info', [\app\api\controller\UserController::class, 'info']);
+        //获取VIP购买记录
+        Route::post('/vip_records', [\app\api\controller\UserController::class, 'getVipRecords']);
     });
 
     //订单接口

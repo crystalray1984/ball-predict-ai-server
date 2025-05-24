@@ -2,6 +2,7 @@
 
 namespace app\api\service;
 
+use app\model\Order;
 use app\model\User;
 use Carbon\Carbon;
 use support\exception\BusinessError;
@@ -13,41 +14,6 @@ use support\Token;
  */
 class UserService
 {
-    /**
-     * 用户注册
-     * @param array $params
-     * @return array
-     */
-    public function register(array $params): array
-    {
-        //先检查用户名是否存在
-        $usernameExists = User::query()
-            ->where('username', '=', $params['username'])
-            ->exists();
-
-        if ($usernameExists) {
-            throw new BusinessError('账号已被使用');
-        }
-
-        //创建用户
-        $userId = User::insertGetId([
-            'username' => $params['username'],
-            'password' => md5($params['password']),
-            'status' => 1,
-            'expire_time' => Carbon::now()->addMinutes(5)->toISOString(),
-        ]);
-
-        $user = User::query()->where('id', '=', $userId)->first();
-
-        //生成token
-        $token = Token::create(['id' => $userId, 'type' => 'user']);
-
-        return [
-            'token' => $token,
-            'user' => $user,
-        ];
-    }
-
     /**
      * 给用户加VIP天数
      * @param int $user_id
@@ -75,7 +41,51 @@ class UserService
             ->update([
                 'expire_time' => $expire_time->toISOString()
             ]);
-        
+
         Redis::del(CACHE_USER_KEY . $user_id);
+    }
+
+    /**
+     * 获取VIP购买记录
+     * @param int $user_id
+     * @param int $page
+     * @param int $page_size
+     * @return array
+     */
+    public function getVipRecords(int $user_id, int $page = DEFAULT_PAGE, int $page_size = DEFAULT_PAGE_SIZE): array
+    {
+        $query = Order::query()
+            ->where('user_id', '=', $user_id)
+            ->where('status', '=', 'paid')
+            ->where('type', '=', 'vip');
+
+        $total = $query->count();
+
+        $list = $query
+            ->orderBy('paid_at', 'desc')
+            ->forPage($page, $page_size)
+            ->get([
+                'id',
+                'type',
+                'amount',
+                'channel_type',
+                'paid_at',
+                'extra',
+                'currency',
+            ])
+            ->toArray();
+
+        foreach ($list as $k => $row) {
+            $list[$k]['channel'] = $row['channel_type'];
+            $list[$k]['payment_at'] = $row['paid_at'];
+            $list[$k]['amount'] = strval(floatval($row['amount']));
+            $list[$k]['extra'] = json_decode($row['extra'], true);
+            unset($list[$k]['channel_type'], $list[$k]['paid_at']);
+        }
+
+        return [
+            'total' => $total,
+            'list' => $list,
+        ];
     }
 }

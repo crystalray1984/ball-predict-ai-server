@@ -81,31 +81,6 @@ class UserController extends Controller
     }
 
     /**
-     * 用户注册
-     * @param Request $request
-     * @return Response
-     */
-    public function register(Request $request): Response
-    {
-        $params = v::input($request->post(), [
-            'username' => v::stringType()->notEmpty()->setName('username'),
-            'password' => v::stringType()->notEmpty()->setName('password'),
-            'code_key' => v::stringType()->notEmpty()->setName('code_key'),
-            'code' => v::stringType()->notEmpty()->setName('code'),
-            'invite_code' => v::optional(v::stringType())->setName('invite_code'),
-        ]);
-
-        //校验验证码
-        if (!Captcha::check($params['code'], $params['code_key'])) {
-            return $this->fail('验证码错误');
-        }
-
-        return $this->success(
-            $this->userService->register($params)
-        );
-    }
-
-    /**
      * 获取当前用户的信息
      * @param Request $request
      * @return Response
@@ -115,6 +90,28 @@ class UserController extends Controller
     {
         return $this->success(
             $request->user
+        );
+    }
+
+    /**
+     * 读取VIP购买记录
+     * @param Request $request
+     * @return Response
+     */
+    #[CheckUserToken]
+    public function getVipRecords(Request $request): Response
+    {
+        $params = v::input($request->post(), [
+            'page' => v::optional(v::intType()->min(1))->setName('page'),
+            'page_size' => v::optional(v::intType()->min(1))->setName('page_size'),
+        ]);
+
+        return $this->success(
+            $this->userService->getVipRecords(
+                $request->user->id,
+                $params['page'] ?? DEFAULT_PAGE,
+                $params['page_size'] ?? DEFAULT_PAGE_SIZE
+            )
         );
     }
 }
