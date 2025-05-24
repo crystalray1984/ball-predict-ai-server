@@ -253,9 +253,9 @@ if (!function_exists('get_settings')) {
 
         //先判断缓存是否存在
         if ($allowCache) {
-            $exists = \support\Redis::exists('settings');
+            $exists = \support\Redis::exists(CACHE_SETTING_KEY);
             if ($exists) {
-                $cache = \support\Redis::hmget('settings', $keys);
+                $cache = \support\Redis::hmget(CACHE_SETTING_KEY, $keys);
                 return array_map(fn(string|null $value) => is_string($value) && $value !== '' ? json_decode($value, true) : null, $cache);
             }
         }
@@ -263,8 +263,8 @@ if (!function_exists('get_settings')) {
         if ($allowCache) {
             $data = \app\model\Setting::query()->get()->toArray();
             $data = array_column($data, 'value', 'name');
-            \support\Redis::del('settings');
-            \support\Redis::hmset('settings', $data);
+            \support\Redis::del(CACHE_SETTING_KEY);
+            \support\Redis::hmset(CACHE_SETTING_KEY, $data);
             $data = array_filter($data, fn(string $key) => in_array($key, $keys), ARRAY_FILTER_USE_KEY);
         } else {
             $data = \app\model\Setting::query()
