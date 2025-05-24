@@ -78,7 +78,7 @@ class DashboardController extends Controller
         $list = $this->dashboardService->promoted($params, $request->user->expire_time);
 
         return $this->success([
-            'is_expired' => $request->user->is_expired ? 1 : 0,
+            'is_expired' => $request->user->is_expired,
             'list' => $list,
         ]);
     }
