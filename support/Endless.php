@@ -55,6 +55,7 @@ class Endless
                 $retry--;
                 if ($retry > 0) {
                     Log::error($e->getMessage());
+                    sleep(5);
                     continue;
                 }
                 throw $e;
