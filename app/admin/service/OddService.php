@@ -50,10 +50,6 @@ class OddService
             case 0:
                 $query->where('odd.status', '=', 'ignored');
                 break;
-            case 'titan007':
-                $query->where('odd.status', '=', 'promoted')
-                    ->where('odd.final_rule', '=', 'titan007');
-                break;
             case 'crown':
                 $query->where('odd.status', '=', 'promoted')
                     ->where('odd.final_rule', '=', 'crown');

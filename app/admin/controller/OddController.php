@@ -54,7 +54,7 @@ class OddController extends Controller
             'variety' => v::optional(v::in(['goal', 'corner']))->setName('variety'),
             'period' => v::optional(v::in(['period1', 'regularTime']))->setName('period'),
             'matched1' => v::optional(v::in(['0', '1', '-1']))->setName('matched1'),
-            'matched2' => v::optional(v::in(['0', '1', '-1', 'titan007', 'crown', 'crown_special']))->setName('matched2'),
+            'matched2' => v::optional(v::in(['0', '1', '-1', 'crown', 'crown_special']))->setName('matched2'),
             'promoted' => v::optional(v::in(['0', '1', '2', '-1']))->setName('promoted'),
         ]);
 
