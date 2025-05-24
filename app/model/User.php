@@ -32,7 +32,7 @@ class User extends BaseModel
     protected function isExpired(): Attribute
     {
         return new Attribute(
-            get: fn(mixed $_value, array $attributes) => Carbon::parse($attributes['expire_time'])->unix() <= time() ? 1 : 0
+            get: fn(mixed $_value, array $attributes) => Carbon::parse($attributes['expire_time'])->unix() <= time()
         );
     }
 
