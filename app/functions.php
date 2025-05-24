@@ -256,7 +256,8 @@ if (!function_exists('get_settings')) {
             $exists = \support\Redis::exists(CACHE_SETTING_KEY);
             if ($exists) {
                 $cache = \support\Redis::hmget(CACHE_SETTING_KEY, $keys);
-                return array_map(fn(string|null $value) => is_string($value) && $value !== '' ? json_decode($value, true) : null, $cache);
+                $data = array_map(fn(string|null $value) => is_string($value) && $value !== '' ? json_decode($value, true) : null, $cache);
+                return array_combine($keys, $data);
             }
         }
 
