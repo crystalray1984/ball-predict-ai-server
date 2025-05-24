@@ -2,6 +2,7 @@
 
 namespace scripts;
 
+use Carbon\Carbon;
 use Illuminate\Database\Connection;
 use support\Db;
 
@@ -97,8 +98,8 @@ class Migration
         $this->copyTable('admin');
 
         //配置表
-        $this->truncate('setting');
-        $this->copyTable('setting', incrementKey: '');
+//        $this->truncate('setting');
+//        $this->copyTable('setting', incrementKey: '');
 
         //联赛表
         $this->truncate('tournament');
@@ -119,6 +120,16 @@ class Migration
         //推荐盘口表
         $this->truncate('promoted_odd');
         $this->copyPromotedOddTable();
+
+        //用户表
+        $this->truncate('user');
+        $this->truncate('user_connect');
+        $this->copyUserTable();
+        $this->copyLuffaUserTable();
+
+        //订单表
+        $this->truncate('order');
+        $this->copyOrderTable();
     }
 
     /**
@@ -268,6 +279,141 @@ class Migration
         }
         $lastId++;
         $this->to->select("SELECT setval('public.promoted_odd_id_seq', $lastId, false)");
+    }
+
+    /**
+     * 迁移用户表
+     * @return void
+     */
+    protected function copyUserTable(): void
+    {
+        $from = 'user';
+        $to = 'user';
+        $lastId = 0;
+        while (true) {
+            echo "迁移 $from -> $to last_id=$lastId\n";
+            $list = $this->from->table($from)
+                ->where('id', '>', $lastId)
+                ->orderBy('id')
+                ->limit(500)
+                ->get()
+                ->map(fn($row) => (array)$row)
+                ->toArray();
+            if (empty($list)) {
+                break;
+            }
+
+            //数据处理
+            foreach ($list as $k => $row) {
+                $list[$k]['reg_source'] =
+                    str_starts_with($row['email'], 'luffa:')
+                        ? 'luffa'
+                        : '';
+                unset(
+                    $list[$k]['username'],
+                    $list[$k]['password'],
+                    $list[$k]['note'],
+                    $list[$k]['agent1_id'],
+                    $list[$k]['agent2_id'],
+                    $list[$k]['email'],
+                );
+            }
+
+            $this->to->table($to)->insert($list);
+            $lastId = last($list)['id'];
+        }
+        $lastId++;
+        $this->to->select("SELECT setval('public.user_id_seq', $lastId, false)");
+    }
+
+    /**
+     * 迁移luffa用户
+     * @return void
+     */
+    protected function copyLuffaUserTable(): void
+    {
+        $from = 'luffa_user';
+        $to = 'user_connect';
+
+        echo "迁移 $from -> $to\n";
+        $list = $this->from->table($from)
+            ->get()
+            ->map(fn($row) => (array)$row)
+            ->toArray();
+
+        $list = array_map(function (array $row) {
+            return [
+                'user_id' => $row['user_id'],
+                'platform' => 'luffa',
+                'platform_id' => $row['network'],
+                'account' => $row['uid'],
+                'extra' => json_enc([
+                    'nickname' => $row['nickname'],
+                    'uid' => $row['uid'],
+                    'account' => $row['address'],
+                    'address' => $row['address'],
+                    'network' => $row['network'],
+                    'avatar' => $row['avatar'],
+                    'cid' => $row['cid'],
+                ]),
+            ];
+        }, $list);
+
+        $this->to->table($to)->insert($list);
+    }
+
+    /**
+     * 迁移订单表
+     * @return void
+     */
+    protected function copyOrderTable(): void
+    {
+        $from = 'order';
+        $to = 'order';
+        $lastId = 0;
+        while (true) {
+            echo "迁移 $from -> $to last_id=$lastId\n";
+            $list = $this->from->table($from)
+                ->where('id', '>', $lastId)
+                ->where('status', '=', 1)
+                ->orderBy('id')
+                ->limit(500)
+                ->get()
+                ->map(fn($row) => (array)$row)
+                ->toArray();
+            if (empty($list)) {
+                break;
+            }
+
+            //数据处理
+            $insert_list = array_map(function (array $row) {
+                $order_time = Carbon::parse($row['created_at']);
+                $order_date = (int)$order_time->format('Ymd');
+                $order_number = $order_date . str_pad((string)$row['id'], 6, '0', STR_PAD_LEFT);
+
+
+                return [
+                    'order_date' => $order_date,
+                    'order_number' => $order_number,
+                    'user_id' => $row['user_id'],
+                    'type' => 'vip',
+                    'amount' => $row['amount'],
+                    'currency' => $row['currency'],
+                    'status' => 'paid',
+                    'extra' => $row['extra'],
+                    'channel_type' => $row['channel'],
+                    'channel_id' => $row['channel_id'],
+                    'channel_order_no' => $row['channel_trade_no'],
+                    'channel_order_info' => $row['channel_order_info'],
+                    'paid_at' => $row['payment_at'],
+                    'created_at' => $row['created_at'],
+                    'updated_at' => $row['updated_at'],
+                ];
+            }, $list);
+
+            $this->to->table($to)->insert($insert_list);
+            $lastId = last($list)['id'];
+        }
     }
 }
 
