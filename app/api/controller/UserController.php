@@ -2,6 +2,7 @@
 
 namespace app\api\controller;
 
+use app\api\service\LoginRegisterService;
 use app\api\service\UserService;
 use DI\Attribute\Inject;
 use Respect\Validation\Validator as v;
@@ -9,6 +10,7 @@ use support\attribute\CheckUserToken;
 use support\Controller;
 use support\Request;
 use support\Response;
+use support\Token;
 use Tinywan\Captcha\Captcha;
 
 /**
@@ -19,8 +21,11 @@ class UserController extends Controller
     #[Inject]
     protected UserService $userService;
 
+    #[Inject]
+    protected LoginRegisterService $loginRegisterService;
+
     /**
-     * 用户登录
+     * 邮件密码登录
      * @param Request $request
      * @return Response
      */
@@ -38,9 +43,15 @@ class UserController extends Controller
             return $this->fail('验证码错误');
         }
 
-        return $this->success(
-            $this->userService->login($params)
-        );
+        $user = $this->loginRegisterService->emailPasswordLogin($params);
+
+        //生成token
+        $token = Token::create(['id' => $user->id, 'type' => 'user']);
+
+        return $this->success([
+            'token' => $token,
+            'user' => $user,
+        ]);
     }
 
     /**
@@ -52,16 +63,17 @@ class UserController extends Controller
     {
         $params = v::input($request->post(), [
             'uid' => v::stringType()->notEmpty()->setName('uid'),
-            'avatar' => v::optional(v::stringType())->setName('avatar'),
-            'cid' => v::optional(v::stringType())->setName('cid'),
-            'nickname' => v::optional(v::stringType())->setName('nickname'),
-            'avatar_frame' => v::optional(v::alwaysValid())->setName('avatar_frame'),
-            'address' => v::optional(v::stringType())->setName('address'),
         ]);
 
-        return $this->success(
-            $this->userService->luffaLogin($params)
-        );
+        //获取登录的用户
+        $user = $this->loginRegisterService->luffaLogin($params);
+        //生成token
+        $token = Token::create(['id' => $user->id, 'type' => 'user']);
+
+        return $this->success([
+            'token' => $token,
+            'user' => $user,
+        ]);
     }
 
     /**

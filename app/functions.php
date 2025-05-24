@@ -204,7 +204,7 @@ if (!function_exists('get_user')) {
          */
         $user = User::query()->where('id', '=', $id)->first();
         if ($user) {
-            \support\Redis::setEx(CACHE_USER_KEY . $id, 3600, json_encode($user));
+            \support\Redis::setEx(CACHE_USER_KEY . $id, 3600, json_enc($user->makeVisible(['deleted_at'])));
         }
 
         return $user;

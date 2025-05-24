@@ -3,6 +3,7 @@
 namespace app\model;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use support\BaseModel;
 
@@ -27,4 +28,15 @@ class User extends BaseModel
     protected $casts = [
         'expire_time' => 'datetime',
     ];
+
+    protected function isExpired(): Attribute
+    {
+        return new Attribute(
+            get: fn(mixed $_value, array $attributes) => Carbon::parse($attributes['expire_time'])->unix() <= time() ? 1 : 0
+        );
+    }
+
+    protected $appends = ['is_expired'];
+
+    protected $hidden = ['deleted_at'];
 }

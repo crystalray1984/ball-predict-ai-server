@@ -20,7 +20,7 @@ class SettingService
         $data = Setting::all()->toArray();
         $data = array_column($data, 'value', 'name');
         return array_map(function (string|null $value) {
-            if (empty($value)) {
+            if (!isset($value) || $value === '') {
                 return '';
             } else {
                 return json_decode($value, false);

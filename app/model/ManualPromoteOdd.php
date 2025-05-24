@@ -2,6 +2,7 @@
 
 namespace app\model;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use support\BaseModel;
 
@@ -16,7 +17,10 @@ use support\BaseModel;
  * @property string $type 投注方向1
  * @property string|null $condition2 盘口2
  * @property string|null $type2 投注方向2
- *
+ * @property int $promoted_odd_id 生成的推荐盘口id
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ * @property Carbon|null $deleted_at
  */
 class ManualPromoteOdd extends BaseModel
 {
