@@ -128,7 +128,10 @@ class DashboardService
         );
 
         //排序
-        $query->orderBy('match.match_time', $params['sort_order'] ?? 'desc');
+        $query
+            ->orderBy('match.match_time', $params['sort_order'] ?? 'desc')
+            ->orderBy('promoted_odd.match_id')
+            ->orderBy('promoted_odd.odd_id');
 
         //查询
         $rows = $query->get([

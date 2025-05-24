@@ -215,6 +215,7 @@ class OddService
             ->join('match', 'match.id', '=', 'odd.match_id')
             ->orderBy('match.match_time', 'DESC')
             ->orderBy('odd.match_id')
+            ->orderBy('odd.id')
             ->select([
                 'odd.id',
                 'odd.match_id',
