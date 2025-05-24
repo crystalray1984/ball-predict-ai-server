@@ -108,7 +108,7 @@ class DashboardService
         if (!empty($params['end_date'])) {
             $end = Carbon::parse($params['end_date'])->addDays();
         } else {
-            $end = Carbon::now();
+            $end = Carbon::now()->addDays();
         }
 
         if (!empty($expires)) {
