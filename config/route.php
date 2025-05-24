@@ -24,6 +24,19 @@ Route::group('/api', function () {
         Route::post('/info', [\app\api\controller\UserController::class, 'info']);
     });
 
+    //订单接口
+    Route::group('/order', function () {
+        //Luffa订单接口
+        Route::group('/luffa', function () {
+            //获取Luffa购买配置
+            Route::post('/config', [\app\api\controller\LuffaOrderController::class, 'config']);
+            //创建Luffa订单
+            Route::post('/create', [\app\api\controller\LuffaOrderController::class, 'create']);
+            //完成Luffa订单
+            Route::post('/complete', [\app\api\controller\LuffaOrderController::class, 'complete']);
+        });
+    });
+
     //首页看板接口
     Route::group('/dashboard', function () {
         //统计数据

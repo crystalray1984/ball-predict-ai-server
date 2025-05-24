@@ -2,8 +2,12 @@
 
 namespace app\api\controller;
 
+use app\api\service\OrderService;
+use DI\Attribute\Inject;
+use Respect\Validation\Validator as v;
 use support\attribute\CheckUserToken;
 use support\Controller;
+use support\Log;
 use support\Request;
 use support\Response;
 
@@ -12,6 +16,9 @@ use support\Response;
  */
 class LuffaOrderController extends Controller
 {
+    #[Inject]
+    protected OrderService $orderService;
+
     /**
      * 创建Luffa订单
      * @param Request $request
@@ -20,7 +27,18 @@ class LuffaOrderController extends Controller
     #[CheckUserToken]
     public function create(Request $request): Response
     {
+        $params = v::input($request->post(), [
+            'type' => v::in(['day', 'week', 'month', 'quarter'])->setName('type'),
+            'network' => v::in(['endless', 'eds'])->setName('network'),
+        ]);
 
+        return $this->success(
+            $this->orderService->createLuffaOrder(
+                $request->user->id,
+                $params['network'],
+                $params['type'],
+            )
+        );
     }
 
     /**
@@ -30,7 +48,16 @@ class LuffaOrderController extends Controller
      */
     public function complete(Request $request): Response
     {
+        Log::channel('endless')
+            ->info("[Luffa订单完成] " . json_enc($request->post()));
 
+        $params = v::input($request->post(), [
+            'order_id' => v::intType()->notEmpty()->setName('order_id'),
+            'hash' => v::stringType()->notEmpty()->setName('hash'),
+        ]);
+
+        $this->orderService->completeLuffaOrder($params['order_id'], $params['hash']);
+        return $this->success();
     }
 
     /**
@@ -40,6 +67,12 @@ class LuffaOrderController extends Controller
      */
     public function config(Request $request): Response
     {
+        $params = v::input($request->post(), [
+            'network' => v::in(['endless', 'eds'])->setName('network'),
+        ]);
 
+        return $this->success(
+            config("payment.{$params['network']}.config")
+        );
     }
 }
