@@ -62,11 +62,15 @@ class UserController extends Controller
     public function luffaLogin(Request $request): Response
     {
         $params = v::input($request->post(), [
-            'uid' => v::stringType()->notEmpty()->setName('uid'),
+            'network' => v::stringType()->in(['eds', 'endless'])->setName('network'),
+            'info' => v::arrayType()
+                ->notEmpty()
+                ->key('uid', v::stringType()->notEmpty()->setName('network.uid'))
+                ->setName('info'),
         ]);
 
         //获取登录的用户
-        $user = $this->loginRegisterService->luffaLogin($params);
+        $user = $this->loginRegisterService->luffaLogin($params['network'], $params['info']);
         //生成token
         $token = Token::create(['id' => $user->id, 'type' => 'user']);
 

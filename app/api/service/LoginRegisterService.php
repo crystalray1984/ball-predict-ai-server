@@ -21,12 +21,13 @@ class LoginRegisterService
      * } $params
      * @return User
      */
-    public function luffaLogin(array $params): User
+    public function luffaLogin(string $network, array $params): User
     {
         //首先尝试通过luffa小程序看看用户是否存在
         /** @var UserConnect $connect */
         $connect = UserConnect::query()
             ->where('platform', '=', 'luffa')
+            ->where('platform_id', '=', $network)
             ->where('account', '=', $params['uid'])
             ->first(['user_id']);
         if ($connect) {
@@ -44,6 +45,7 @@ class LoginRegisterService
         //尝试创建用户
         $connect = new UserConnect();
         $connect->platform = 'luffa';
+        $connect->platform_id = $network;
         $connect->account = $params['uid'];
         $connect->extra = json_enc($params);
 

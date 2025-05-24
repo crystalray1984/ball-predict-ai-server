@@ -8,6 +8,7 @@ use app\model\PromotedOdd;
 use app\model\Team;
 use app\model\Tournament;
 use Carbon\Carbon;
+use DateTimeInterface;
 
 /**
  * 首页看板业务
@@ -86,9 +87,10 @@ class DashboardService
     /**
      * 获取推荐的赛事
      * @param array $params
+     * @param DateTimeInterface|string|null $expires
      * @return array
      */
-    public function promoted(array $params): array
+    public function promoted(array $params, DateTimeInterface|string|null $expires = null): array
     {
         $query = PromotedOdd::query()
             ->join('match', 'match.id', '=', 'promoted_odd.match_id')
@@ -101,25 +103,32 @@ class DashboardService
                 Carbon::parse($params['start_date'])->toISOString(),
             );
         }
+
+
         if (!empty($params['end_date'])) {
-            $query->where(
-                'match.match_time',
-                '<',
-                Carbon::parse($params['end_date'])
-                    ->addDays()
-                    ->toISOString(),
+            $end = Carbon::parse($params['end_date'])->addDays();
+        } else {
+            $end = Carbon::now();
+        }
+
+        if (!empty($expires)) {
+            $expire_time = Carbon::parse($expires);
+            $end = Carbon::createFromTimestampMs(
+                min(
+                    $end->getTimestampMs(),
+                    $expire_time->getTimestampMs()
+                )
             );
         }
 
+        $query->where(
+            'match.match_time',
+            '<',
+            $end->toISOString(),
+        );
+
         //排序
-        switch ($params['order'] ?? null) {
-            case 'match_time':
-                $query->orderBy('match.match_time', $params['sort_order'] ?? 'desc');
-                break;
-            default:
-                $query->orderBy('promoted_odd.id', $params['sort_order'] ?? 'desc');
-                break;
-        }
+        $query->orderBy('match.match_time', $params['sort_order'] ?? 'desc');
 
         //查询
         $rows = $query->get([
@@ -131,24 +140,15 @@ class DashboardService
             'promoted_odd.type',
             'promoted_odd.condition',
             'promoted_odd.score',
-            'promoted_odd.score1 AS odd_score1',
-            'promoted_odd.score2 AS odd_score2',
+            'promoted_odd.score1',
+            'promoted_odd.score2',
             'match.match_time',
             'match.team1_id',
             'match.team2_id',
             'match.tournament_id',
-            'match.score1',
-            'match.score2',
-            'match.score1_period1',
-            'match.score2_period1',
-            'match.corner1',
-            'match.corner2',
-            'match.corner1_period1',
-            'match.corner2_period1',
-            'match.has_score',
-            'match.has_period1_score',
             'match.error_status',
-        ])->toArray();
+        ])
+            ->toArray();
 
         if (!empty($rows)) {
             //查询赛事
@@ -190,8 +190,8 @@ class DashboardService
                 if ($row['error_status'] === '' && isset($row['result'])) {
                     $output['result'] = [
                         'score' => $row['score'],
-                        'score1' => $row['odd_score1'],
-                        'score2' => $row['odd_score2'],
+                        'score1' => $row['score1'],
+                        'score2' => $row['score2'],
                         'result' => $row['result'],
                     ];
                 } else {
