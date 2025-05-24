@@ -36,7 +36,7 @@ class Endless
     public function getTransaction(string $hash): array
     {
         $client = new Client();
-        $retry = 3;
+        $retry = 10;
         while (true) {
             try {
                 $resp = $client->get(
