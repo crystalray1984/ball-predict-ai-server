@@ -9,6 +9,8 @@ abstract class BaseModel extends Model
 {
     protected static $unguarded = true;
 
+    protected $dateFormat = DateTimeInterface::ATOM;
+
     protected function serializeDate(DateTimeInterface $date): string
     {
         return Carbon::create($date)->toJSON();
