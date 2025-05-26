@@ -306,7 +306,7 @@ class Migration
             //数据处理
             foreach ($list as $k => $row) {
                 $list[$k]['reg_source'] =
-                    str_starts_with($row['email'], 'luffa:')
+                    str_starts_with($row['username'], 'luffa:')
                         ? 'luffa'
                         : '';
                 unset(
