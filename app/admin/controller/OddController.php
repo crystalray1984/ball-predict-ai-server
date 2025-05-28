@@ -70,7 +70,7 @@ class OddController extends Controller
         }
 
         $filePath = $this->oddService->exportOddList(
-            $this->oddService->getOddList($params)
+            $this->oddService->getOddList($params, true)
         );
 
         $resp = new Response();

@@ -19,9 +19,10 @@ class OddService
     /**
      * 获取盘口抓取数据
      * @param array $params
+     * @param bool $virtual 是否模拟反推盘的胜负
      * @return array
      */
-    public function getOddList(array $params): array
+    public function getOddList(array $params, bool $virtual = false): array
     {
         $query = $this->createOddQuery();
         if (!empty($params['start_date'])) {
@@ -89,7 +90,7 @@ class OddService
             }
         }
 
-        return $this->processOddList($query->get()->toArray());
+        return $this->processOddList($query->get()->toArray(), $virtual);
     }
 
     /**
@@ -110,9 +111,10 @@ class OddService
     /**
      * 处理查询好的盘口列表
      * @param array $rows
+     * @param bool $virtual 是否生成虚拟推荐数据
      * @return array
      */
-    protected function processOddList(array $rows): array
+    protected function processOddList(array $rows, bool $virtual = false): array
     {
         if (!empty($rows)) {
             //查询赛事
@@ -158,7 +160,30 @@ class OddService
             $promotes = array_column($promotes, null, 'odd_id');
 
             //写入数据
-            $rows = array_map(function (array $row) use ($tournaments, $teams, $promotes) {
+            $rows = array_map(function (array $row) use ($tournaments, $teams, $promotes, $virtual) {
+                $virtual_odd = null;
+                if ($virtual) {
+                    //看看有没有对应的赛果
+                    if (
+                        $row['period'] === 'period1' && $row['has_period1_score'] ||
+                        $row['period'] === 'regularTime' && $row['has_score']
+                    ) {
+                        //虚拟盘口数据
+                        [$type, $condition] = get_reverse_odd($row['type'], $row['condition']);
+
+                        $virtual_odd = [
+                            'variety' => $row['variety'],
+                            'period' => $row['period'],
+                            'type' => $type,
+                            'condition' => $condition,
+                        ];
+
+                        $result = get_odd_score($row, $virtual_odd);
+                        $virtual_odd['score'] = $result['score'];
+                        $virtual_odd['result'] = $result['result'];
+                    }
+                }
+
                 $output = [
                     'id' => $row['id'],
                     'match_id' => $row['match_id'],
@@ -180,6 +205,9 @@ class OddService
                     'has_period1_score' => $row['has_period1_score'],
                     'created_at' => $row['created_at'],
                     'ready_at' => $row['ready_at'],
+
+                    //虚拟盘口数据
+                    'virtual_odd' => $virtual_odd,
                 ];
 
                 //推荐数据
@@ -237,6 +265,14 @@ class OddService
                 'match.tournament_id',
                 'match.has_score',
                 'match.has_period1_score',
+                'match.score1',
+                'match.score2',
+                'match.corner1',
+                'match.corner2',
+                'match.score1_period1',
+                'match.score2_period1',
+                'match.corner1_period1',
+                'match.corner2_period1',
             ]);
     }
 
@@ -340,7 +376,10 @@ class OddService
                 '推荐盘口',
                 '推荐规则',
                 '结果',
-                '对应赛果'
+                '对应赛果',
+                '模拟盘口(反推)',
+                '模拟盘口结果',
+                '模拟盘口赛果',
             ]
         ];
 
@@ -363,6 +402,11 @@ class OddService
             $result = '';
             $result_score = '';
             $promoted_rule = '';
+
+            //模拟盘口数据
+            $virtual_text = '';
+            $virtual_result = '';
+            $virtual_score = '';
 
             if ($row['promoted']) {
                 if ($row['promoted']['is_valid']) {
@@ -407,8 +451,28 @@ class OddService
                     'corner' => '角球',
                     default => '',
                 };
-            }
+            } else if (!empty($row['virtual_odd'])) {
+                $virtual_type = match ($row['virtual_odd']['type']) {
+                    'ah1' => '主胜',
+                    'ah2' => '客胜',
+                    'over' => '大球',
+                    'under' => '小球',
+                    default => '',
+                };
+                $virtual_condition = match ($row['virtual_odd']['type']) {
+                    'ah1', 'ah2' => (bccomp($row['virtual_odd']['condition'], '0', 2) > 0 ? '+' : '') . (float)$row['virtual_odd']['condition'],
+                    default => (string)(float)$row['virtual_odd']['condition'],
+                };
 
+                $virtual_text = "$virtual_type $virtual_condition";
+                $virtual_result = match ($row['virtual_odd']['result']) {
+                    0 => '和',
+                    1 => '赢',
+                    -1 => '输',
+                    default => '',
+                };
+                $virtual_score = $row['virtual_odd']['score'];
+            }
 
             $add_row = [
                 $row['id'],
@@ -459,6 +523,9 @@ class OddService
                 $promoted_rule,
                 $result,
                 $result_score,
+                $virtual_text,
+                $virtual_result,
+                $virtual_score,
             ];
 
             $rows[] = $add_row;
