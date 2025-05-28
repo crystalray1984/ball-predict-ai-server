@@ -2,9 +2,11 @@
 
 namespace app\admin\service;
 
+use app\model\Order;
 use app\model\PromotedOdd;
 use app\model\User;
 use Carbon\Carbon;
+use support\Db;
 
 /**
  * 概览面板的业务
@@ -88,6 +90,59 @@ class DashboardService
             'draw' => $draw,
             'win_rate' => $win_rate,
             'user' => $user_count,
+        ];
+    }
+
+    /**
+     * 获取VIP统计数据
+     * @return array
+     */
+    public function getVipSummary(): array
+    {
+        $today_start = Carbon::today();
+        $days_7_start = Carbon::today()->subDays(6);
+        $days_30_start = Carbon::today()->subDays(29);
+
+        return [
+            'today' => $this->getVipSummaryByDateRange($today_start),
+            'yesterday' => $this->getVipSummaryByDateRange($today_start->clone()->subDays(), $today_start),
+            'days_7' => $this->getVipSummaryByDateRange($days_7_start),
+            'days_30' => $this->getVipSummaryByDateRange($days_30_start),
+            'all' => $this->getVipSummaryByDateRange(),
+        ];
+    }
+
+    /**
+     * 获取VIP统计数据
+     * @param Carbon|null $start
+     * @param Carbon|null $end
+     * @return array
+     */
+    public function getVipSummaryByDateRange(?Carbon $start = null, ?Carbon $end = null): array
+    {
+        $list = Db::table(
+            Order::getQuery()
+                ->where('status', '=', 'paid')
+                ->where('type', '=', 'vip')
+                ->when(isset($start), fn($query) => $query->where('paid_at', '>=', $start->toISOString()))
+                ->when(isset($end), fn($query) => $query->where('paid_at', '<', $end->toISOString()))
+                ->selectRaw("extra ->> 'type' AS type"),
+            'a'
+        )
+            ->groupBy('a.type')
+            ->selectRaw('COUNT(1) AS total')
+            ->addSelect('a.type')
+            ->get()
+            ->map(fn($item) => (array)$item)
+            ->toArray();
+
+        $list = array_column($list, 'total', 'type');
+
+        return [
+            'day' => $list['day'] ?? 0,
+            'week' => $list['week'] ?? 0,
+            'month' => $list['month'] ?? 0,
+            'quarter' => $list['quarter'] ?? 0,
         ];
     }
 }

@@ -106,16 +106,24 @@ Route::group('/admin', function () {
     Route::group('/user', function () {
         //获取代理列表
         Route::post('/list', [\app\admin\controller\UserController::class, 'list']);
-        //获取代理详情
-        Route::post('/get', [\app\admin\controller\UserController::class, 'get']);
-        //保存代理
-        Route::post('/save', [\app\admin\controller\UserController::class, 'save']);
+        //设置用户的状态
+        Route::post('/set_status', [\app\admin\controller\UserController::class, 'setStatus']);
+        //设置用户的VIP有效期
+        Route::post('/set_expire_time', [\app\admin\controller\UserController::class, 'setExpireTime']);
     });
 
     //概览页统计接口
     Route::group('/dashboard', function () {
         //概览数据统计
         Route::post('/summary', [\app\admin\controller\DashboardController::class, 'summary']);
+        //VIP购买数据统计
+        Route::post('/vip_summary', [\app\admin\controller\DashboardController::class, 'vipSummary']);
+    });
+
+    //订单接口
+    Route::group('/order', function () {
+        //订单列表
+        Route::post('/list', [\app\admin\controller\OrderController::class, 'list']);
     });
 });
 

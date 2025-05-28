@@ -3,6 +3,7 @@
 namespace app\admin\controller;
 
 use app\admin\service\UserService;
+use Carbon\Carbon;
 use DI\Attribute\Inject;
 use Respect\Validation\Validator as v;
 use support\attribute\CheckAdminToken;
@@ -27,8 +28,9 @@ class UserController extends Controller
     public function list(Request $request): Response
     {
         $params = v::input($request->post(), [
-            'agent_id' => v::optional(v::intType())->setName('agent_id'),
-            'username' => v::optional(v::stringType())->setName('username'),
+            'luffa_id' => v::optional(v::stringType())->setName('luffa_id'),
+            'register_date_start' => v::optional(v::stringType()->date())->setName('register_date_start'),
+            'register_date_end' => v::optional(v::stringType()->date())->setName('register_date_end'),
             'page' => v::optional(v::intType()->min(1))->setName('page'),
             'page_size' => v::optional(v::intType()->min(1))->setName('page_size'),
         ]);
@@ -56,30 +58,48 @@ class UserController extends Controller
     }
 
     /**
-     * 保存用户信息
+     * 设置用户的状态
      * @param Request $request
      * @return Response
      */
     #[CheckAdminToken]
-    public function save(Request $request): Response
+    public function setStatus(Request $request): Response
     {
         $params = v::input($request->post(), [
-            'id' => v::optional(v::intType())->setName('id'),
-            'username' => v::stringType()->notEmpty()->setName('username'),
-            'password' => v::optional(v::stringType())->setName('password'),
+            'user_id' => v::intType()->min(1)->setName('user_id'),
             'status' => v::in([0, 1])->setName('status'),
-            'expire_time' => v::stringType()->dateTime()->setName('expire_time'),
-            'note' => v::stringType()->setName('note'),
+        ]);
+        $this->userService->setStatus($params['user_id'], $params['status']);
+        return $this->success();
+    }
+
+    /**
+     * 设置用户的有效期
+     * @param Request $request
+     * @return Response
+     */
+    #[CheckAdminToken]
+    public function setExpireTime(Request $request): Response
+    {
+        $params = v::input($request->post(), [
+            'user_id' => v::intType()->min(1)->setName('user_id'),
+            'days' => v::optional(v::intType()->min(1))->setName('days'),
+            'expire_time' => v::optional(v::stringType()->dateTime())->setName('expire_time'),
         ]);
 
-        //新增的用户必须传密码
-        if (empty($params['id'])) {
-            v::input($params, [
-                'password' => v::stringType()->notEmpty()->setName('password'),
-            ]);
+        //要求days字段和expire_time字段必须传至少一个
+        v::oneOf(
+            v::key('days', v::intType()->min(1)),
+            v::key('expire_time', v::stringType()->dateTime())
+        )->check($params);
+
+        //具体的有效期优先
+        if (!empty($params['expire_time'])) {
+            $result = $this->userService->setExpireTime($params['user_id'], $params['expire_time']);
+        } else {
+            $result = $this->userService->addExpireTime($params['user_id'], $params['days']);
         }
 
-        $this->userService->save($params);
-        return $this->success();
+        return $this->success($result);
     }
 }

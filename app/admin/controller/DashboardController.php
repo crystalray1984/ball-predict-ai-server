@@ -25,4 +25,14 @@ class DashboardController extends Controller
     {
         return $this->success($this->dashboardService->getSummary());
     }
+
+    /**
+     * 概览面板的VIP订单统计
+     * @return Response
+     */
+    #[CheckAdminToken]
+    public function vipSummary(): Response
+    {
+        return $this->success($this->dashboardService->getVipSummary());
+    }
 }
