@@ -6,6 +6,7 @@ use app\model\Order;
 use Carbon\Carbon;
 use GuzzleHttp\Exception\GuzzleException;
 use League\Uri\Uri;
+use Plisio\ClientAPI;
 use support\Db;
 use support\Endless;
 use support\exception\BusinessError;
@@ -204,14 +205,14 @@ class OrderService
             //创建支付完成后的跳转地址
             $redirect_urls = $this->createRedirectUrl($order->id, $client_type, $redirect_url);
 
-            //调用Plisio接口生成三方订单
-            $channel_order_info = G(Plisio::class)->createInvoice([
+            $plisio = new ClientAPI(config('payment.plisio.secret'));
+            $channel_order_info = $plisio->createTransaction([
                 'order_name' => '188ZQ VIP',
                 'order_number' => $order->order_number,
                 'source_currency' => 'USD',
                 'source_amount' => $order_info['price'],
                 'allowed_psys_cids' => 'USDT,USDT_TRX',
-                'success_callback_url' => config('app.server_url') . '/api/order/callback/plisio?json=true',
+                'success_callback_url' => config('app.server_url') . '/api/order/callback/plisio',
                 'success_invoice_url' => $redirect_urls['success'],
                 'fail_invoice_url' => $redirect_urls['fail'],
             ]);
