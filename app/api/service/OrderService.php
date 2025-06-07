@@ -217,6 +217,8 @@ class OrderService
                 'fail_invoice_url' => $redirect_urls['fail'],
             ]);
 
+            Log::channel('plisio')->debug('[创建订单] ' . var_export($channel_order_info, true));
+
             //写入订单号到订单中
             $order->channel_order_no = $channel_order_info['txn_id'];
             $order->save();
