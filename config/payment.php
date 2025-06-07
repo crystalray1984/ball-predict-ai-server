@@ -27,13 +27,6 @@ return [
                 'price' => 4200,
                 'currency' => 'EDS',
             ],
-            //季度会员
-            'quarter' => [
-                //增加的会员时长
-                'days' => 90,
-                'price' => 11880,
-                'currency' => 'EDS',
-            ],
         ],
     ],
     //EDS测试链支付
@@ -62,13 +55,39 @@ return [
                 'price' => 3,
                 'currency' => 'EDS',
             ],
-            //季度会员
-            'quarter' => [
+        ],
+    ],
+    //Plisio USDT支付
+    'plisio' => [
+        //接口地址
+        'channel_id' => yaml('plisio.name', 'admin@188zq.vip'),
+        'api_url' => yaml('plisio.api_url', 'https://api.plisio.net/api/v1'),
+        'secret' => yaml('plisio.secret', ''),
+        'config' => [
+            //日会员
+            'day' => [
                 //增加的会员时长
-                'days' => 90,
-                'price' => 4,
-                'currency' => 'EDS',
+                'days' => 1,
+                'price' => 1,
+//                'price' => 18,
+                'currency' => 'USDT',
+            ],
+            //周会员
+            'week' => [
+                //增加的会员时长
+                'days' => 7,
+                'price' => 2,
+//                'price' => 120,
+                'currency' => 'USDT',
+            ],
+            //月会员
+            'month' => [
+                //增加的会员时长
+                'days' => 30,
+                'price' => 3,
+//                'price' => 420,
+                'currency' => 'USDT',
             ],
         ],
-    ]
+    ],
 ];

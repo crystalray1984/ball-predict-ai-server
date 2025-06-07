@@ -28,7 +28,7 @@ class LuffaOrderController extends Controller
     public function create(Request $request): Response
     {
         $params = v::input($request->post(), [
-            'type' => v::in(['day', 'week', 'month', 'quarter'])->setName('type'),
+            'type' => v::in(['day', 'week', 'month'])->setName('type'),
             'network' => v::in(['endless', 'eds'])->setName('network'),
         ]);
 

@@ -37,6 +37,19 @@ Route::group('/api', function () {
             //完成Luffa订单
             Route::post('/complete', [\app\api\controller\LuffaOrderController::class, 'complete']);
         });
+        //获取VIP购买配置
+        Route::post('/config', [\app\api\controller\OrderController::class, 'config']);
+        //创建订单
+        Route::post('/create', [\app\api\controller\OrderController::class, 'create']);
+        //查询订单
+        Route::post('/query', [\app\api\controller\OrderController::class, 'query']);
+        //订单回调
+        Route::group('/callback', function () {
+            //Plisio订单回调
+            Route::post('/plisio', [\app\api\controller\OrderController::class, 'plisioCallback']);
+        });
+        //空白返回页
+        Route::any('/finish', [\app\api\controller\OrderController::class, 'finish']);
     });
 
     //首页看板接口

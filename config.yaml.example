@@ -1,6 +1,8 @@
 app:
   #HTTP服务器进程数
   http_process_count: 1
+  #设置给外部回调的地址
+  callback_url: 'https://v2.188zq.vip'
 
 #Postgres数据库配置
 pgsql:
@@ -45,3 +47,9 @@ luffa:
   notification:
     - type: 1
       uid: ''
+
+#Plisio支付通道配置
+plisio:
+  name: ''
+  api_url: ''
+  secret: ''

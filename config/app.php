@@ -11,4 +11,5 @@ return [
     'runtime_path' => base_path(false) . DIRECTORY_SEPARATOR . 'runtime',
     'controller_suffix' => '',
     'controller_reuse' => true,
+    'server_url' => yaml('app.server_url'),
 ];
