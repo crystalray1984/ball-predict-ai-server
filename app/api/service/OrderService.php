@@ -213,6 +213,7 @@ class OrderService
                 'order_number' => $order->order_number,
                 'amount' => $order_info['price'],
                 'currency' => 'USDT_TRX',
+                'allowed_psys_cids' => 'USDT_TRX',
                 'email' => $config['channel_id'],
                 'success_invoice_url' => $redirect_urls['success'],
                 'fail_invoice_url' => $redirect_urls['fail'],
