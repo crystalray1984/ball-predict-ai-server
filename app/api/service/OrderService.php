@@ -192,6 +192,7 @@ class OrderService
         $order->amount = $order_info['price'];
         $order->currency = $order_info['currency'];
         $order->channel_type = 'plisio';
+        $order->channel_id = $config['channel_id'];
         $order->extra = json_enc($order_info);
 
         Db::beginTransaction();
@@ -206,21 +207,26 @@ class OrderService
             $redirect_urls = $this->createRedirectUrl($order->id, $client_type, $redirect_url);
 
             $plisio = new ClientAPI(config('payment.plisio.secret'));
-            $channel_order_info = $plisio->createTransaction([
+            $channel_order = $plisio->createTransaction([
                 'order_name' => '188ZQ VIP',
                 'order_number' => $order->order_number,
-                'source_currency' => 'USD',
-                'source_amount' => $order_info['price'],
+                'amount' => $order_info['price'],
+                'email' => $config['channel_id'],
                 'allowed_psys_cids' => 'USDT,USDT_TRX',
                 'success_callback_url' => config('app.server_url') . '/api/order/callback/plisio',
                 'success_invoice_url' => $redirect_urls['success'],
                 'fail_invoice_url' => $redirect_urls['fail'],
             ]);
 
-            Log::channel('plisio')->debug('[创建订单] ' . var_export($channel_order_info, true));
+            Log::channel('plisio')->debug('[创建订单] ' . json_enc($channel_order));
+            if ($channel_order['status'] !== 'success') {
+                //创建订单失败
+                throw new BusinessError('订单创建失败');
+            }
+
 
             //写入订单号到订单中
-            $order->channel_order_no = $channel_order_info['txn_id'];
+            $order->channel_order_no = $channel_order['data']['txn_id'];
             $order->save();
 
             Db::commit();
@@ -233,7 +239,7 @@ class OrderService
         return [
             'order_id' => $order->id,
             'payment_data' => [
-                'invoice_url' => $channel_order_info['invoice_url'],
+                'invoice_url' => $channel_order['data']['invoice_url'],
                 'success_invoice_url' => $redirect_urls['success'],
                 'fail_invoice_url' => $redirect_urls['fail'],
             ],

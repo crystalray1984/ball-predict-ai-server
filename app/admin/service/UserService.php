@@ -43,10 +43,6 @@ class UserService
         }
 
         if (!empty($params['luffa_id'])) {
-            $query->leftJoin('user_connect AS user_connect_luffa', function (JoinClause $join) {
-                $join->on('user_connect_luffa.user_id', '=', 'user.id')
-                    ->where('user_connect_luffa.platform', '=', 'luffa');
-            });
             $query->where('user_connect_luffa.account', '=', $params['luffa_id']);
         }
 

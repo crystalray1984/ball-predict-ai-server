@@ -68,7 +68,7 @@ return [
             'day' => [
                 //增加的会员时长
                 'days' => 1,
-                'price' => 1,
+                'price' => 5,
 //                'price' => 18,
                 'currency' => 'USDT',
             ],
@@ -76,7 +76,7 @@ return [
             'week' => [
                 //增加的会员时长
                 'days' => 7,
-                'price' => 2,
+                'price' => 5.1,
 //                'price' => 120,
                 'currency' => 'USDT',
             ],
@@ -84,7 +84,7 @@ return [
             'month' => [
                 //增加的会员时长
                 'days' => 30,
-                'price' => 3,
+                'price' => 5.2,
 //                'price' => 420,
                 'currency' => 'USDT',
             ],

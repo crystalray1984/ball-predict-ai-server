@@ -75,7 +75,7 @@ class Plisio
     ): array
     {
         //生成订单
-        return $this->api('/invoices/new', $params);
+        return $this->api('invoices/new', $params);
     }
 
     /**
@@ -86,6 +86,6 @@ class Plisio
      */
     public function getTransaction(string $id): array
     {
-        return $this->api("/operations/$id");
+        return $this->api("operations/$id");
     }
 }
