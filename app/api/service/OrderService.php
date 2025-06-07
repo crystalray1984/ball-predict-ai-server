@@ -366,8 +366,12 @@ class OrderService
             return;
         }
 
-        //比对订单金额
-        if (bccomp($transaction['data']['amount'], $order->amount, 2) === 0) {
+        //比对订单金额，允许小数点后4位以内的误差
+        if (
+            round((float)bcmul($order->amount, '1000', 6))
+            !==
+            round((float)bcmul($transaction['data']['invoice_total_sum'], '1000', 6))
+        ) {
             return;
         }
 
@@ -376,7 +380,7 @@ class OrderService
         try {
             $order->channel_order_info = json_enc($transaction['data']);
             $order->status = 'paid';
-            $order->paid_at = Carbon::createFromTimestamp($transaction['data']['finished_at_utc']);
+            $order->paid_at = Carbon::now();
             $order->save();
 
             $extra = json_decode($order->extra, true);
