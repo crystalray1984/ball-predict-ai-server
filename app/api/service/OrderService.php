@@ -5,6 +5,7 @@ namespace app\api\service;
 use app\model\Order;
 use Carbon\Carbon;
 use GuzzleHttp\Exception\GuzzleException;
+use League\Uri\Modifier;
 use League\Uri\Uri;
 use Plisio\ClientAPI;
 use support\Db;
@@ -211,9 +212,8 @@ class OrderService
                 'order_name' => '188ZQ VIP',
                 'order_number' => $order->order_number,
                 'amount' => $order_info['price'],
+                'currency' => 'USDT_TRX',
                 'email' => $config['channel_id'],
-                'allowed_psys_cids' => 'USDT,USDT_TRX',
-                'success_callback_url' => config('app.server_url') . '/api/order/callback/plisio',
                 'success_invoice_url' => $redirect_urls['success'],
                 'fail_invoice_url' => $redirect_urls['fail'],
             ]);
@@ -263,6 +263,7 @@ class OrderService
         //构建完整的地址
         $uri = Uri::new($redirect_url);
 
+
         //添加通用的参数
         $commonQuery = [
             'order_id' => $order_id,
@@ -270,16 +271,17 @@ class OrderService
         if (!empty($client_type)) {
             $commonQuery['client_type'] = $client_type;
         }
-        $uri = $uri->withQuery(http_build_query($commonQuery));
+
+        $uri = Modifier::from($uri)->appendQueryParameters($commonQuery);
 
         //添加成功与失败的参数
-        $success = $uri->withQuery('success=1');
-        $fail = $uri->withQuery('success=0');
+        $success = Modifier::from($uri)->appendQueryParameters(['success' => 1]);
+        $fail = Modifier::from($uri)->appendQueryParameters(['success' => 0]);
 
         return [
-            'url' => $uri->toString(),
-            'success' => $success->toString(),
-            'fail' => $fail->toString(),
+            'url' => $uri->getUriString(),
+            'success' => $success->getUriString(),
+            'fail' => $fail->getUriString(),
         ];
     }
 
