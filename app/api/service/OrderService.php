@@ -218,7 +218,7 @@ class OrderService
             ]);
 
             //写入订单号到订单中
-            $order->channel_order_no = $channel_order_info['data']['txn_id'];
+            $order->channel_order_no = $channel_order_info['txn_id'];
             $order->save();
 
             Db::commit();
@@ -231,7 +231,7 @@ class OrderService
         return [
             'order_id' => $order->id,
             'payment_data' => [
-                'invoice_url' => $channel_order_info['data']['invoice_url'],
+                'invoice_url' => $channel_order_info['invoice_url'],
                 'success_invoice_url' => $redirect_urls['success'],
                 'fail_invoice_url' => $redirect_urls['fail'],
             ],
