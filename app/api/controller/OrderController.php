@@ -9,6 +9,7 @@ use Respect\Validation\Validator as v;
 use support\attribute\CheckUserToken;
 use support\Controller;
 use support\Log;
+use support\payment\Engine;
 use support\Request;
 use support\Response;
 
@@ -26,9 +27,8 @@ class OrderController extends Controller
      */
     public function config(): Response
     {
-        $config = config('payment');
-        $config = array_map(fn(array $item) => $item['config'], $config);
-        return $this->success($config);
+        $config = config('vip');
+        return $this->success(array_map(fn(array $item) => $item['price'], $config));
     }
 
     /**
@@ -39,29 +39,20 @@ class OrderController extends Controller
     #[CheckUserToken]
     public function create(Request $request): Response
     {
+        $engines = array_keys(Engine::ENGINES);
+
         $params = v::input($request->post(), [
             'type' => v::in(['day', 'week', 'month'])->setName('type'),
-            'channel' => v::in(['endless', 'eds', 'plisio'])->setName('channel'),
-            'client_type' => v::optional(v::stringType())->setName('client_type'),
-            'redirect_url' => v::optional(v::stringType())->setName('redirect_url'),
+            'channel' => v::in($engines)->setName('channel'),
         ]);
 
-        //根据不同的支付通道，执行不同的订单生成
-        $result = match ($params['channel']) {
-            'endless', 'eds' => $this->orderService->createLuffaOrder(
+        return $this->success(
+            $this->orderService->createVipOrder(
                 $request->user->id,
                 $params['channel'],
                 $params['type'],
-            ),
-            'plisio' => $this->orderService->createPlisioOrder(
-                $request->user->id,
-                $params['type'],
-                $params['client_type'],
-                $params['redirect_url']
-            ),
-        };
-
-        return $this->success($result);
+            )
+        );
     }
 
     /**
@@ -89,15 +80,7 @@ class OrderController extends Controller
     public function plisioCallback(Request $request): Response
     {
         $post = $request->post();
-        Log::debug('[支付回调]', $post);
-
-        //校验回调数据
-        $plisio = new \Plisio\ClientAPI(config('payment.plisio.secret'));
-        $verified = $plisio->verifyCallbackData($post, config('payment.plisio.secret'));
-        if (!$verified) {
-            Log::debug('[支付回调校验失败]', $post);
-            return \response();
-        }
+        Log::channel('plisio')->debug('[支付回调]', $post);
 
         //从响应体中找到内部订单id
         /** @var Order $order */
@@ -106,18 +89,18 @@ class OrderController extends Controller
             ->first();
         if (!$order) {
             //没找到订单
-            Log::debug('[支付回调] 未找到订单', $post['order_number']);
+            Log::channel('plisio')->debug('[支付回调] 未找到订单', $post['order_number']);
             return \response();
         }
 
         if ($order->status === 'paid') {
             //订单已经支付完成
-            Log::debug('[支付回调] 重复通知', $post['order_number']);
+            Log::channel('plisio')->debug('[支付回调] 重复通知', $post['order_number']);
             return \response();
         }
 
         //校验订单
-        $this->orderService->checkPlisioOrder($order);
+        $this->orderService->completeOrder($order);
         return \response();
     }
 

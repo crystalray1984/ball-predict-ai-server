@@ -4,14 +4,10 @@ namespace app\api\service;
 
 use app\model\Order;
 use Carbon\Carbon;
-use GuzzleHttp\Exception\GuzzleException;
-use League\Uri\Modifier;
-use League\Uri\Uri;
-use Plisio\ClientAPI;
 use support\Db;
-use support\Endless;
 use support\exception\BusinessError;
 use support\Log;
+use support\payment\Engine;
 use support\Plisio;
 use Throwable;
 
@@ -21,46 +17,6 @@ use Throwable;
 class OrderService
 {
     /**
-     * 创建Luffa订单
-     * @return array
-     */
-    public function createLuffaOrder(int $user_id, string $network, string $type): array
-    {
-        //读取配置
-        $config = config("payment.$network");
-
-        //订单信息
-        $order_info = $config['config'][$type];
-        $order_info['type'] = $type;
-
-        //创建订单信息
-        $now = Carbon::now();
-
-        $order = new Order();
-        $order->order_date = (int)$now->format('Ymd');
-        $order->user_id = $user_id;
-        $order->type = 'vip';
-        $order->amount = $order_info['price'];
-        $order->currency = $order_info['currency'];
-        $order->channel_type = $network;
-        $order->channel_id = $config['income_address'];
-        $order->extra = json_enc($order_info);
-        $order->save();
-
-        //订单保存后生成订单编号
-        $order->order_number = $order->order_date . str_pad((string)$order->id, 6, '0', STR_PAD_LEFT);
-        $order->save();
-
-        return [
-            'order_id' => $order->id,
-            'payment_data' => [
-                '1_address_address' => $config['income_address'],
-                '2_u128_amount' => bcmul((string)$order->amount, '100000000', 0),
-            ]
-        ];
-    }
-
-    /**
      * 完成luffa订单
      * @param int $order_id
      * @param string $hash
@@ -68,7 +24,6 @@ class OrderService
      */
     public function completeLuffaOrder(int $order_id, string $hash): void
     {
-        //首先检查订单是否存在
         /** @var Order $order */
         $order = Order::query()
             ->where('id', '=', $order_id)
@@ -82,210 +37,8 @@ class OrderService
             return;
         }
 
-        //判断订单类型必须是endless或者eds
-        if ($order->channel_type !== 'endless' && $order->channel_type !== 'eds') {
-            throw new BusinessError('订单类型错误');
-        }
-
-        //调用接口检查订单是否完成
-        $transaction = Endless::create($order->channel_type)->getTransaction($hash);
-        if (empty($transaction)) {
-            //订单未支付
-            throw new BusinessError('订单未支付');
-        }
-
-        //检查订单信息
-        if (($transaction['hash'] ?? '') !== $hash) {
-            Log::channel('endless')
-                ->warning("[Luffa订单完成] 订单数据异常 hash不匹配 order_id=$order_id hash=$hash\n" . json_enc($transaction));
-            throw new BusinessError('订单数据异常');
-        }
-
-        if (($transaction['success'] ?? false) !== true) {
-            Log::channel('endless')
-                ->warning("[Luffa订单完成] 订单数据异常 success不正确 order_id=$order_id hash=$hash\n" . json_enc($transaction));
-            throw new BusinessError('订单数据异常 支付未完成');
-        }
-
-        //寻找交易信息中的收款人与订单信息是否相符
-        $pass = false;
-        if (isset($transaction['events']) && is_array($transaction['events'])) {
-            foreach ($transaction['events'] as $event) {
-                if ($event['type'] === '0x1::fungible_asset::Deposit') {
-                    if (
-                        $event['data']['owner'] === $order->channel_id &&
-                        bccomp($event['data']['amount'], bcmul($order->amount, '100000000', 0), 0) === 0
-                    ) {
-                        //收款信息相符
-                        $pass = true;
-                        break;
-                    }
-                }
-            }
-        }
-        if (!$pass) {
-            Log::channel('endless')
-                ->warning("[Luffa订单完成]订单数据异常 未找到收款信息 order_id=$order_id hash=$hash\n" . json_enc($transaction));
-            throw new BusinessError('订单数据异常 未找到收款信息');
-        }
-
-        //开始处理订单和用户数据
-        Db::beginTransaction();
-        try {
-            //修改订单为已完成
-            $updated = Order::query()
-                ->where('id', '=', $order->id)
-                ->where('status', '=', 'wait_pay')
-                ->update([
-                    'paid_at' => Carbon::createFromTimestampMs(
-                        bcdiv($transaction['timestamp'], '1000', 0)
-                    )->toISOString(),
-                    'status' => 'paid',
-                    'channel_order_no' => $hash,
-                    'channel_order_info' => json_enc($transaction),
-                ]);
-
-            if (!$updated) {
-                //订单状态不对
-                Db::rollBack();
-                return;
-            }
-
-            $extra = json_decode($order->extra, true);
-
-            //增加用户VIP天数
-            G(UserService::class)->addExpires($order->user_id, $extra['days']);
-
-            Db::commit();
-        } catch (Throwable $e) {
-            Db::rollBack();
-            throw $e;
-        }
-    }
-
-    /**
-     * 创建Plisio订单
-     * @param int $user_id
-     * @param string $type
-     * @return array
-     */
-    public function createPlisioOrder(
-        int     $user_id,
-        string  $type,
-        ?string $client_type = null,
-        ?string $redirect_url = null,
-    ): array
-    {
-        //读取配置
-        $config = config("payment.plisio");
-
-        //订单信息
-        $order_info = $config['config'][$type];
-        $order_info['type'] = $type;
-
-        //创建订单信息
-        $now = Carbon::now();
-
-        $order = new Order();
-        $order->order_date = (int)$now->format('Ymd');
-        $order->user_id = $user_id;
-        $order->type = 'vip';
-        $order->amount = $order_info['price'];
-        $order->currency = $order_info['currency'];
-        $order->channel_type = 'plisio';
-        $order->channel_id = $config['channel_id'];
-        $order->extra = json_enc($order_info);
-
-        Db::beginTransaction();
-        try {
-            //第一次保存订单
-            $order->save();
-
-            //订单保存后生成订单编号
-            $order->order_number = $order->order_date . str_pad((string)$order->id, 6, '0', STR_PAD_LEFT);
-
-            //创建支付完成后的跳转地址
-            $redirect_urls = $this->createRedirectUrl($order->id, $client_type, $redirect_url);
-
-            $plisio = new ClientAPI(config('payment.plisio.secret'));
-            $channel_order = $plisio->createTransaction([
-                'order_name' => '188ZQ VIP',
-                'order_number' => $order->order_number,
-//                'amount' => $order_info['price'],
-//                'currency' => 'USDT_TRX',
-                'source_amount' => $order_info['price'],
-                'source_currency' => 'USD',
-                'allowed_psys_cids' => 'USDT_TRX,USDT',
-                'email' => $config['channel_id'],
-                'success_invoice_url' => $redirect_urls['success'],
-                'fail_invoice_url' => $redirect_urls['fail'],
-            ]);
-
-            Log::channel('plisio')->debug('[创建订单] ' . json_enc($channel_order));
-            if ($channel_order['status'] !== 'success') {
-                //创建订单失败
-                throw new BusinessError('订单创建失败');
-            }
-
-
-            //写入订单号到订单中
-            $order->channel_order_no = $channel_order['data']['txn_id'];
-            $order->save();
-
-            Db::commit();
-        } catch (Throwable $e) {
-            Db::rollBack();
-            throw $e;
-        }
-
-        //返回订单数据
-        return [
-            'order_id' => $order->id,
-            'payment_data' => [
-                'invoice_url' => $channel_order['data']['invoice_url'],
-                'success_invoice_url' => $redirect_urls['success'],
-                'fail_invoice_url' => $redirect_urls['fail'],
-            ],
-        ];
-    }
-
-    /**
-     * 创建回跳的页面地址
-     * @param int $order_id
-     * @param string|null $client_type
-     * @param string|null $redirect_url
-     * @return string[]
-     */
-    public function createRedirectUrl(int $order_id, ?string $client_type, ?string $redirect_url): array
-    {
-        if (empty($redirect_url)) {
-            //如果没有设置回跳地址，那么按照标准的地址来回跳
-            $redirect_url = config('app.server_url') . '/api/order/finish';
-        }
-
-        //构建完整的地址
-        $uri = Uri::new($redirect_url);
-
-
-        //添加通用的参数
-        $commonQuery = [
-            'order_id' => $order_id,
-        ];
-        if (!empty($client_type)) {
-            $commonQuery['client_type'] = $client_type;
-        }
-
-        $uri = Modifier::from($uri)->appendQueryParameters($commonQuery);
-
-        //添加成功与失败的参数
-        $success = Modifier::from($uri)->appendQueryParameters(['success' => 1]);
-        $fail = Modifier::from($uri)->appendQueryParameters(['success' => 0]);
-
-        return [
-            'url' => $uri->getUriString(),
-            'success' => $success->getUriString(),
-            'fail' => $fail->getUriString(),
-        ];
+        $order->channel_order_no = $hash;
+        $this->completeOrder($order);
     }
 
     /**
@@ -308,30 +61,24 @@ class OrderService
         }
 
         //如果订单没支付，就根据不同的通道类型，尝试去检查订单的状态
-        if ($order->status === 'wait_pay') {
-            switch ($order->channel_type) {
-                case 'plisio':
-                    $this->checkPlisioOrder($order);
-                    break;
-                default:
-                    break;
+        if ($order->status === 'wait_pay' && !empty($order->channel_order_no)) {
+            try {
+                $this->completeOrder($order);
+            } catch (Throwable $e) {
+                if ($e instanceof BusinessError) {
+                    return [
+                        'id' => $order->id,
+                        'status' => 'wait_pay',
+                    ];
+                }
+                throw $e;
             }
         }
 
         //返回订单数据
         return [
             'id' => $order->id,
-            'order_number' => $order->order_number,
-            'user_id' => $order->user_id,
-            'type' => $order->type,
-            'amount' => $order->amount,
-            'currency' => $order->currency,
             'status' => $order->status,
-            'extra' => json_decode($order->extra, true),
-            'channel_type' => $order->channel_type,
-            'channel_order_no' => $order->channel_order_no,
-            'paid_at' => $order->paid_at,
-            'created_at' => $order->created_at,
         ];
     }
 
@@ -390,6 +137,105 @@ class OrderService
             //增加用户VIP天数
             G(UserService::class)->addExpires($order->user_id, $extra['days']);
 
+            Db::commit();
+        } catch (Throwable $e) {
+            Db::rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * 创建VIP订单
+     * @param int $user_id
+     * @param string $channel
+     * @param string $vip_type
+     * @return array
+     */
+    public function createVipOrder(int $user_id, string $channel, string $vip_type): array
+    {
+        /** @var Engine $engine */
+        $engine = G(Engine::ENGINES[$channel]);
+        $vip_config = config("vip.$vip_type");
+        $price_config = $vip_config['price'][$channel];
+
+        //VIP信息
+        $vip_info = [
+            'type' => $vip_type,
+            'days' => $vip_config['days'],
+            'price' => $price_config['price'],
+            'currency' => $price_config['currency'],
+        ];
+
+        //创建业务订单
+        $now = Carbon::now();
+
+        $order = new Order();
+        $order->order_date = (int)$now->format('Ymd');
+        $order->user_id = $user_id;
+        $order->type = 'vip';
+        $order->amount = $price_config['price'];
+        $order->currency = $price_config['currency'];
+        $order->channel_type = $channel;
+        $order->extra = json_enc($vip_info);
+
+        Db::beginTransaction();
+        try {
+            $order->save();
+
+            //生成订单编号
+            $order->order_number = $order->order_date . str_pad((string)$order->id, 6, '0', STR_PAD_LEFT);
+
+            //生成三方支付订单
+            $result = $engine->create($order);
+
+            //保存订单数据
+            $order->save();
+
+            Db::commit();
+        } catch (Throwable $e) {
+            Db::rollBack();
+            throw $e;
+        }
+
+        //返回给前端的支付数据
+        return [
+            'order_id' => $order->id,
+            'payment_type' => $engine->getPaymentType(),
+            'payment_data' => $result,
+        ];
+    }
+
+    /**
+     * 完成订单
+     * @param Order $order
+     * @return void
+     */
+    public function completeOrder(Order $order): void
+    {
+        /** @var Engine $engine */
+        $engine = G(Engine::ENGINES[$order->channel_type]);
+
+        //读取订单数据
+        $transaction = $engine->check($order);
+        if (empty($transaction)) {
+            throw new BusinessError('订单未支付完成');
+        }
+
+        if (!$engine->complete($order, $transaction)) {
+            throw new BusinessError('订单未支付完成');
+        }
+
+        //更新订单
+        $order->status = 'paid';
+        $order->paid_at = Carbon::now();
+
+        Db::beginTransaction();
+        try {
+            $order->save();
+            $extra = json_decode($order->extra, true);
+
+            //增加用户VIP天数
+            G(UserService::class)->addExpires($order->user_id, $extra['days']);
             Db::commit();
         } catch (Throwable $e) {
             Db::rollBack();

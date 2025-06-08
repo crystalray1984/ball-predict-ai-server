@@ -33,9 +33,9 @@ class LuffaOrderController extends Controller
         ]);
 
         return $this->success(
-            $this->orderService->createLuffaOrder(
+            $this->orderService->createVipOrder(
                 $request->user->id,
-                $params['network'],
+                'endless',
                 $params['type'],
             )
         );
@@ -62,17 +62,18 @@ class LuffaOrderController extends Controller
 
     /**
      * 获取Luffa购买配置
-     * @param Request $request
      * @return Response
      */
-    public function config(Request $request): Response
+    public function config(): Response
     {
-        $params = v::input($request->post(), [
-            'network' => v::in(['endless', 'eds'])->setName('network'),
-        ]);
+        $config = config('vip');
 
         return $this->success(
-            config("payment.{$params['network']}.config")
+            array_map(fn(array $item) => [
+                'days' => $item['days'],
+                'price' => $item['price']['endless']['price'],
+                'currency' => $item['price']['endless']['currency'],
+            ], $config),
         );
     }
 }
