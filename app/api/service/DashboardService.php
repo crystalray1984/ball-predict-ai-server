@@ -221,9 +221,9 @@ class DashboardService
                 'id',
                 Odd::query()
                     ->where('status', '=', 'ready')
+                    ->when(empty($allowCorner), fn($query) => $query->where('variety', '!=', 'corner'))
                     ->select('match_id')
             )
-            ->when(empty($allowCorner), fn($query) => $query->where('variety', '!=', 'corner'))
             ->where('status', '=', '')
             ->where(
                 'match_time',
