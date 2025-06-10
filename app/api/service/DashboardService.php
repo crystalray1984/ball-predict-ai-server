@@ -214,6 +214,8 @@ class DashboardService
      */
     public function preparing(): array
     {
+        ['allow_corner_preparing' => $allowCorner] = get_settings(['allow_corner_preparing']);
+
         $rows = Match1::query()
             ->whereIn(
                 'id',
@@ -221,6 +223,7 @@ class DashboardService
                     ->where('status', '=', 'ready')
                     ->select('match_id')
             )
+            ->when(empty($allowCorner), fn($query) => $query->where('variety', '!=', 'corner'))
             ->where('status', '=', '')
             ->where(
                 'match_time',

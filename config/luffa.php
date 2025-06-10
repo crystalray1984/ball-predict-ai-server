@@ -3,4 +3,5 @@
 return [
     'uid' => yaml('luffa.uid', ''),
     'secret' => yaml('luffa.secret', ''),
+    'notification' => yaml('luffa.notification', []),
 ];

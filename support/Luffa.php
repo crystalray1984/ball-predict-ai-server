@@ -89,4 +89,37 @@ class Luffa
             ]
         );
     }
+
+    public static function sendNotification(string $text): void
+    {
+        foreach (config('luffa.notification', []) as $target) {
+            if ($target['type'] === 0) {
+                //单聊
+                self::send($target['uid'], $text);
+            } else if ($target['type '] === 1) {
+                //群聊
+                $msg = [
+                    'text' => $text,
+                ];
+                if (!empty($target['atList'])) {
+                    $msg['text'] .= "\n\n";
+                    $msg['atList'] = [];
+                    foreach ($target['atList'] as $at) {
+                        $msg['text'] .= ' ';
+                        $textAppend = "@{$at['name']}";
+                        $atItem = [
+                            'name' => $at['name'],
+                            'did' => $at['did'],
+                            'location' => strlen($msg['text']),
+                            'length' => strlen($textAppend) + 1,
+                            'userType' => '0'
+                        ];
+                        $msg['text'] .= ' ' . $textAppend . ' ';
+                        $msg['atList'][] = $atItem;
+                    }
+                }
+                self::sendGroup($target['uid'], $msg, 1);
+            }
+        }
+    }
 }

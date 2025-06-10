@@ -6,9 +6,8 @@ use app\model\Order;
 use Carbon\Carbon;
 use support\Db;
 use support\exception\BusinessError;
-use support\Log;
+use support\Luffa;
 use support\payment\Engine;
-use support\Plisio;
 use Throwable;
 
 /**
@@ -80,68 +79,6 @@ class OrderService
             'id' => $order->id,
             'status' => $order->status,
         ];
-    }
-
-    /**
-     * 从plisio查询订单的状态
-     * @param Order $order
-     * @return void
-     */
-    public function checkPlisioOrder(Order $order): void
-    {
-        //调用通道接口
-        try {
-            $transaction = G(Plisio::class)->getTransaction($order->channel_order_no);
-        } catch (Throwable) {
-            return;
-        }
-
-        if ($transaction['status'] !== 'success') {
-            return;
-        }
-
-        //比对订单号
-        if ($transaction['data']['id'] !== $order->channel_order_no) {
-            return;
-        }
-
-        //比对订单状态
-        if ($transaction['data']['status'] !== 'completed') {
-            return;
-        }
-
-        //比对订单类型
-        if ($transaction['data']['type'] !== 'invoice') {
-            return;
-        }
-
-        //比对订单金额，允许小数点后4位以内的误差
-        if (
-            round((float)bcmul($order->amount, '1000', 6))
-            !==
-            round((float)bcmul($transaction['data']['invoice_total_sum'], '1000', 6))
-        ) {
-            return;
-        }
-
-        //更新订单数据
-        Db::beginTransaction();
-        try {
-            $order->channel_order_info = json_enc($transaction['data']);
-            $order->status = 'paid';
-            $order->paid_at = Carbon::now();
-            $order->save();
-
-            $extra = json_decode($order->extra, true);
-
-            //增加用户VIP天数
-            G(UserService::class)->addExpires($order->user_id, $extra['days']);
-
-            Db::commit();
-        } catch (Throwable $e) {
-            Db::rollBack();
-            throw $e;
-        }
     }
 
     /**
@@ -241,5 +178,8 @@ class OrderService
             Db::rollBack();
             throw $e;
         }
+
+        //发送订单通知
+        
     }
 }
