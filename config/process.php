@@ -62,4 +62,12 @@ if (yaml('app.monitor', false) === true) {
 //    'constructor' => []
 //];
 
+//赛果异常检查
+$processes['MatchScoreCheck'] = [
+    'handler' => app\process\MatchScoreCheck::class,
+    'count' => 1,
+    'reloadable' => true,
+    'constructor' => [],
+];
+
 return $processes;
