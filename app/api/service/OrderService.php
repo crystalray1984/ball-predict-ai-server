@@ -179,7 +179,30 @@ class OrderService
             throw $e;
         }
 
+        $channel_type_name = match ($order->channel_type) {
+            'endless' => 'EDS',
+            'tron' => '波场',
+            'ethereum' => '以太坊',
+            default => $order->channel_type,
+        };
+
+        $vip_type = match ($extra['type']) {
+            'day' => '日卡',
+            'week' => '周卡',
+            'month' => '月卡',
+            default => $extra['type'],
+        };
+
+        $amount = floatval($order->amount);
+
         //发送订单通知
-        
+        Luffa::sendNotification(<<<EOF
+**用户购买VIP通知**
+用户id {$order->user_id}
+类型 $vip_type
+购买方式 $channel_type_name
+购买价格 $amount {$order->currency}
+EOF
+        );
     }
 }
