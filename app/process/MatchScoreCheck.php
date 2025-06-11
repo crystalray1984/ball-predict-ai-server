@@ -60,6 +60,8 @@ class MatchScoreCheck
                 continue;
             }
 
+            NotificationLog::insert(['keyword' => $keyword]);
+
             $match_time = $row['match_time']->format('m/d H:i');
             $period = $row['period'] === 'period1' ? '半场' : '全场';
 
@@ -77,8 +79,6 @@ EOF;
             } catch (Throwable $e) {
                 Log::error($e);
             }
-
-            NotificationLog::insert(['keyword' => $keyword]);
         }
     }
 }
