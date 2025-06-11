@@ -126,18 +126,27 @@ class MatchController extends Controller
      */
     public function setMatchScore(Request $request): Response
     {
-        $params = v::input($request->post(), [
+        $params = $request->post();
+
+        //常规参数检查
+        v::input($params, [
             'match_id' => v::intType()->notEmpty()->setName('match_id'),
-            'score1' => v::intType()->min(0)->setName('score1'),
-            'score2' => v::intType()->min(0)->setName('score2'),
-            'corner1' => v::intType()->min(0)->setName('corner1'),
-            'corner2' => v::intType()->min(0)->setName('corner2'),
-            'score1_period1' => v::optional(v::intType()->min(0))->setName('score1_period1'),
-            'score2_period1' => v::optional(v::intType()->min(0))->setName('score2_period1'),
-            'corner1_period1' => v::optional(v::intType()->min(0))->setName('corner1_period1'),
-            'corner2_period1' => v::optional(v::intType()->min(0))->setName('corner2_period1'),
+            'score1_period1' => v::intType()->min(0)->setName('score1_period1'),
+            'score2_period1' => v::intType()->min(0)->setName('score2_period1'),
+            'corner1_period1' => v::intType()->min(0)->setName('corner1_period1'),
+            'corner2_period1' => v::intType()->min(0)->setName('corner2_period1'),
             'period1' => v::boolType()->setName('period1'),
         ]);
+
+        if (!$params['period1']) {
+            //全场赛果
+            v::input($params, [
+                'score1' => v::intType()->min(0)->setName('score1'),
+                'score2' => v::intType()->min(0)->setName('score2'),
+                'corner1' => v::intType()->min(0)->setName('corner1'),
+                'corner2' => v::intType()->min(0)->setName('corner2'),
+            ]);
+        }
 
         $this->matchService->setMatchScore($params);
         return $this->success();
