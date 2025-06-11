@@ -138,6 +138,16 @@ Route::group('/admin', function () {
         //订单列表
         Route::post('/list', [\app\admin\controller\OrderController::class, 'list']);
     });
+
+    //手动推荐接口
+    Route::group('/manual_promote', function () {
+        //创建手动推荐
+        Route::post('/create', [\app\admin\controller\ManualPromoteController::class, 'create']);
+        //删除手动推荐
+        Route::post('/remove', [\app\admin\controller\ManualPromoteController::class, 'remove']);
+        //手动推荐列表
+        Route::post('/list', [\app\admin\controller\ManualPromoteController::class, 'list']);
+    });
 });
 
 Route::disableDefaultRoute();

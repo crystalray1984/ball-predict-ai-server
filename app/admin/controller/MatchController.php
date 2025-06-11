@@ -51,6 +51,7 @@ class MatchController extends Controller
             'team' => v::optional(v::stringType())->setName('team'),
             'page' => v::optional(v::intType()->min(1))->setName('page'),
             'page_size' => v::optional(v::intType()->min(1))->setName('page_size'),
+            'status' => v::optional(v::arrayType()->each(v::in(['', 'final'])))->setName('status'),
         ]);
 
         return $this->success(

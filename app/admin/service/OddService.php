@@ -112,9 +112,10 @@ class OddService
      * 处理查询好的盘口列表
      * @param array $rows
      * @param bool $virtual 是否生成虚拟推荐数据
+     * @param bool $manual 是否为手动推荐数据
      * @return array
      */
-    protected function processOddList(array $rows, bool $virtual = false): array
+    public function processOddList(array $rows, bool $virtual = false, bool $manual = false): array
     {
         if (!empty($rows)) {
             //查询赛事
@@ -139,28 +140,57 @@ class OddService
             $teams = array_column($teams, null, 'id');
 
             //查询推荐盘口
-            $promotes = PromotedOdd::query()
-                ->whereIn('odd_id', array_column($rows, 'id'))
-                ->get([
-                    'id',
-                    'odd_id',
-                    'result',
-                    'variety',
-                    'period',
-                    'type',
-                    'condition',
-                    'score',
-                    'back',
-                    'skip',
-                    'is_valid',
-                    'final_rule',
-                ])
-                ->toArray();
+            if ($manual) {
+                //手动推荐的盘口
+                $promotes = PromotedOdd::query()
+                    ->whereIn('id', array_unique(
+                        array_filter(
+                            array_column($rows, 'promoted_odd_id'),
+                            fn(int $value) => !empty($value),
+                        )
+                    ))
+                    ->get([
+                        'id',
+                        'manual_promote_odd_id',
+                        'result',
+                        'variety',
+                        'period',
+                        'type',
+                        'condition',
+                        'score',
+                        'back',
+                        'skip',
+                        'is_valid',
+                        'final_rule',
+                    ])
+                    ->toArray();
 
-            $promotes = array_column($promotes, null, 'odd_id');
+                $promotes = array_column($promotes, null, 'manual_promote_odd_id');
+            } else {
+                //自动推荐的盘口
+                $promotes = PromotedOdd::query()
+                    ->whereIn('odd_id', array_column($rows, 'id'))
+                    ->get([
+                        'id',
+                        'odd_id',
+                        'result',
+                        'variety',
+                        'period',
+                        'type',
+                        'condition',
+                        'score',
+                        'back',
+                        'skip',
+                        'is_valid',
+                        'final_rule',
+                    ])
+                    ->toArray();
+
+                $promotes = array_column($promotes, null, 'odd_id');
+            }
 
             //写入数据
-            $rows = array_map(function (array $row) use ($tournaments, $teams, $promotes, $virtual) {
+            $rows = array_map(function (array $row) use ($tournaments, $teams, $promotes, $virtual, $manual) {
                 $virtual_odd = null;
                 if ($virtual) {
                     //看看有没有对应的赛果
@@ -185,27 +215,10 @@ class OddService
                 }
 
                 $output = [
-                    'id' => $row['id'],
-                    'match_id' => $row['match_id'],
-                    'match_time' => $row['match_time'],
-                    'variety' => $row['variety'],
-                    'period' => $row['period'],
-                    'type' => $row['type'],
-                    'condition' => $row['condition'],
+                    ...$row,
                     'tournament' => $tournaments[$row['tournament_id']],
                     'team1' => $teams[$row['team1_id']],
                     'team2' => $teams[$row['team2_id']],
-                    'surebet_value' => $row['surebet_value'],
-                    'crown_value' => $row['crown_value'],
-                    'crown_condition2' => $row['crown_condition2'],
-                    'crown_value2' => $row['crown_value2'],
-                    'status' => $row['status'],
-                    'final_rule' => $row['final_rule'],
-                    'has_score' => $row['has_score'],
-                    'has_period1_score' => $row['has_period1_score'],
-                    'created_at' => $row['created_at'],
-                    'ready_at' => $row['ready_at'],
-
                     //虚拟盘口数据
                     'virtual_odd' => $virtual_odd,
                 ];

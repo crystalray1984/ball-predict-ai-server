@@ -271,19 +271,24 @@ class MatchService
             );
         }
         if (!empty($params['tournament_id'])) {
-            $query->where('tournament_id', '=', $params['tournament_id']);
+            $query->where('v_match.tournament_id', '=', $params['tournament_id']);
         }
         if (!empty($params['team_id'])) {
             $query->where(function ($where) use ($params) {
-                $where->where('team1_id', '=', $params['team_id'])
-                    ->orWhere('team2_id', '=', $params['team_id']);
+                $where->where('v_match.team1_id', '=', $params['team_id'])
+                    ->orWhere('v_match.team2_id', '=', $params['team_id']);
             });
         } elseif (!empty($params['team'])) {
             $query->where(function ($where) use ($params) {
-                $where->where('team1_name', 'like', '%' . $params['team'] . '%')
-                    ->orWhere('team2_name', 'like', '%' . $params['team'] . '%');
+                $where->where('v_match.team1_name', 'like', '%' . $params['team'] . '%')
+                    ->orWhere('v_match.team2_name', 'like', '%' . $params['team'] . '%');
             });
         }
+
+        if (!empty($params['status'])) {
+            $query->whereIn('v_match.status', $params['status']);
+        }
+
         $count = $query->count();
         $list = $query
             ->orderBy('v_match.match_time', 'DESC')
@@ -338,7 +343,7 @@ class MatchService
             throw new BusinessError('未找到指定的比赛');
         }
         $match = $match->toArray();
-        
+
         $match['team1'] = [
             'id' => $match['team1_id'],
             'name' => $match['team1_name'],
