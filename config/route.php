@@ -148,6 +148,12 @@ Route::group('/admin', function () {
         //手动推荐列表
         Route::post('/list', [\app\admin\controller\ManualPromoteController::class, 'list']);
     });
+
+    //Surebet推送记录
+    Route::group('/surebet_record', function () {
+        //导出
+        Route::post('/export', [\app\admin\controller\SurebetRecordController::class, 'export']);
+    });
 });
 
 Route::disableDefaultRoute();
