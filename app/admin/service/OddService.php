@@ -405,6 +405,7 @@ class OddService
                     'titan007' => '球探网趋势',
                     'crown' => '皇冠水位',
                     'crown_special' => '皇冠变盘',
+                    'direct' => '推送直通',
                     default => '',
                 };
             }
@@ -462,6 +463,7 @@ class OddService
                     'special_config' => '变盘',
                     'titan007' => '球探网',
                     'corner' => '角球',
+                    'direct' => '推送直通',
                     default => '',
                 };
             } else if (!empty($row['virtual_odd'])) {
