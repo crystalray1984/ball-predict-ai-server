@@ -59,7 +59,7 @@ Route::group('/api', function () {
         //准备中的比赛
         Route::post('/preparing', [\app\api\controller\DashboardController::class, 'preparing']);
         //已推荐的比赛
-        Route::post('/promoted', [\app\api\controller\DashboardController::class, 'promoted']);
+//        Route::post('/promoted', [\app\api\controller\DashboardController::class, 'promoted']);
         //已推荐的比赛(带有效期判断)
         Route::post('/promoted_v2', [\app\api\controller\DashboardController::class, 'promotedV2']);
     });
