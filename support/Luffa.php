@@ -96,7 +96,7 @@ class Luffa
             if ($target['type'] === 0) {
                 //单聊
                 self::send($target['uid'], $text);
-            } else if ($target['type '] === 1) {
+            } else if ($target['type'] === 1) {
                 //群聊
                 $msg = [
                     'text' => $text,
