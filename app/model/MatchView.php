@@ -9,6 +9,7 @@ namespace app\model;
  * @property string $team2_titan007_id
  * @property string $team2_name
  * @property string $tournament_name
+ * @property int $tournament_is_open
  */
 class MatchView extends Match1
 {

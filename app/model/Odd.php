@@ -24,6 +24,7 @@ use support\BaseModel;
  * @property string $final_rule
  * @property Carbon $surebet_updated_at
  * @property Carbon $crown_updated_at
+ * @property int $is_open
  */
 class Odd extends BaseModel
 {
@@ -34,5 +35,6 @@ class Odd extends BaseModel
     protected $casts = [
         'ready_at' => 'datetime',
         'final_at' => 'datetime',
+        'surebet_updated_at' => 'datetime',
     ];
 }

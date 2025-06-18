@@ -12,6 +12,7 @@ use support\BaseModel;
  * @property string $name
  * @property Carbon $created_at
  * @property Carbon $updated_at
+ * @property int $is_open
  */
 class Tournament extends BaseModel
 {
