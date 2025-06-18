@@ -240,8 +240,8 @@ class MatchService
             $query->where('name', 'like', '%' . $params['name'] . '%');
         }
         return $query
-            ->orderBy('name', 'asc')
-            ->get(['id', 'name'])
+            ->orderBy('name')
+            ->get(['id', 'name', 'is_open'])
             ->toArray();
     }
 

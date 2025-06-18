@@ -272,6 +272,7 @@ class OddService
                 'odd.final_rule',
                 'odd.created_at',
                 'odd.ready_at',
+                'odd.is_open',
                 'match.match_time',
                 'match.team1_id',
                 'match.team2_id',

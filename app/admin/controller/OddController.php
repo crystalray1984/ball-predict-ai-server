@@ -3,6 +3,7 @@
 namespace app\admin\controller;
 
 use app\admin\service\OddService;
+use app\model\Odd;
 use DI\Attribute\Inject;
 use Respect\Validation\Validator as v;
 use support\attribute\CheckAdminToken;
@@ -126,6 +127,25 @@ class OddController extends Controller
         ]);
 
         $this->oddService->removePromoted($params['id']);
+        return $this->success();
+    }
+
+    /**
+     * 切换盘口的开启和关闭
+     * @param Request $request
+     * @return Response
+     */
+    #[CheckAdminToken]
+    public function toggleOpen(Request $request): Response
+    {
+        $params = v::input($request->post(), [
+            'id' => v::intType()->min(1)->setName('id'),
+            'is_open' => v::in([0, 1])->setName('is_open'),
+        ]);
+
+        Odd::query()
+            ->where('id', '=', $params['id'])
+            ->update(['is_open' => $params['is_open']]);
         return $this->success();
     }
 }

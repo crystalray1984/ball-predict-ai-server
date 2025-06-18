@@ -3,6 +3,7 @@
 namespace app\admin\controller;
 
 use app\admin\service\MatchService;
+use app\model\Tournament;
 use DI\Attribute\Inject;
 use Respect\Validation\Validator as v;
 use support\attribute\CheckAdminToken;
@@ -33,6 +34,26 @@ class MatchController extends Controller
         return $this->success(
             $this->matchService->getTournamentList($params)
         );
+    }
+
+    /**
+     * 切换赛事的开启和关闭
+     * @param Request $request
+     * @return Response
+     */
+    #[CheckAdminToken]
+    public function toggleTournamentOpen(Request $request): Response
+    {
+        $params = v::input($request->post(), [
+            'id' => v::intType()->min(1)->setName('id'),
+            'is_open' => v::in([0, 1])->setName('is_open'),
+        ]);
+
+        Tournament::query()
+            ->where('id', '=', $params['id'])
+            ->update(['is_open' => $params['is_open']]);
+
+        return $this->success();
     }
 
     /**

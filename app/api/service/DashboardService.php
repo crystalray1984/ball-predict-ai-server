@@ -220,11 +220,11 @@ class DashboardService
         $rows = MatchView::query()
             ->whereIn('id', Odd::query()
                 ->where('status', '=', 'ready')
-                ->where('is_open', '=', 1)
+//                ->where('is_open', '=', 1)
                 ->when(empty($allowCorner), fn($query) => $query->where('variety', '!=', 'corner'))
                 ->select('match_id'))
             ->where('status', '=', '')
-            ->where('tournament_is_open', '=', 1)
+//            ->where('tournament_is_open', '=', 1)
             ->where(
                 'match_time',
                 '>',
