@@ -2,6 +2,7 @@
 
 namespace app\api\service;
 
+use app\model\ManualPromoteOdd;
 use app\model\Match1;
 use app\model\MatchView;
 use app\model\Odd;
@@ -218,13 +219,17 @@ class DashboardService
         ['allow_corner_preparing' => $allowCorner] = get_settings(['allow_corner_preparing']);
 
         $rows = MatchView::query()
-            ->whereIn('id', Odd::query()
-                ->where('status', '=', 'ready')
-//                ->where('is_open', '=', 1)
-                ->when(empty($allowCorner), fn($query) => $query->where('variety', '!=', 'corner'))
-                ->select('match_id'))
+            ->where(function ($query) use ($allowCorner) {
+                $query->whereIn('id', Odd::query()
+                    ->where('status', '=', 'ready')
+                    ->when(empty($allowCorner), fn($query) => $query->where('variety', '!=', 'corner'))
+                    ->select('match_id'))
+                    ->orWhereIn('id', ManualPromoteOdd::query()
+                        ->where('promoted_odd_id', '=', 0)
+                        ->select('match_id')
+                    );
+            })
             ->where('status', '=', '')
-//            ->where('tournament_is_open', '=', 1)
             ->where(
                 'match_time',
                 '>',
