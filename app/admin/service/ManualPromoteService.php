@@ -57,7 +57,7 @@ class ManualPromoteService
 
         Db::beginTransaction();
         try {
-            $record_id = ManualPromoteRecord::insert([
+            $record_id = ManualPromoteRecord::insertGetId([
                 'type' => $params['type'],
             ]);
 
