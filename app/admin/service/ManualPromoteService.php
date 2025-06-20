@@ -176,7 +176,7 @@ class ManualPromoteService
 
             $list = array_map(fn(array $record) => [
                 ...$record,
-                'odds' => array_filter($odds, fn(array $odd) => $odd['record_id'] === $record['id'])
+                'odds' => array_values(array_filter($odds, fn(array $odd) => $odd['record_id'] === $record['id'])),
             ], $list);
         }
 
