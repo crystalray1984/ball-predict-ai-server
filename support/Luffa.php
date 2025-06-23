@@ -88,14 +88,14 @@ class Luffa
                 'type' => $type,
             ]
         );
-        if (!empty($resp)) {
-            var_dump($resp);
-        }
+        var_dump($resp);
     }
 
     public static function sendNotification(string $text): void
     {
-        foreach (config('luffa.notification', []) as $target) {
+        $targets = config('luffa.notification', []);
+        var_dump($targets);
+        foreach ($targets as $target) {
             if ($target['type'] === 0) {
                 //单聊
                 self::send($target['uid'], $text);
