@@ -79,7 +79,7 @@ class Luffa
      */
     public static function sendGroup(string $uid, array $msg, int $type): void
     {
-        static::request(
+        $resp = static::request(
             '/robot/sendGroup',
             [
                 'secret' => config('luffa.secret'),
@@ -88,6 +88,9 @@ class Luffa
                 'type' => $type,
             ]
         );
+        if (!empty($resp)) {
+            var_dump($resp);
+        }
     }
 
     public static function sendNotification(string $text): void
