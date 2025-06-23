@@ -88,13 +88,11 @@ class Luffa
                 'type' => $type,
             ]
         );
-        var_dump($resp);
     }
 
     public static function sendNotification(string $text): void
     {
         $targets = config('luffa.notification', []);
-        var_dump($targets);
         foreach ($targets as $target) {
             if ($target['type'] === 0) {
                 //单聊
