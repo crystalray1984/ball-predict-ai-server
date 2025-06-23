@@ -84,7 +84,7 @@ class Luffa
             [
                 'secret' => config('luffa.secret'),
                 'uid' => $uid,
-                'msg' => $msg,
+                'msg' => json_encode($msg),
                 'type' => $type,
             ]
         );
