@@ -80,6 +80,8 @@
       <excludeFolder url="file://$MODULE_DIR$/vendor/league/uri-interfaces" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/plisio/plisio-api-php" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/sqids/sqids" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/webman-tech/crontab-task" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/workerman/crontab" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

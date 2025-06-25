@@ -88,6 +88,8 @@
       <path value="$PROJECT_DIR$/vendor/league/uri-interfaces" />
       <path value="$PROJECT_DIR$/vendor/plisio/plisio-api-php" />
       <path value="$PROJECT_DIR$/vendor/sqids/sqids" />
+      <path value="$PROJECT_DIR$/vendor/webman-tech/crontab-task" />
+      <path value="$PROJECT_DIR$/vendor/workerman/crontab" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.2" />
