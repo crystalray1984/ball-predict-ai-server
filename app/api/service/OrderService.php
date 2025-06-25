@@ -184,7 +184,7 @@ class OrderService
                 if (!empty($invite_user_id)) {
                     //计算佣金
                     $commissionConfig = config('commission');
-                    $commission = bcmul($order->amount, $commissionConfig['ratio'], 2);
+                    $commission = bcmul((string)$order->amount, (string)$commissionConfig['ratio'], 2);
                     if (bccomp($commission, '0', 2) > 0) {
                         //插入佣金记录
                         UserCommission::insert([
