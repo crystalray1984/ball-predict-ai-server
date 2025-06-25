@@ -87,6 +87,7 @@
       <path value="$PROJECT_DIR$/vendor/league/uri-components" />
       <path value="$PROJECT_DIR$/vendor/league/uri-interfaces" />
       <path value="$PROJECT_DIR$/vendor/plisio/plisio-api-php" />
+      <path value="$PROJECT_DIR$/vendor/sqids/sqids" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.2" />

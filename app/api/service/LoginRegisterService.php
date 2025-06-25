@@ -5,6 +5,7 @@ namespace app\api\service;
 use app\model\User;
 use app\model\UserConnect;
 use Carbon\Carbon;
+use Sqids\Sqids;
 use support\Db;
 use support\exception\BusinessError;
 use Throwable;
@@ -115,6 +116,24 @@ class LoginRegisterService
             $userInfo['expire_time'] = Carbon::now()->addHours($settings['new_user_expire_hours']);
         }
 
-        return User::create($userInfo);
+        Db::beginTransaction();
+        try {
+            $user = User::create($userInfo);
+
+            //拆解用户id
+            $codeStr = str_pad((string)$user->id, 6, '0', STR_PAD_LEFT);
+            $codeNumbers = array_map(fn(string $v) => (int)$v, str_split($codeStr));
+
+            //生成用户邀请码
+            $user->code = G(Sqids::class)->encode($codeNumbers);
+            $user->save();
+
+            Db::commit();
+        } catch (Throwable $e) {
+            Db::rollBack();
+            throw $e;
+        }
+
+        return $user;
     }
 }

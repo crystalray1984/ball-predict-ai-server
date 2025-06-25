@@ -10,6 +10,7 @@ use support\BaseModel;
 /**
  * 用户表
  * @property int $id
+ * @property string $code
  * @property string $nickname
  * @property string $avatar
  * @property int $status
