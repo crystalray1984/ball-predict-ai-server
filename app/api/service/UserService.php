@@ -5,9 +5,11 @@ namespace app\api\service;
 use app\model\Order;
 use app\model\User;
 use Carbon\Carbon;
+use support\Db;
 use support\exception\BusinessError;
 use support\Redis;
 use support\Token;
+use Throwable;
 
 /**
  * 用户业务逻辑
@@ -87,5 +89,62 @@ class UserService
             'total' => $total,
             'list' => $list,
         ];
+    }
+
+    /**
+     * 绑定用户的邀请码
+     * @param int $user_id
+     * @param string $inviter_code
+     * @return void
+     */
+    public function bindInviter(int $user_id, string $inviter_code): void
+    {
+        //先查询邀请码对应的用户
+        /** @var User $inviter */
+        $inviter = User::query()
+            ->where('code', '=', $inviter_code)
+            ->first(['id']);
+        if (!$inviter) {
+            throw new BusinessError('无效的邀请码');
+        }
+
+        if ($inviter->id === $user_id) {
+            throw new BusinessError('不可绑定自己');
+        }
+
+        //然后查询当前用户是否已经存在邀请关系
+        /** @var User $user */
+        $user = User::query()
+            ->where('id', '=', $user_id)
+            ->first(['id', 'invite_user_id']);
+        if (!empty($user->invite_user_id)) {
+            throw new BusinessError('已经存在邀请关系，不可重复绑定');
+        }
+
+        Db::beginTransaction();
+        try {
+            //尝试修改当前用户的邀请关系
+            $updated = User::query()
+                ->where('id', '=', $user_id)
+                ->where('invite_user_id', '=', 0)
+                ->update([
+                    'invite_user_id' => $inviter->id,
+                    'invited_at' => User::raw('CURRENT_TIMESTAMP'),
+                ]);
+            if (!$updated) {
+                throw new BusinessError('已经存在邀请关系，不可重复绑定');
+            }
+
+            //绑定成功给用户加VIP时长
+            $this->addExpires($user_id, 1);
+
+            Db::commit();
+        } catch (Throwable $e) {
+            Db::rollBack();
+            throw $e;
+        }
+
+        //清空用户的缓存
+        Redis::del(CACHE_USER_KEY . $user_id);
     }
 }

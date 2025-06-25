@@ -114,4 +114,20 @@ class UserController extends Controller
             )
         );
     }
+
+    /**
+     * 绑定用户邀请关系
+     * @param Request $request
+     * @return Response
+     */
+    #[CheckUserToken]
+    public function bindInviter(Request $request): Response
+    {
+        ['code' => $code] = v::input($request->post(), [
+            'code' => v::stringType()->notEmpty()->setName('code'),
+        ]);
+
+        $this->userService->bindInviter($request->user->id, $code);
+        return $this->success();
+    }
 }

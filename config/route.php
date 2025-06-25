@@ -24,6 +24,22 @@ Route::group('/api', function () {
         Route::post('/info', [\app\api\controller\UserController::class, 'info']);
         //获取VIP购买记录
         Route::post('/vip_records', [\app\api\controller\UserController::class, 'getVipRecords']);
+        //绑定邀请关系
+        Route::post('/bind_inviter', [\app\api\controller\UserController::class, 'bindInviter']);
+    });
+
+    //佣金接口
+    Route::group('/commission', function () {
+        //获取佣金配置
+        Route::post('/config', [\app\api\controller\CommissionController::class, 'config']);
+        //获取用户佣金金额
+        Route::post('/get', [\app\api\controller\CommissionController::class, 'get']);
+        //获取用户佣金变更记录
+        Route::post('/records', [\app\api\controller\CommissionController::class, 'getRecords']);
+        //获取用户佣金收益记录
+        Route::post('/list', [\app\api\controller\CommissionController::class, 'getList']);
+        //佣金提现
+        Route::post('/withdrawal', [\app\api\controller\CommissionController::class, 'withdrawal']);
     });
 
     //订单接口

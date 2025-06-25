@@ -3,6 +3,8 @@
 namespace app\api\service;
 
 use app\model\Order;
+use app\model\User;
+use app\model\UserCommission;
 use Carbon\Carbon;
 use support\Db;
 use support\exception\BusinessError;
@@ -173,6 +175,27 @@ class OrderService
 
             //增加用户VIP天数
             G(UserService::class)->addExpires($order->user_id, $extra['days']);
+
+
+            //发放佣金
+            if ($order->currency === 'USDT') {
+                //查询用户是否有邀请人
+                $invite_user_id = User::query()->where('id', '=', $order->user_id)->value('invite_user_id');
+                if (!empty($invite_user_id)) {
+                    //计算佣金
+                    $commissionConfig = config('commission');
+                    $commission = bcmul($order->amount, $commissionConfig['ratio'], 2);
+                    if (bccomp($commission, '0', 2) > 0) {
+                        //插入佣金记录
+                        UserCommission::insert([
+                            'user_id' => $invite_user_id,
+                            'order_id' => $order->id,
+                            'commission' => $commission,
+                        ]);
+                    }
+                }
+            }
+
             Db::commit();
         } catch (Throwable $e) {
             Db::rollBack();
