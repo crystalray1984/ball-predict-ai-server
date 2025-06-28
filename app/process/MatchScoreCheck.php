@@ -62,7 +62,7 @@ class MatchScoreCheck
 
             NotificationLog::insert(['keyword' => $keyword]);
 
-            $match_time = Carbon::parse($row['match_time'])->format('m/d H:i');
+            $match_time = Carbon::parse($row['match_time'])->tz('Asia/Shanghai')->format('m/d H:i');
             $period = $row['period'] === 'period1' ? '半场' : '全场';
 
             //发送通知
