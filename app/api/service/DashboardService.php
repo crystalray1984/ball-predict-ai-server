@@ -182,7 +182,7 @@ class DashboardService
                 $output = [
                     'id' => $row['id'],
                     'match_id' => $row['match_id'],
-                    'match_time' => $row['match_time'],
+                    'match_time' => Carbon::parse($row['match_time']),
                     'variety' => $row['variety'],
                     'period' => $row['period'],
                     'type' => $row['type'],
