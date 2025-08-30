@@ -4,20 +4,42 @@ namespace app\admin\service;
 
 use app\model\SurebetRecord;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class SurebetRecordService
 {
     /**
-     * 导出数据
+     * 创建查询对象
      * @param array $params
-     * @return string
+     * @return Builder
      */
-    public function exportList(array $params): string
+    public function createQuery(array $params): Builder
     {
         $query = SurebetRecord::query()
             ->join('v_match', 'v_match.crown_match_id', '=', 'surebet_record.crown_match_id');
+
+        if (!empty($params['game'])) {
+            $query->where('surebet_record.game', '=', $params['game']);
+        }
+        if (!empty($params['base'])) {
+            $query->where('surebet_record.base', '=', $params['base']);
+        }
+        if (!empty($params['variety'])) {
+            $query->where('surebet_record.variety', '=', $params['variety']);
+        }
+        if (!empty($params['type'])) {
+            $query->where('surebet_record.type', '=', $params['type']);
+        }
+
+        if (!empty($params['match_date_start'])) {
+            $query->where('v_match.match_time', '>=', Carbon::parse($params['match_date_start'])->toISOString());
+        }
+
+        if (!empty($params['match_date_end'])) {
+            $query->where('v_match.match_time', '<', Carbon::parse($params['match_date_end'])->addDay()->toISOString());
+        }
 
         if (!empty($params['date_start'])) {
             $query->where('surebet_record.created_at', '>=', Carbon::parse($params['date_start'])->toISOString());
@@ -27,6 +49,106 @@ class SurebetRecordService
             $query->where('surebet_record.created_at', '<', Carbon::parse($params['date_end'])->addDay()->toISOString());
         }
 
+        return $query
+            ->orderBy('surebet_record.id', 'DESC')
+            ->select([
+                'surebet_record.*',
+                'v_match.id AS match_id',
+                'v_match.match_time',
+                'v_match.tournament_id',
+                'v_match.tournament_name',
+                'v_match.team1_id',
+                'v_match.team1_name',
+                'v_match.team2_id',
+                'v_match.team2_name',
+                'v_match.has_score',
+                'v_match.has_period1_score',
+                'v_match.score1',
+                'v_match.score2',
+                'v_match.corner1',
+                'v_match.corner2',
+                'v_match.score1_period1',
+                'v_match.score2_period1',
+                'v_match.corner1_period1',
+                'v_match.corner2_period1',
+            ]);
+    }
+
+    /**
+     * 查询推送数据列表
+     * @param array $params
+     * @return array
+     */
+    public function getList(array $params): array
+    {
+        $query = $this->createQuery($params);
+        $count = $query->count();
+        $list = $query->forPage($params['page'] ?? DEFAULT_PAGE, $params['page_size'] ?? DEFAULT_PAGE_SIZE)
+            ->get()
+            ->toArray();
+
+        //构建数据结构
+        $list = array_map(function (array $row) {
+            //构建模拟盘口
+            $virtual_odd = [];
+            if (
+                $row['game'] === 'regular'
+                && $row['base'] === 'overall'
+                && in_array($row['variety'], ['corner', 'goal'])
+                && in_array($row['period'], ['regularTime', 'period1'])
+                && in_array($row['type'], ['ah1', 'ah2', 'over', 'under'])
+            ) {
+                if (
+                    $row['period'] === 'period1' && $row['has_period1_score'] ||
+                    $row['period'] === 'regularTime' && $row['has_score']
+                ) {
+                    //虚拟盘口数据
+                    [$type, $condition] = get_reverse_odd($row['type'], $row['condition']);
+
+                    $virtual_odd = [
+                        'variety' => $row['variety'],
+                        'period' => $row['period'],
+                        'type' => $type,
+                        'condition' => $condition,
+                    ];
+
+                    $result = get_odd_score($row, $virtual_odd);
+                    $virtual_odd['score'] = $result['score'];
+                    $virtual_odd['result'] = $result['result'];
+                }
+            }
+
+            return [
+                ...$row,
+                'tournament' => [
+                    'id' => $row['tournament_id'],
+                    'name' => $row['tournament_name'],
+                ],
+                'team1' => [
+                    'id' => $row['team1_id'],
+                    'name' => $row['team1_name'],
+                ],
+                'team2' => [
+                    'id' => $row['team2_id'],
+                    'name' => $row['team2_name'],
+                ],
+                'virtual_odd' => !empty($virtual_odd) ? $virtual_odd : null,
+            ];
+        }, $list);
+
+        return [
+            'count' => $count,
+            'list' => $list,
+        ];
+    }
+
+    /**
+     * 导出数据
+     * @param array $params
+     * @return string
+     */
+    public function exportList(array $params): string
+    {
         //构建导出的数据
         $rows = [
             [
@@ -51,32 +173,13 @@ class SurebetRecordService
         ];
 
         //查询数据
-        $query
-            ->orderBy('surebet_record.id', 'desc')
-            ->select([
-                'surebet_record.*',
-                'v_match.id AS match_id',
-                'v_match.match_time',
-                'v_match.tournament_name',
-                'v_match.team1_name',
-                'v_match.team2_name',
-                'v_match.has_score',
-                'v_match.has_period1_score',
-                'v_match.score1',
-                'v_match.score2',
-                'v_match.corner1',
-                'v_match.corner2',
-                'v_match.score1_period1',
-                'v_match.score2_period1',
-                'v_match.corner1_period1',
-                'v_match.corner2_period1',
-            ])
+        $this->createQuery($params)
             ->chunk(500, function ($_list) use (&$rows) {
                 $list = $_list->toArray();
                 foreach ($list as $row) {
                     //看看有没有对应的赛果(只针对支持的投注类型)
                     $virtual_odd = [];
-                    
+
                     if (
                         $row['game'] === 'regular'
                         && $row['base'] === 'overall'
