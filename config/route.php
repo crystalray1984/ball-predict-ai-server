@@ -133,6 +133,10 @@ Route::group('/admin', function () {
         Route::post('/remove_promoted', [\app\admin\controller\OddController::class, 'removePromoted']);
         //切换盘口的开启和关闭
         Route::post('/toggle_open', [\app\admin\controller\OddController::class, 'toggleOpen']);
+        //获取第二通道盘口抓取数据列表
+        Route::post('/list_channel2', [\app\admin\controller\OddController::class, 'getChannel2OddList']);
+        //导出第二通道盘口列表
+        Route::post('/export_channel2', [\app\admin\controller\OddController::class, 'exportChannel2OddList']);
     });
 
     //用户管理接口

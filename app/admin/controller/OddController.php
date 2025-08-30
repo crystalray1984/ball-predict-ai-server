@@ -80,6 +80,61 @@ class OddController extends Controller
     }
 
     /**
+     * 获取第二通道盘口抓取数据
+     * @param Request $request
+     * @return Response
+     */
+    #[CheckAdminToken]
+    public function getChannel2OddList(Request $request): Response
+    {
+        $params = v::input($request->post(), [
+            'start_date' => v::optional(v::stringType()->date())->setName('start_date'),
+            'end_date' => v::optional(v::stringType()->date())->setName('end_date'),
+            'variety' => v::optional(v::in(['goal', 'corner']))->setName('variety'),
+            'period' => v::optional(v::in(['period1', 'regularTime']))->setName('period'),
+            'matched1' => v::optional(v::in([0, 1, -1]))->setName('matched1'),
+            'promoted' => v::optional(v::in([0, 1, 2, -1]))->setName('promoted'),
+        ]);
+
+        return $this->success(
+            $this->oddService->getOddList($params, channel2: true)
+        );
+    }
+
+    /**
+     * 导出第二通道数据
+     * @param Request $request
+     * @return Response
+     */
+    public function exportChannel2OddList(Request $request): Response
+    {
+        $params = v::input($request->post(), [
+            'start_date' => v::optional(v::stringType()->date())->setName('start_date'),
+            'end_date' => v::optional(v::stringType()->date())->setName('end_date'),
+            'variety' => v::optional(v::in(['goal', 'corner']))->setName('variety'),
+            'period' => v::optional(v::in(['period1', 'regularTime']))->setName('period'),
+            'matched1' => v::optional(v::in(['0', '1', '-1']))->setName('matched1'),
+            'promoted' => v::optional(v::in(['0', '1', '2', '-1']))->setName('promoted'),
+        ]);
+
+        //数据整理
+        if (isset($params['matched1'])) {
+            $params['matched1'] = intval($params['matched1']);
+        }
+        if (isset($params['promoted'])) {
+            $params['promoted'] = intval($params['promoted']);
+        }
+
+        $filePath = $this->oddService->exportOddList(
+            $this->oddService->getOddList($params, true, true)
+        );
+
+        $resp = new Response();
+        $resp->download($filePath, basename($filePath));
+        return $resp;
+    }
+
+    /**
      * 通过比赛获取盘口列表
      * @param Request $request
      * @return Response

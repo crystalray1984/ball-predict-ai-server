@@ -5,6 +5,7 @@ namespace app\admin\service;
 use app\model\Match1;
 use app\model\Odd;
 use app\model\PromotedOdd;
+use app\model\PromotedOddChannel2;
 use app\model\Team;
 use app\model\Tournament;
 use Carbon\Carbon;
@@ -20,9 +21,10 @@ class OddService
      * 获取盘口抓取数据
      * @param array $params
      * @param bool $virtual 是否模拟反推盘的胜负
+     * @param bool $channel2 是否是通道2的数据
      * @return array
      */
-    public function getOddList(array $params, bool $virtual = false): array
+    public function getOddList(array $params, bool $virtual = false, bool $channel2 = false): array
     {
         $query = $this->createOddQuery();
         if (!empty($params['start_date'])) {
@@ -75,7 +77,8 @@ class OddService
             $query->where('odd.period', '=', $params['period']);
         }
         if (isset($params['promoted']) && $params['promoted'] !== -1) {
-            $query->leftJoin('promoted_odd', function (JoinClause $join) use ($params) {
+            $table = $channel2 ? 'promoted_odd_channel2 as promoted_odd' : 'promoted_odd';
+            $query->leftJoin($table, function (JoinClause $join) use ($params) {
                 $join->on('promoted_odd.odd_id', '=', 'odd.id');
                 if ($params['promoted'] === 1) {
                     $join->where('promoted_odd.is_valid', '=', 1);
@@ -90,7 +93,7 @@ class OddService
             }
         }
 
-        return $this->processOddList($query->get()->toArray(), $virtual);
+        return $this->processOddList($query->get()->toArray(), $virtual, channel2: $channel2);
     }
 
     /**
@@ -113,9 +116,10 @@ class OddService
      * @param array $rows
      * @param bool $virtual 是否生成虚拟推荐数据
      * @param bool $manual 是否为手动推荐数据
+     * @param bool $channel2 是否为第二通道的数据
      * @return array
      */
-    public function processOddList(array $rows, bool $virtual = false, bool $manual = false): array
+    public function processOddList(array $rows, bool $virtual = false, bool $manual = false, bool $channel2 = false): array
     {
         if (!empty($rows)) {
             //查询赛事
@@ -168,7 +172,8 @@ class OddService
                 $promotes = array_column($promotes, null, 'manual_promote_odd_id');
             } else {
                 //自动推荐的盘口
-                $promotes = PromotedOdd::query()
+                $base = $channel2 ? PromotedOddChannel2::query() : PromotedOdd::query();
+                $promotes = $base
                     ->whereIn('odd_id', array_column($rows, 'id'))
                     ->get([
                         'id',
