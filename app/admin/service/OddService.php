@@ -24,7 +24,7 @@ class OddService
      * @param bool $channel2 是否是通道2的数据
      * @return array
      */
-    public function getOddList(array $params, bool $virtual = false, bool $channel2 = false): array
+    public function getOddList(array $params, bool $virtual = false, bool $channel2 = false, ?\Closure $callback = null, int $batchSize = 1000): array
     {
         $query = $this->createOddQuery();
         if (!empty($params['start_date'])) {
@@ -91,6 +91,14 @@ class OddService
             } else {
                 $query->whereNull('promoted_odd.id');
             }
+        }
+
+        if (!empty($callback)) {
+            $query->chunk($batchSize, function ($chunk) use (&$callback, $virtual, $channel2) {
+                $data = $this->processOddList($chunk->toArray(), $virtual, channel2: $channel2);
+                $callback($data);
+            });
+            return [];
         }
 
         return $this->processOddList($query->get()->toArray(), $virtual, channel2: $channel2);
@@ -368,11 +376,14 @@ class OddService
      * @param array $data 通过getOddList获取到的数据
      * @return string
      */
-    public function exportOddList(array $data): string
+    public function exportOddList(array $data, mixed $fp = null): string
     {
         //构建导出的数据
-        $rows = [
-            [
+        $rows = [];
+
+        if (empty($fp)) {
+            //如果没有传入文件资源，那么就写入头
+            $rows[] = [
                 '盘口id',
                 '比赛id',
                 '联赛',
@@ -399,8 +410,8 @@ class OddService
                 '模拟盘口(反推)',
                 '模拟盘口结果',
                 '模拟盘口赛果',
-            ]
-        ];
+            ];
+        }
 
         //生成数据
         foreach ($data as $row) {
@@ -549,8 +560,15 @@ class OddService
                 $virtual_score,
             ];
 
-            $rows[] = $add_row;
+            if (!empty($fp)) {
+                //如果传入的文件资源，那么以csv的方式写入数据
+                fputcsv($fp, $add_row);
+            } else {
+                $rows[] = $add_row;
+            }
         }
+
+        if (!empty($fp)) return '';
 
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
