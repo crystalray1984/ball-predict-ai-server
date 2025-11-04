@@ -3,6 +3,8 @@
   "type": "project",
   "require": {
     "php": ">=8.2",
+    "ext-bcmath": "*",
+    "ext-amqp": "*",
     "workerman/webman-framework": "^2.1",
     "monolog/monolog": "^2.0",
     "webman/database": "^2.1",
@@ -16,7 +18,6 @@
     "firebase/php-jwt": "^6.11",
     "workerman/validation": "^3.1",
     "webman/redis": "^2.1",
-    "ext-bcmath": "*",
     "tinywan/captcha": "^0.0.4",
     "guzzlehttp/guzzle": "^7.9",
     "phpoffice/phpspreadsheet": "^4.2",

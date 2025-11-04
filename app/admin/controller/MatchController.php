@@ -29,6 +29,8 @@ class MatchController extends Controller
     {
         $params = v::input($request->post(), [
             'name' => v::optional(v::stringType())->setName('name'),
+            'order_field' => v::optional(v::stringType())->setName('order_field'),
+            'order_order' => v::optional(v::in(['asc', 'desc']))->setName('order_order'),
         ]);
 
         return $this->success(

@@ -315,8 +315,14 @@ class MatchService
         if (!empty($params['name'])) {
             $query->where('name', 'like', '%' . $params['name'] . '%');
         }
+
+        if (!empty($params['order_field']) && !empty($params['order_order'])) {
+            $query->orderBy($params['order_field'], $params['order_order']);
+        } else {
+            $query->orderBy('name');
+        }
+
         return $query
-            ->orderBy('name')
             ->get(['id', 'name', 'is_open'])
             ->toArray();
     }

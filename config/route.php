@@ -139,6 +139,13 @@ Route::group('/admin', function () {
         Route::post('/export_channel2', [\app\admin\controller\OddController::class, 'exportChannel2OddList']);
     });
 
+    Route::group('/odd_v3', function () {
+        //获取处理中的比赛列表
+        Route::post('/list', [\app\admin\controller\OddV3Controller::class, 'getMatchList']);
+        //获取盘口追踪列表
+        Route::post('/odd_records', [\app\admin\controller\OddV3Controller::class, 'getOddRecords']);
+    });
+
     //用户管理接口
     Route::group('/user', function () {
         //获取代理列表

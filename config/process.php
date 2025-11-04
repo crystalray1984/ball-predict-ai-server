@@ -39,11 +39,11 @@ if (yaml('app.monitor', false) === true) {
                     base_path() . '/process',
                     base_path() . '/support',
                     base_path() . '/resource',
-                    base_path() . '/.env',
+                    base_path() . '/config.yaml',
                 ], glob(base_path() . '/plugin/*/app'), glob(base_path() . '/plugin/*/config'), glob(base_path() . '/plugin/*/api')),
                 // Files with these suffixes will be monitored
                 'monitorExtensions' => [
-                    'php', 'html', 'htm', 'env'
+                    'php', 'yaml'
                 ],
                 'options' => [
                     'enable_file_monitor' => !in_array('-d', $argv) && DIRECTORY_SEPARATOR === '/',
@@ -63,11 +63,13 @@ if (yaml('app.monitor', false) === true) {
 //];
 
 //赛果异常检查
-$processes['MatchScoreCheck'] = [
-    'handler' => app\process\MatchScoreCheck::class,
-    'count' => 1,
-    'reloadable' => true,
-    'constructor' => [],
-];
+if (yaml('app.match_score_check', false) === true) {
+    $processes['MatchScoreCheck'] = [
+        'handler' => app\process\MatchScoreCheck::class,
+        'count' => 1,
+        'reloadable' => true,
+        'constructor' => [],
+    ];
+}
 
 return $processes;

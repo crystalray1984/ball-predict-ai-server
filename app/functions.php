@@ -310,3 +310,52 @@ if (!function_exists('get_reverse_odd')) {
         return [$type, $condition];
     }
 }
+
+if (!function_exists('rabbitmq_publish')) {
+    /**
+     * 把数据抛到rabbitmq队列
+     * @param string $queueName 队列名
+     * @param string|array $content 队列数据
+     * @param array $headers 数据头
+     * @return void
+     * @throws AMQPException
+     */
+    function rabbitmq_publish(string $queueName, string|array $content, array $headers = []): void
+    {
+        if (empty($content)) return;
+
+        $config = config('rabbitmq');
+
+        //建立连接
+        $connection = new AMQPConnection($config);
+        $connection->connect();
+
+        try {
+            //打开通道
+            $channel = new AMQPChannel($connection);
+
+            //打开队列
+            $queue = new AMQPQueue($channel);
+            $queue->setName($queueName);
+            $queue->setFlags(AMQP_DURABLE);
+            $queue->declareQueue();
+
+            //打开默认交换机
+            $exchange = new AMQPExchange($channel);
+
+            $headers += ['delivery_mode' => 2];
+
+            //发布数据
+            if (is_string($content)) {
+                $exchange->publish($content, $queueName, null, $headers);
+            } elseif (is_array($content)) {
+                foreach ($content as $item) {
+                    $exchange->publish($item, $queueName, null, $headers);
+                }
+            }
+        } finally {
+            //关闭连接
+            $connection->disconnect();
+        }
+    }
+}

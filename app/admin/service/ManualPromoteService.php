@@ -6,6 +6,7 @@ use app\model\ManualPromoteOdd;
 use app\model\ManualPromoteRecord;
 use app\model\Match1;
 use app\model\PromotedOdd;
+use app\model\PromotedOddChannel2;
 use Carbon\Carbon;
 use support\Db;
 use support\exception\BusinessError;
@@ -51,9 +52,22 @@ class ManualPromoteService
                 ->whereIn('type', $check_type)
                 ->exists();
             if ($exists) {
-                throw new BusinessError('已经存在相同类型的推荐');
+                throw new BusinessError('已经存在相同类型的手动推荐');
+            }
+
+            //检查这场比赛是不是已经有同类的自动推荐
+            $exists = PromotedOddChannel2::query()
+                ->where('match_id', '=', $odd['match_id'])
+                ->where('variety', '=', $odd['variety'])
+                ->where('period', '=', $odd['period'])
+                ->whereIn('type', $check_type)
+                ->exists();
+            if ($exists) {
+                throw new BusinessError('已经存在相同类型的自动推荐');
             }
         }
+
+        $promotedIds = [];
 
         Db::beginTransaction();
         try {
@@ -62,7 +76,7 @@ class ManualPromoteService
             ]);
 
             foreach ($params['odds'] as $odd) {
-                ManualPromoteOdd::insert([
+                $manualPromoteId = ManualPromoteOdd::insertGetId([
                     'record_id' => $record_id,
                     'match_id' => $odd['match_id'],
                     'variety' => $odd['variety'],
@@ -72,12 +86,29 @@ class ManualPromoteService
                     'condition2' => $odd['condition2'] ?? null,
                     'type2' => $odd['type2'] ?? null,
                 ]);
+
+                //马上插入推荐
+                $promotedIds[] = PromotedOddChannel2::insertGetId([
+                    'match_id' => $odd['match_id'],
+                    'is_valid' => 1,
+                    'variety' => $odd['variety'],
+                    'period' => $odd['period'],
+                    'condition' => $odd['condition'],
+                    'type' => $odd['type'],
+                    'manual_promote_odd_id' => $manualPromoteId,
+                ]);
             }
 
             Db::commit();
         } catch (Throwable $e) {
             Db::rollBack();
             throw $e;
+        }
+
+        if (!empty($promotedIds)) {
+            //把数据抛到队列去发送luffa消息
+            $content = array_map(fn(int $id) => json_enc(['id' => $id]), $promotedIds);
+            rabbitmq_publish('send_promoted_channel2', $content);
         }
     }
 

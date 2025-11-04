@@ -4,6 +4,7 @@ namespace app\admin\service;
 
 use app\model\Order;
 use app\model\PromotedOdd;
+use app\model\PromotedOddChannel2;
 use app\model\User;
 use Carbon\Carbon;
 use support\Db;
@@ -41,15 +42,15 @@ class DashboardService
     public function getSummaryByDateRange(?Carbon $start = null, ?Carbon $end = null): array
     {
         //总推荐数据
-        $promoted = PromotedOdd::query()
-            ->join('match', 'match.id', '=', 'promoted_odd.match_id')
-            ->where('promoted_odd.is_valid', '=', 1)
-            ->whereNotNull('promoted_odd.result')
+        $promoted = PromotedOddChannel2::query()
+            ->join('match', 'match.id', '=', 'promoted_odd_channel2.match_id')
+            ->where('promoted_odd_channel2.is_valid', '=', 1)
+            ->whereNotNull('promoted_odd_channel2.result')
             ->when(isset($start), fn($query) => $query->where('match.match_time', '>=', $start->clone()->addHours(12)->toISOString()))
             ->when(isset($end), fn($query) => $query->where('match.match_time', '<', $end->clone()->addHours(12)->toISOString()))
-            ->groupBy('promoted_odd.result')
+            ->groupBy('promoted_odd_channel2.result')
             ->selectRaw('COUNT(1) AS total')
-            ->addSelect(['promoted_odd.result'])
+            ->addSelect(['promoted_odd_channel2.result'])
             ->get()
             ->toArray();
 

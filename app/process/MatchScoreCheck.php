@@ -3,8 +3,10 @@
 namespace app\process;
 
 use app\model\NotificationLog;
+use app\model\PromotedOddChannel2View;
 use app\model\PromotedOddView;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use support\Log;
 use support\Luffa;
 use Throwable;
@@ -18,16 +20,17 @@ class MatchScoreCheck
     public function onWorkerStart(): void
     {
         Timer::add(60, function () {
-            $this->check();
+            $this->checkChannel1();
+            $this->checkChannel2();
         });
     }
 
-    protected function check(): void
+    protected function check(Builder $query): void
     {
         //获取已经推荐的，且到了时间未能获取到结果的推荐盘口
         $period1Time = Carbon::now()->subMinutes(60)->toISOString();
         $regularTime = Carbon::now()->subHours(2)->toISOString();
-        $list = PromotedOddView::query()
+        $list = $query
             ->where('is_valid', '=', 1)
             ->whereNull('result')
             ->where(function ($query) use ($period1Time, $regularTime) {
@@ -67,7 +70,7 @@ class MatchScoreCheck
 
             //发送通知
             $content = <<<EOF
-**赛果获取异常通知**
+**赛果获取异常通知 V3**
 赛事 {$row['tournament_name']}
 时间 $match_time
 主队 {$row['team1_name']}
@@ -80,5 +83,19 @@ EOF;
                 Log::error($e);
             }
         }
+    }
+
+    protected function checkChannel1(): void
+    {
+        $this->check(
+            PromotedOddView::query()
+        );
+    }
+
+    protected function checkChannel2(): void
+    {
+        $this->check(
+            PromotedOddChannel2View::query()
+        );
     }
 }

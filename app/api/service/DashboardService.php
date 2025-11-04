@@ -7,6 +7,7 @@ use app\model\Match1;
 use app\model\MatchView;
 use app\model\Odd;
 use app\model\PromotedOdd;
+use app\model\PromotedOddChannel2;
 use app\model\Team;
 use app\model\Tournament;
 use Carbon\Carbon;
@@ -94,9 +95,9 @@ class DashboardService
      */
     public function promoted(array $params, DateTimeInterface|string|null $expires = null): array
     {
-        $query = PromotedOdd::query()
-            ->join('match', 'match.id', '=', 'promoted_odd.match_id')
-            ->where('promoted_odd.is_valid', '=', 1);
+        $query = PromotedOddChannel2::query()
+            ->join('match', 'match.id', '=', 'promoted_odd_channel2.match_id')
+            ->where('promoted_odd_channel2.is_valid', '=', 1);
 
         if (!empty($params['start_date'])) {
             $query->where(
@@ -132,21 +133,21 @@ class DashboardService
         //排序
         $query
             ->orderBy('match.match_time', $params['sort_order'] ?? 'desc')
-            ->orderBy('promoted_odd.match_id')
-            ->orderBy('promoted_odd.odd_id');
+            ->orderBy('promoted_odd_channel2.match_id')
+            ->orderBy('promoted_odd_channel2.id', 'DESC');
 
         //查询
         $rows = $query->get([
-            'promoted_odd.id',
-            'promoted_odd.match_id',
-            'promoted_odd.result',
-            'promoted_odd.variety',
-            'promoted_odd.period',
-            'promoted_odd.type',
-            'promoted_odd.condition',
-            'promoted_odd.score',
-            'promoted_odd.score1',
-            'promoted_odd.score2',
+            'promoted_odd_channel2.id',
+            'promoted_odd_channel2.match_id',
+            'promoted_odd_channel2.result',
+            'promoted_odd_channel2.variety',
+            'promoted_odd_channel2.period',
+            'promoted_odd_channel2.type',
+            'promoted_odd_channel2.condition',
+            'promoted_odd_channel2.score',
+            'promoted_odd_channel2.score1',
+            'promoted_odd_channel2.score2',
             'match.match_time',
             'match.team1_id',
             'match.team2_id',
@@ -258,5 +259,55 @@ class DashboardService
                 ],
             ];
         }, $rows);
+    }
+
+    public function preparingV3(): array
+    {
+        ['final_check_time' => $finalCheckTime] = get_settings(['final_check_time']);
+
+        $rows = Tournament::query()
+            ->joinSub(
+                Match1::query()
+                    ->where('status', '=', '')
+                    ->where(
+                        'match_time',
+                        '>',
+                        Carbon::now()
+                            ->addMinutes($finalCheckTime ?? 5)
+                            ->toISOString())
+                    ->whereIn('id', Odd::query()
+                        ->where('status', '=', 'ready')
+                        ->select('match_id'))
+                    ->groupBy('tournament_id', 'match_time')
+                    ->select(['tournament_id', 'match_time']),
+                'a',
+                'a.tournament_id',
+                '=',
+                'tournament.id',
+            )
+            ->orderBy('a.match_time')
+            ->get([
+                'tournament.id',
+                'tournament.name',
+                'a.match_time',
+            ])
+            ->toArray();
+
+        return array_map(fn(array $row) => [
+            'id' => $row['id'],
+            'match_time' => $row['match_time'],
+            'tournament' => [
+                'id' => $row['id'],
+                'name' => $row['name'],
+            ],
+            'team1' => [
+                'id' => $row['id'],
+                'name' => $row['name'],
+            ],
+            'team2' => [
+                'id' => $row['id'],
+                'name' => $row['name'],
+            ],
+        ], $rows);
     }
 }

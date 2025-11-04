@@ -42,7 +42,7 @@ class DashboardController extends Controller
     public function preparing(): Response
     {
         return $this->success(
-            $this->dashboardService->preparing()
+            $this->dashboardService->preparingV3()
         );
     }
 
