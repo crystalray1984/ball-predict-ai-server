@@ -75,6 +75,8 @@ class ManualPromoteService
                 'type' => $params['type'],
             ]);
 
+            $week_day = (int)Carbon::now()->startOf('week')->format('Ymd');
+
             foreach ($params['odds'] as $odd) {
                 $manualPromoteId = ManualPromoteOdd::insertGetId([
                     'record_id' => $record_id,
@@ -88,7 +90,7 @@ class ManualPromoteService
                 ]);
 
                 //马上插入推荐
-                $promotedIds[] = PromotedOddChannel2::insertGetId([
+                $id = PromotedOddChannel2::insertGetId([
                     'match_id' => $odd['match_id'],
                     'is_valid' => 1,
                     'variety' => $odd['variety'],
@@ -96,7 +98,21 @@ class ManualPromoteService
                     'condition' => $odd['condition'],
                     'type' => $odd['type'],
                     'manual_promote_odd_id' => $manualPromoteId,
+                    'week_day' => $week_day,
                 ]);
+
+
+                PromotedOddChannel2::query()
+                    ->where('id', '=', $id)
+                    ->update([
+                        'week_id' => PromotedOddChannel2::query()
+                            ->where('week_day', '=', $week_day)
+                            ->where('is_valid', '=', 1)
+                            ->where('id', '<=', $id)
+                            ->count()
+                    ]);
+
+                $promotedIds[] = $id;
             }
 
             Db::commit();

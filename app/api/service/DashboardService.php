@@ -25,9 +25,9 @@ class DashboardService
      */
     public function summary(array $params): array
     {
-        $query = PromotedOdd::query()
-            ->join('match', 'match.id', '=', 'promoted_odd.match_id')
-            ->where('promoted_odd.is_valid', '=', 1);
+        $query = PromotedOddChannel2::query()
+            ->join('match', 'match.id', '=', 'promoted_odd_channel2.match_id')
+            ->where('promoted_odd_channel2.is_valid', '=', 1);
 
         if (!empty($params['start_date'])) {
             $query->where(
@@ -48,10 +48,10 @@ class DashboardService
 
         $total = $query->count();
 
-        $data = $query->whereNotNull('promoted_odd.result')
-            ->groupBy('promoted_odd.result')
+        $data = $query->whereNotNull('promoted_odd_channel2.result')
+            ->groupBy('promoted_odd_channel2.result')
             ->select([
-                'promoted_odd.result',
+                'promoted_odd_channel2.result',
             ])
             ->selectRaw('count(*) as count')
             ->get()
