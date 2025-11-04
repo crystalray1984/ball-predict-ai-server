@@ -45,7 +45,7 @@ class DashboardService
         $promoted = PromotedOddChannel2::query()
             ->join('match', 'match.id', '=', 'promoted_odd_channel2.match_id')
             ->where('promoted_odd_channel2.is_valid', '=', 1)
-            ->whereNotNull('promoted_odd_channel2.result')
+//            ->whereNotNull('promoted_odd_channel2.result')
             ->when(isset($start), fn($query) => $query->where('match.match_time', '>=', $start->clone()->addHours(12)->toISOString()))
             ->when(isset($end), fn($query) => $query->where('match.match_time', '<', $end->clone()->addHours(12)->toISOString()))
             ->groupBy('promoted_odd_channel2.result')
@@ -58,17 +58,18 @@ class DashboardService
         $loss = 0;
         $draw = 0;
         $win_rate = 0;
+        $all = 0;
 
         if (!empty($promoted)) {
-            $promoted = array_column($promoted, 'total', 'result');
-            if (isset($promoted[1])) {
-                $win = $promoted[1];
-            }
-            if (isset($promoted[0])) {
-                $draw = $promoted[0];
-            }
-            if (isset($promoted[-1])) {
-                $loss = $promoted[-1];
+            foreach ($promoted as $row) {
+                $all += $row['total'];
+                if ($row['result'] === 1) {
+                    $win += $row['total'];
+                } else if ($row['result'] === -1) {
+                    $loss += $row['total'];
+                } else if ($row['result'] === 0) {
+                    $draw += $row['total'];
+                }
             }
         }
 
@@ -85,7 +86,7 @@ class DashboardService
             ->count();
 
         return [
-            'total' => $total,
+            'total' => $all,
             'win' => $win,
             'loss' => $loss,
             'draw' => $draw,
