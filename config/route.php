@@ -140,8 +140,10 @@ Route::group('/admin', function () {
     });
 
     Route::group('/odd_v3', function () {
-        //获取处理中的比赛列表
+        //获取比赛列表
         Route::post('/list', [\app\admin\controller\OddV3Controller::class, 'getMatchList']);
+        //导出比赛列表
+        Route::post('/export', [\app\admin\controller\OddV3Controller::class, 'exportMatchList']);
         //获取盘口追踪列表
         Route::post('/odd_records', [\app\admin\controller\OddV3Controller::class, 'getOddRecords']);
     });

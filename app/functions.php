@@ -359,3 +359,24 @@ if (!function_exists('rabbitmq_publish')) {
         }
     }
 }
+
+if (!function_exists('duration')) {
+    /**
+     * 输出时长的内容
+     * @param int $duration 时长秒数
+     * @return string
+     */
+    function duration(int $duration): string
+    {
+        $seconds = $duration % 60;
+        $duration -= $seconds;
+        $duration /= 60;
+        $minutes = $duration % 60;
+        $duration -= $minutes;
+        $hours = $duration / 60;
+
+        return $hours .
+            ':' . str_pad((string)$minutes, 2, '0', STR_PAD_LEFT) .
+            ':' . str_pad((string)$seconds, 2, '0', STR_PAD_LEFT);
+    }
+}

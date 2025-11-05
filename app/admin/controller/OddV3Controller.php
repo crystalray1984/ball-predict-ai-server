@@ -33,6 +33,34 @@ class OddV3Controller extends Controller
     }
 
     /**
+     * 导出比赛列表数据
+     * @param Request $request
+     * @return Response
+     */
+    public function exportMatchList(Request $request): Response
+    {
+        $params = v::input($request->post(), [
+            'team' => v::optional(v::stringType())->setName('team'),
+            'start_date' => v::optional(v::stringType()->date())->setName('start_date'),
+            'end_date' => v::optional(v::stringType()->date())->setName('end_date'),
+            'ready_status' => v::optional(v::in(['0', '1', '-1']))->setName('ready_status'),
+            'promoted' => v::optional(v::in(['0', '1', '-1']))->setName('promoted'),
+        ]);
+
+        if (isset($params['ready_status'])) {
+            $params['ready_status'] = intval($params['ready_status']);
+        }
+        if (isset($params['promoted'])) {
+            $params['promoted'] = intval($params['promoted']);
+        }
+
+        $filePath = $this->oddV3Service->exportMatchList($params);
+        $resp = new Response();
+        $resp->download($filePath, basename($filePath));
+        return $resp;
+    }
+
+    /**
      * 读取盘口追踪记录
      * @param Request $request
      * @return Response
