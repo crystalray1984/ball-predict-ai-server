@@ -8,6 +8,10 @@ use app\model\Odd;
 use app\model\PromotedOddChannel2;
 use Carbon\Carbon;
 use Illuminate\Database\Query\JoinClause;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Settings;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class OddV3Service
 {
@@ -186,14 +190,11 @@ class OddV3Service
             }
         }
 
-        //创建导出文件
-        $filePath = runtime_path('/' . uniqid() . '.csv');
-        $fp = fopen($filePath, 'w');
-        //写入UTF-8 BOM
-        fwrite($fp, pack('CCC', 0xef, 0xbb, 0xbf));
+        $excel = new Spreadsheet();
+        $sheet = $excel->getActiveSheet();
 
         //写入表头
-        fputcsv($fp, [
+        $sheet->fromArray([
             '比赛时间',
             '赛事',
             '主队',
@@ -211,11 +212,13 @@ class OddV3Service
             '输赢'
         ]);
 
+        $rowIndex = 2;
+
         $query
             ->orderBy('v_match.match_time', 'DESC')
             ->orderBy('v_match.id', 'DESC')
             ->select(['v_match.*'])
-            ->chunk(100, function ($matches) use (&$fp) {
+            ->chunk(100, function ($matches) use (&$fp, &$rowIndex, &$sheet) {
                 $matches = $matches->toArray();
                 $matchIds = array_column($matches, 'id');
 
@@ -298,7 +301,8 @@ class OddV3Service
                             '' //输赢
                         ]);
 
-                        fputcsv($fp, $row);
+                        $sheet->fromArray($row, startCell: "A$rowIndex");
+                        $rowIndex++;
                     } else {
                         //有推荐数据
                         foreach ($promoted[$match['id']] as $promoteData) {
@@ -367,13 +371,21 @@ class OddV3Service
                                 $promoteRow[] = '';
                             }
 
-                            fputcsv($fp, $promoteRow);
+                            $sheet->fromArray($promoteRow, startCell: "A$rowIndex");
+                            //设置距离开赛时间的单元格格式
+                            $sheet->getCell([13, $rowIndex])->setDataType(DataType::TYPE_STRING);
+                            $rowIndex++;
                         }
                     }
                 }
             });
 
-        fclose($fp);
+        
+        //创建导出文件
+        $writer = new Xlsx($excel);
+        $filePath = runtime_path() . '/' . uniqid() . '.xlsx';
+        $writer->save($filePath);
+
         return $filePath;
     }
 
