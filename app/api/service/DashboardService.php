@@ -7,7 +7,6 @@ use app\model\Match1;
 use app\model\MatchView;
 use app\model\Odd;
 use app\model\PromotedOdd;
-use app\model\PromotedOddChannel2;
 use app\model\Team;
 use app\model\Tournament;
 use Carbon\Carbon;
@@ -25,9 +24,9 @@ class DashboardService
      */
     public function summary(array $params): array
     {
-        $query = PromotedOddChannel2::query()
-            ->join('match', 'match.id', '=', 'promoted_odd_channel2.match_id')
-            ->where('promoted_odd_channel2.is_valid', '=', 1);
+        $query = PromotedOdd::query()
+            ->join('match', 'match.id', '=', 'promoted_odd.match_id')
+            ->where('promoted_odd.is_valid', '=', 1);
 
         if (!empty($params['start_date'])) {
             $query->where(
@@ -48,10 +47,10 @@ class DashboardService
 
         $total = $query->count();
 
-        $data = $query->whereNotNull('promoted_odd_channel2.result')
-            ->groupBy('promoted_odd_channel2.result')
+        $data = $query->whereNotNull('promoted_odd.result')
+            ->groupBy('promoted_odd.result')
             ->select([
-                'promoted_odd_channel2.result',
+                'promoted_odd.result',
             ])
             ->selectRaw('count(*) as count')
             ->get()
@@ -95,9 +94,9 @@ class DashboardService
      */
     public function promoted(array $params, DateTimeInterface|string|null $expires = null): array
     {
-        $query = PromotedOddChannel2::query()
-            ->join('match', 'match.id', '=', 'promoted_odd_channel2.match_id')
-            ->where('promoted_odd_channel2.is_valid', '=', 1);
+        $query = PromotedOdd::query()
+            ->join('match', 'match.id', '=', 'promoted_odd.match_id')
+            ->where('promoted_odd.is_valid', '=', 1);
 
         if (!empty($params['start_date'])) {
             $query->where(
@@ -133,21 +132,21 @@ class DashboardService
         //排序
         $query
             ->orderBy('match.match_time', $params['sort_order'] ?? 'desc')
-            ->orderBy('promoted_odd_channel2.match_id')
-            ->orderBy('promoted_odd_channel2.id', 'DESC');
+            ->orderBy('promoted_odd.match_id')
+            ->orderBy('promoted_odd.id', 'DESC');
 
         //查询
         $rows = $query->get([
-            'promoted_odd_channel2.id',
-            'promoted_odd_channel2.match_id',
-            'promoted_odd_channel2.result',
-            'promoted_odd_channel2.variety',
-            'promoted_odd_channel2.period',
-            'promoted_odd_channel2.type',
-            'promoted_odd_channel2.condition',
-            'promoted_odd_channel2.score',
-            'promoted_odd_channel2.score1',
-            'promoted_odd_channel2.score2',
+            'promoted_odd.id',
+            'promoted_odd.match_id',
+            'promoted_odd.result',
+            'promoted_odd.variety',
+            'promoted_odd.period',
+            'promoted_odd.type',
+            'promoted_odd.condition',
+            'promoted_odd.score',
+            'promoted_odd.score1',
+            'promoted_odd.score2',
             'match.match_time',
             'match.team1_id',
             'match.team2_id',

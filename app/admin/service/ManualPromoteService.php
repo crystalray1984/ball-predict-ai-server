@@ -6,7 +6,6 @@ use app\model\ManualPromoteOdd;
 use app\model\ManualPromoteRecord;
 use app\model\Match1;
 use app\model\PromotedOdd;
-use app\model\PromotedOddChannel2;
 use Carbon\Carbon;
 use support\Db;
 use support\exception\BusinessError;
@@ -56,7 +55,7 @@ class ManualPromoteService
             }
 
             //检查这场比赛是不是已经有同类的自动推荐
-            $exists = PromotedOddChannel2::query()
+            $exists = PromotedOdd::query()
                 ->where('match_id', '=', $odd['match_id'])
                 ->where('variety', '=', $odd['variety'])
                 ->where('period', '=', $odd['period'])
@@ -90,26 +89,29 @@ class ManualPromoteService
                 ]);
 
                 //马上插入推荐
-                $id = PromotedOddChannel2::insertGetId([
+                $id = PromotedOdd::insertGetId([
                     'match_id' => $odd['match_id'],
                     'is_valid' => 1,
                     'variety' => $odd['variety'],
                     'period' => $odd['period'],
                     'condition' => $odd['condition'],
                     'type' => $odd['type'],
-                    'manual_promote_odd_id' => $manualPromoteId,
+                    'source' => 'manual_promote_odd',
+                    'source_id' => $manualPromoteId,
                     'week_day' => $week_day,
                 ]);
 
+                $lastRow = PromotedOdd::query()
+                    ->where('week_day', '=', $week_day)
+                    ->where('is_valid', '=', 1)
+                    ->where('id', '<', $id)
+                    ->orderBy('id', 'desc')
+                    ->first(['week_id']);
 
-                PromotedOddChannel2::query()
+                PromotedOdd::query()
                     ->where('id', '=', $id)
                     ->update([
-                        'week_id' => PromotedOddChannel2::query()
-                            ->where('week_day', '=', $week_day)
-                            ->where('is_valid', '=', 1)
-                            ->where('id', '<=', $id)
-                            ->count()
+                        'week_id' => $lastRow ? $lastRow->week_id + 1 : 1,
                     ]);
 
                 $promotedIds[] = $id;
@@ -124,7 +126,7 @@ class ManualPromoteService
         if (!empty($promotedIds)) {
             //把数据抛到队列去发送luffa消息
             $content = array_map(fn(int $id) => json_enc(['id' => $id]), $promotedIds);
-            rabbitmq_publish('send_promoted_channel2', $content);
+            rabbitmq_publish('v3:send_promoted', $content);
         }
     }
 
@@ -218,8 +220,6 @@ class ManualPromoteService
                     'match.corner2_period1',
                 ])
                 ->toArray();
-
-            $odds = G(OddService::class)->processOddList($odds, false, true);
 
             $list = array_map(fn(array $record) => [
                 ...$record,

@@ -2,41 +2,37 @@
 
 namespace app\admin\service;
 
-use app\model\Match1;
+use app\model\CrownOdd;
+use app\model\MatchView;
 use app\model\Odd;
 use app\model\PromotedOdd;
-use app\model\PromotedOddChannel2;
-use app\model\Team;
-use app\model\Tournament;
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\JoinClause;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use support\exception\BusinessError;
 
 class OddService
 {
     /**
-     * 获取盘口抓取数据
+     * 获取进行中或者有盘口数据的比赛列表
      * @param array $params
-     * @param bool $virtual 是否模拟反推盘的胜负
-     * @param bool $channel2 是否是通道2的数据
      * @return array
      */
-    public function getOddList(array $params, bool $virtual = false, bool $channel2 = false, ?\Closure $callback = null, int $batchSize = 1000): array
+    public function getMatchList(array $params): array
     {
-        $query = $this->createOddQuery();
+        $query = MatchView::query();
+
         if (!empty($params['start_date'])) {
             $query->where(
-                'match.match_time',
+                'v_match.match_time',
                 '>=',
                 Carbon::parse($params['start_date'])->toISOString(),
             );
         }
         if (!empty($params['end_date'])) {
             $query->where(
-                'match.match_time',
+                'v_match.match_time',
                 '<',
                 Carbon::parse($params['end_date'])
                     ->addDays()
@@ -44,232 +40,62 @@ class OddService
             );
         }
 
-        //筛选数据
-        $params['matched2'] = $params['matched2'] ?? -1;
-        switch ($params['matched2']) {
-            case 1:
-                $query->where('odd.status', '=', 'promoted');
-                break;
-            case 0:
-                $query->where('odd.status', '=', 'ignored');
-                break;
-            case 'crown':
-                $query->where('odd.status', '=', 'promoted')
-                    ->where('odd.final_rule', '=', 'crown');
-                break;
-            case 'crown_special':
-                $query->where('odd.status', '=', 'promoted')
-                    ->where('odd.final_rule', '=', 'crown_special');
-                break;
-            default:
-                if ($params['matched1'] === 1) {
-                    $query->where('odd.status', '!=', '');
-                } elseif ($params['matched1'] === 0) {
-                    $query->where('odd.status', '=', '');
-                }
-                break;
-        }
+        if ($params['ready_status'] === 0) {
+            $query->whereNotIn('id', Odd::query()->where('status', '=', 'ready')->select(['match_id']));
+        } else {
+            if ($params['ready_status'] === 1) {
+                $query->whereIn('id', Odd::query()->where('status', '=', 'ready')->select(['match_id']));
+            }
 
-        if (isset($params['variety'])) {
-            $query->where('odd.variety', '=', $params['variety']);
-        }
-        if (isset($params['period'])) {
-            $query->where('odd.period', '=', $params['period']);
-        }
-        if (isset($params['promoted']) && $params['promoted'] !== -1) {
-            $table = $channel2 ? 'promoted_odd_channel2 as promoted_odd' : 'promoted_odd';
-            $query->leftJoin($table, function (JoinClause $join) use ($params) {
-                $join->on('promoted_odd.odd_id', '=', 'odd.id');
-                if ($params['promoted'] === 1) {
-                    $join->where('promoted_odd.is_valid', '=', 1);
-                } else if ($params['promoted'] === 2) {
-                    $join->where('promoted_odd.is_valid', '=', 0);
+            if (isset($params['promoted'])) {
+                switch ($params['promoted']) {
+                    case 1:
+                        $query->whereIn(
+                            'v_match.id',
+                            PromotedOdd::query()
+                                ->where('source', '=', 'crown_odd')
+                                ->select('match_id')
+                        );
+                        break;
+                    case 0:
+                        $query->whereNotIn(
+                            'v_match.id',
+                            PromotedOdd::query()
+                                ->where('source', '=', 'crown_odd')
+                                ->select('match_id')
+                        );
+                        break;
                 }
-            });
-            if ($params['promoted']) {
-                $query->whereNotNull('promoted_odd.id');
-            } else {
-                $query->whereNull('promoted_odd.id');
             }
         }
 
-        if (!empty($callback)) {
-            $query->chunk($batchSize, function ($chunk) use (&$callback, $virtual, $channel2) {
-                $data = $this->processOddList($chunk->toArray(), $virtual, channel2: $channel2);
-                $callback($data);
-            });
+        $matches = $query
+            ->orderBy('v_match.match_time', 'DESC')
+            ->orderBy('v_match.id', 'DESC')
+            ->get(['v_match.*'])
+            ->toArray();
+
+        if (empty($matches)) {
+            //没有比赛
             return [];
         }
 
-        return $this->processOddList($query->get()->toArray(), $virtual, channel2: $channel2);
-    }
+        $matchIds = array_column($matches, 'id');
 
-    /**
-     * 通过比赛id获取盘口数据
-     * @param int $match_id
-     * @return array
-     */
-    public function getOddsByMatch(int $match_id): array
-    {
-        return $this->processOddList(
-            $this->createOddQuery()
-                ->where('match.id', '=', $match_id)
-                ->get()
-                ->toArray()
-        );
-    }
-
-    /**
-     * 处理查询好的盘口列表
-     * @param array $rows
-     * @param bool $virtual 是否生成虚拟推荐数据
-     * @param bool $manual 是否为手动推荐数据
-     * @param bool $channel2 是否为第二通道的数据
-     * @return array
-     */
-    public function processOddList(array $rows, bool $virtual = false, bool $manual = false, bool $channel2 = false): array
-    {
-        if (!empty($rows)) {
-            //查询赛事
-            $tournaments = Tournament::query()
-                ->whereIn('id', array_unique(
-                    array_column($rows, 'tournament_id')
-                ))
-                ->get(['id', 'name'])
-                ->toArray();
-            $tournaments = array_column($tournaments, null, 'id');
-
-            //查询队伍
-            $teams = array_reduce($rows, function (array $result, array $row) {
-                $result[] = $row['team1_id'];
-                $result[] = $row['team2_id'];
-                return $result;
-            }, []);
-            $teams = Team::query()
-                ->whereIn('id', array_unique($teams))
-                ->get(['id', 'name'])
-                ->toArray();
-            $teams = array_column($teams, null, 'id');
-
-            //查询推荐盘口
-            if ($manual) {
-                //手动推荐的盘口
-                $promotes = PromotedOdd::query()
-                    ->whereIn('id', array_unique(
-                        array_filter(
-                            array_column($rows, 'promoted_odd_id'),
-                            fn(int $value) => !empty($value),
-                        )
-                    ))
-                    ->get([
-                        'id',
-                        'manual_promote_odd_id',
-                        'result',
-                        'variety',
-                        'period',
-                        'type',
-                        'condition',
-                        'score',
-                        'back',
-                        'skip',
-                        'is_valid',
-                        'final_rule',
-                    ])
-                    ->toArray();
-
-                $promotes = array_column($promotes, null, 'manual_promote_odd_id');
-            } else {
-                //自动推荐的盘口
-                $base = $channel2 ? PromotedOddChannel2::query() : PromotedOdd::query();
-                $promotes = $base
-                    ->whereIn('odd_id', array_column($rows, 'id'))
-                    ->get([
-                        'id',
-                        'odd_id',
-                        'result',
-                        'variety',
-                        'period',
-                        'type',
-                        'condition',
-                        'score',
-                        'back',
-                        'skip',
-                        'is_valid',
-                        'final_rule',
-                    ])
-                    ->toArray();
-
-                $promotes = array_column($promotes, null, 'odd_id');
-            }
-
-            //写入数据
-            $rows = array_map(function (array $row) use ($tournaments, $teams, $promotes, $virtual, $manual) {
-                $virtual_odd = null;
-                if ($virtual) {
-                    //看看有没有对应的赛果
-                    if (
-                        $row['period'] === 'period1' && $row['has_period1_score'] ||
-                        $row['period'] === 'regularTime' && $row['has_score']
-                    ) {
-                        //虚拟盘口数据
-                        [$type, $condition] = get_reverse_odd($row['type'], $row['condition']);
-
-                        $virtual_odd = [
-                            'variety' => $row['variety'],
-                            'period' => $row['period'],
-                            'type' => $type,
-                            'condition' => $condition,
-                        ];
-
-                        $result = get_odd_score($row, $virtual_odd);
-                        $virtual_odd['score'] = $result['score'];
-                        $virtual_odd['result'] = $result['result'];
-                    }
+        //读取触发这些比赛的盘口
+        $odds = Odd::query()
+            ->joinSub(
+                Odd::query()
+                    ->where('status', '=', 'ready')
+                    ->whereIn('match_id', $matchIds)
+                    ->select(['id'])
+                    ->selectRaw('ROW_NUMBER() OVER (PARTITION BY match_id ORDER BY ready_at ASC) AS row_no'),
+                'a',
+                function (JoinClause $join) {
+                    $join->on('odd.id', '=', 'a.id')
+                        ->where('a.row_no', '=', 1);
                 }
-
-                $output = [
-                    ...$row,
-                    'tournament' => $tournaments[$row['tournament_id']],
-                    'team1' => $teams[$row['team1_id']],
-                    'team2' => $teams[$row['team2_id']],
-                    //虚拟盘口数据
-                    'virtual_odd' => $virtual_odd,
-                ];
-
-                //推荐数据
-                $promoted = $promotes[$row['id']] ?? null;
-                if ($promoted) {
-                    //计算结果
-                    if (isset($promoted['result'])) {
-                        $promoted['result'] = [
-                            'score' => $promoted['score'],
-                            'result' => $promoted['result'],
-                        ];
-                    } else {
-                        $promoted['result'] = null;
-                    }
-                }
-
-                $output['promoted'] = $promoted;
-
-                return $output;
-            }, $rows);
-        }
-
-        return $rows;
-    }
-
-    /**
-     * 创建盘口查询器
-     * @return Builder
-     */
-    protected function createOddQuery(): Builder
-    {
-        return Odd::query()
-            ->join('match', 'match.id', '=', 'odd.match_id')
-            ->orderBy('match.match_time', 'DESC')
-            ->orderBy('odd.match_id')
-            ->orderBy('odd.id')
+            )
             ->select([
                 'odd.id',
                 'odd.match_id',
@@ -279,328 +105,326 @@ class OddService
                 'odd.condition',
                 'odd.surebet_value',
                 'odd.crown_value',
-                'odd.crown_condition2',
-                'odd.crown_value2',
-                'odd.status',
-                'odd.final_rule',
-                'odd.created_at',
-                'odd.ready_at',
-                'odd.is_open',
-                'match.match_time',
-                'match.team1_id',
-                'match.team2_id',
-                'match.tournament_id',
-                'match.has_score',
-                'match.has_period1_score',
-                'match.score1',
-                'match.score2',
-                'match.corner1',
-                'match.corner2',
-                'match.score1_period1',
-                'match.score2_period1',
-                'match.corner1_period1',
-                'match.corner2_period1',
-            ]);
-    }
+                'odd.ready_at'
+            ])
+            ->get()
+            ->toArray();
+        //按比赛id组合
+        $odds = array_column($odds, null, 'match_id');
 
-    /**
-     * 补充推荐数据
-     * @param array $params
-     * @return void
-     */
-    public function add(array $params): void
-    {
-        //先查询比赛数据
-        $match = Match1::query()
-            ->where('id', '=', $params['match_id'])
-            ->first();
-        if (!$match) {
-            throw new BusinessError('未找到对应的比赛');
-        }
-        if (!$match->has_score) {
-            throw new BusinessError('该比赛尚未有赛果');
-        }
+        //读取这些比赛的推荐数据
+        $_promoted = PromotedOdd::query()
+            ->whereIn('match_id', $matchIds)
+            ->where('source', '=', 'crown_odd')
+            ->orderBy('id', 'DESC')
+            ->get()
+            ->toArray();
 
-        $odd = Odd::query()
-            ->where('id', '=', $params['odd_id'])
-            ->where('match_id', '=', $params['match_id'])
-            ->first();
-
-        if (!$odd) {
-            throw new BusinessError('未找到原始盘口');
-        }
-
-        $promoted = PromotedOdd::query()
-            ->where('odd_id', '=', $params['odd_id'])
-            ->first();
-
-        if ($promoted) {
-            if ($promoted->is_valid) {
-                throw new BusinessError('该盘口已在推荐列表中');
+        //按比赛id组合数据
+        $promoted = [];
+        foreach ($_promoted as $row) {
+            if (!empty($row['start_odd_data'])) {
+                $row['start_odd_data'] = json_decode($row['start_odd_data'], true);
             }
-        } else {
-            $promoted = new PromotedOdd();
-            $promoted->match_id = $match->id;
-            $promoted->odd_id = $params['odd_id'];
-            $promoted->variety = $odd->variety;
-            $promoted->period = $odd->period;
-        }
-        $promoted->back = $params['back'] ? 1 : 0;
-        if ($params['back']) {
-            [$type, $condition] = get_reverse_odd($odd->type, $odd->condition);
-            $promoted->type = $type;
-            $promoted->condition = $condition;
-        } else {
-            $promoted->type = $odd->type;
-            $promoted->condition = $odd->condition;
-        }
-        $promoted->is_valid = 1;
-        $promoted->skip = '';
-
-        //重新计算赛果
-        $result = get_odd_score($match->toArray(), $promoted->toArray());
-        $promoted->result1 = $result['result'];
-        $promoted->result = $promoted->result1;
-        $promoted->score = $result['score'];
-        $promoted->score1 = $result['score1'];
-        $promoted->score2 = $result['score2'];
-
-        $promoted->save();
-
-        $odd->status = 'promoted';
-        $odd->save();
-    }
-
-    /**
-     * 导出数据列表
-     * @param array $data 通过getOddList获取到的数据
-     * @return string
-     */
-    public function exportOddList(array $data, mixed $fp = null): string
-    {
-        //构建导出的数据
-        $rows = [];
-
-        if (empty($fp)) {
-            //如果没有传入文件资源，那么就写入头
-            $rows[] = [
-                '盘口id',
-                '比赛id',
-                '联赛',
-                '比赛时间',
-                '主队',
-                '客队',
-                '时段',
-                '玩法',
-                '方向',
-                '盘口',
-                '推送水位',
-                '一次比对时间',
-                '第一次皇冠水位',
-                '第二次皇冠盘口',
-                '第二次皇冠水位',
-                '状态',
-                '二次比对规则',
-                '是否推荐',
-                '推荐方向',
-                '推荐盘口',
-                '推荐规则',
-                '结果',
-                '对应赛果',
-                '模拟盘口(反推)',
-                '模拟盘口结果',
-                '模拟盘口赛果',
-            ];
-        }
-
-        //生成数据
-        foreach ($data as $row) {
-            //二次比对规则
-            $final_rule = '';
-            if ($row['status'] === 'promoted') {
-                $final_rule = match ($row['final_rule']) {
-                    'titan007' => '球探网趋势',
-                    'crown' => '皇冠水位',
-                    'crown_special' => '皇冠变盘',
-                    'direct' => '推送直通',
-                    default => '',
-                };
+            if (!empty($row['end_odd_data'])) {
+                $row['end_odd_data'] = json_decode($row['end_odd_data'], true);
             }
-
-            $promoted_text = '';
-            $promoted_type = '';
-            $promoted_condition = '';
-            $result = '';
-            $result_score = '';
-            $promoted_rule = '';
-
-            //模拟盘口数据
-            $virtual_text = '';
-            $virtual_result = '';
-            $virtual_score = '';
-
-            if ($row['promoted']) {
-                if ($row['promoted']['is_valid']) {
-                    $promoted_text = '推荐';
-                } else {
-                    $promoted_text = match ($row['promoted']['skip']) {
-                        '' => '筛选率过滤',
-                        'manual_promote' => '手动推荐优先',
-                        'same_type' => '同盘口过滤',
-                        'setting' => '规则过滤',
-                        default => '',
-                    };
-                }
-
-                $promoted_type = match ($row['promoted']['type']) {
-                    'ah1' => '主胜',
-                    'ah2' => '客胜',
-                    'over' => '大球',
-                    'under' => '小球',
-                    default => '',
-                };
-                $promoted_condition = match ($row['promoted']['type']) {
-                    'ah1', 'ah2' => (bccomp($row['promoted']['condition'], '0', 2) > 0 ? '+' : '') . (float)$row['promoted']['condition'],
-                    default => (string)(float)$row['promoted']['condition'],
-                };
-                if (!$row['promoted']['result']) {
-                    $result = '待定';
-                } else {
-                    $result = match ($row['promoted']['result']['result']) {
-                        0 => '和',
-                        1 => '赢',
-                        -1 => '输',
-                        default => '',
-                    };
-                    $result_score = $row['promoted']['result']['score'];
-                }
-
-                $promoted_rule = match ($row['promoted']['final_rule']) {
-                    'special' => '特殊',
-                    'special_config' => '变盘',
-                    'titan007' => '球探网',
-                    'corner' => '角球',
-                    'direct' => '推送直通',
-                    default => '',
-                };
-            } else if (!empty($row['virtual_odd'])) {
-                $virtual_type = match ($row['virtual_odd']['type']) {
-                    'ah1' => '主胜',
-                    'ah2' => '客胜',
-                    'over' => '大球',
-                    'under' => '小球',
-                    default => '',
-                };
-                $virtual_condition = match ($row['virtual_odd']['type']) {
-                    'ah1', 'ah2' => (bccomp($row['virtual_odd']['condition'], '0', 2) > 0 ? '+' : '') . (float)$row['virtual_odd']['condition'],
-                    default => (string)(float)$row['virtual_odd']['condition'],
-                };
-
-                $virtual_text = "$virtual_type $virtual_condition";
-                $virtual_result = match ($row['virtual_odd']['result']) {
-                    0 => '和',
-                    1 => '赢',
-                    -1 => '输',
-                    default => '',
-                };
-                $virtual_score = $row['virtual_odd']['score'];
-            }
-
-            $add_row = [
-                $row['id'],
-                $row['match_id'],
-                $row['tournament']['name'],
-                Carbon::parse($row['match_time'])->toDateTimeString(),
-                $row['team1']['name'],
-                $row['team2']['name'],
-                match ($row['period']) {
-                    'regularTime' => '全场',
-                    'period1' => '半场',
-                    default => '',
-                },
-                match ($row['variety']) {
-                    'goal' => '进球',
-                    'corner' => '角球',
-                    default => '',
-                },
-                match ($row['type']) {
-                    'ah1' => '主胜',
-                    'ah2' => '客胜',
-                    'over' => '大球',
-                    'under' => '小球',
-                    default => '',
-                },
-                match ($row['type']) {
-                    'ah1', 'ah2' => (bccomp($row['condition'], '0', 2) > 0 ? '+' : '') . (float)$row['condition'],
-                    default => (string)(float)$row['condition'],
-                },
-                $row['surebet_value'],
-                !empty($row['ready_at']) ? Carbon::parse($row['ready_at'])->toDateTimeString() : '',
-                $row['crown_value'],
-                isset($row['crown_condition2']) ? match ($row['type']) {
-                    'ah1', 'ah2' => (bccomp($row['crown_condition2'], '0', 2) > 0 ? '+' : '') . (float)$row['crown_condition2'],
-                    default => (string)(float)$row['crown_condition2'],
-                } : '',
-                $row['crown_value2'] ?? '',
-                match ($row['status']) {
-                    '' => '第一次比对失败',
-                    'ready' => '等待二次比对',
-                    'promoted' => '二次比对成功',
-                    'ignored' => '二次比对失败',
-                },
-                $final_rule,
-                $promoted_text,
-                $promoted_type,
-                $promoted_condition,
-                $promoted_rule,
-                $result,
-                $result_score,
-                $virtual_text,
-                $virtual_result,
-                $virtual_score,
-            ];
-
-            if (!empty($fp)) {
-                //如果传入的文件资源，那么以csv的方式写入数据
-                fputcsv($fp, $add_row);
-            } else {
-                $rows[] = $add_row;
-            }
+            $promoted[$row['match_id']][] = $row;
         }
-
-        if (!empty($fp)) return '';
-
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-
-        $sheet->fromArray($rows, '');
 
         //输出数据
-        $writer = new Xlsx($spreadsheet);
+        return array_map(function (array $row) use ($odds, $promoted) {
+            return [
+                'id' => $row['id'],
+                'match_time' => $row['match_time'],
+                'tournament' => [
+                    'id' => $row['tournament_id'],
+                    'name' => $row['tournament_name'],
+                ],
+                'team1' => [
+                    'id' => $row['team1_id'],
+                    'name' => $row['team1_name'],
+                ],
+                'team2' => [
+                    'id' => $row['team2_id'],
+                    'name' => $row['team2_name'],
+                ],
+                'promoted' => $promoted[$row['id']] ?? [],
+                'surebet' => $odds[$row['id']] ?? null
+            ];
+        }, $matches);
+    }
+
+    /**
+     * 导出比赛数据
+     * @param array $params
+     * @return string
+     */
+    public function exportMatchList(array $params): string
+    {
+        $query = MatchView::query();
+
+        if (!empty($params['start_date'])) {
+            $query->where(
+                'v_match.match_time',
+                '>=',
+                Carbon::parse($params['start_date'])->toISOString(),
+            );
+        }
+        if (!empty($params['end_date'])) {
+            $query->where(
+                'v_match.match_time',
+                '<',
+                Carbon::parse($params['end_date'])
+                    ->addDays()
+                    ->toISOString(),
+            );
+        }
+
+        if ($params['ready_status'] === 0) {
+            $query->whereNotIn('id', Odd::query()->where('status', '=', 'ready')->select(['match_id']));
+        } else {
+            if ($params['ready_status'] === 1) {
+                $query->whereIn('id', Odd::query()->where('status', '=', 'ready')->select(['match_id']));
+            }
+
+            if (isset($params['promoted'])) {
+                switch ($params['promoted']) {
+                    case 1:
+                        $query->whereIn(
+                            'v_match.id',
+                            PromotedOdd::query()
+                                ->where('source', '=', 'crown_odd')
+                                ->select('match_id')
+                        );
+                        break;
+                    case 0:
+                        $query->whereNotIn(
+                            'v_match.id',
+                            PromotedOdd::query()
+                                ->where('source', '=', 'crown_odd')
+                                ->select('match_id')
+                        );
+                        break;
+                }
+            }
+        }
+
+        $excel = new Spreadsheet();
+        $sheet = $excel->getActiveSheet();
+
+        //写入表头
+        $sheet->fromArray([
+            '比赛时间',
+            '赛事',
+            '主队',
+            '客队',
+            '一次对比时间',
+            '推荐方向',
+            '推荐盘口',
+            '推送水位',
+            '起点时间',
+            '起点水位',
+            '终点时间',
+            '终点水位',
+            '距离开赛时间',
+            '赛果',
+            '输赢'
+        ]);
+
+        $rowIndex = 2;
+
+        $query
+            ->orderBy('v_match.match_time', 'DESC')
+            ->orderBy('v_match.id', 'DESC')
+            ->select(['v_match.*'])
+            ->chunk(100, function ($matches) use (&$fp, &$rowIndex, &$sheet) {
+                $matches = $matches->toArray();
+                $matchIds = array_column($matches, 'id');
+
+                //读取触发这些比赛的盘口
+                $odds = Odd::query()
+                    ->joinSub(
+                        Odd::query()
+                            ->where('status', '=', 'ready')
+                            ->whereIn('match_id', $matchIds)
+                            ->select(['id'])
+                            ->selectRaw('ROW_NUMBER() OVER (PARTITION BY match_id ORDER BY ready_at ASC) AS row_no'),
+                        'a',
+                        function (JoinClause $join) {
+                            $join->on('odd.id', '=', 'a.id')
+                                ->where('a.row_no', '=', 1);
+                        }
+                    )
+                    ->select([
+                        'odd.id',
+                        'odd.match_id',
+                        'odd.variety',
+                        'odd.period',
+                        'odd.type',
+                        'odd.condition',
+                        'odd.surebet_value',
+                        'odd.crown_value',
+                        'odd.ready_at'
+                    ])
+                    ->get()
+                    ->toArray();
+                //按比赛id组合
+                $odds = array_column($odds, null, 'match_id');
+
+                //读取这些比赛的推荐数据
+                $_promoted = PromotedOdd::query()
+                    ->whereIn('match_id', $matchIds)
+                    ->where('source', '=', 'crown_odd')
+                    ->orderBy('id', 'DESC')
+                    ->get()
+                    ->toArray();
+
+                //按比赛id组合数据
+                $promoted = [];
+                foreach ($_promoted as $row) {
+                    if (!empty($row['start_odd_data'])) {
+                        $row['start_odd_data'] = json_decode($row['start_odd_data'], true);
+                    }
+                    if (!empty($row['end_odd_data'])) {
+                        $row['end_odd_data'] = json_decode($row['end_odd_data'], true);
+                    }
+                    $promoted[$row['match_id']][] = $row;
+                }
+
+                //处理比赛数据
+                foreach ($matches as $match) {
+                    //基础数据
+                    $row = [
+                        Carbon::parse($match['match_time'])->format('Y-m-d H:i:s'), //比赛时间
+                        $match['tournament_name'],  //赛事
+                        $match['team1_name'],   //主队
+                        $match['team1_name'],   //客队
+                    ];
+
+                    $surebet = $odds[$match['id']] ?? null;
+                    if (!empty($surebet)) {
+                        $row[] = Carbon::parse($surebet['ready_at'])->format('Y-m-d H:i:s'); //一次比对时间
+                    }
+
+                    if (empty($promoted[$match['id']])) {
+                        //没有推荐数据，只写入基础数据
+                        $row = array_merge($row, [
+                            '', //推送方向
+                            '', //推送盘口
+                            '', //推送水位
+                            '', //起点时间
+                            '', //起点水位
+                            '', //终点时间
+                            '', //终点水位
+                            '', //距离开赛时间
+                            '', //赛果
+                            '' //输赢
+                        ]);
+
+                        $sheet->fromArray($row, startCell: "A$rowIndex");
+                        $rowIndex++;
+                    } else {
+                        //有推荐数据
+                        foreach ($promoted[$match['id']] as $promoteData) {
+                            $promoteRow = [...$row];
+
+                            //推荐方向
+                            $promoteRow[] = match ($promoteData['type']) {
+                                'ah1' => '主队',
+                                'ah2' => '客队',
+                                'under' => '小球',
+                                'over' => '大球',
+                                default => '',
+                            };
+
+                            //推荐盘口
+                            $condition = floatval($promoteData['condition']);
+                            $promoteRow[] = match ($promoteData['type']) {
+                                'ah1', 'ah2' => $condition <= 0 ? strval($condition) : "+$condition",
+                                default => $condition,
+                            };
+
+                            //推荐水位
+                            $promoteRow[] = floatval($promoteData['value']);
+
+                            //起点数据
+                            if (!empty($promoteData['start_odd_data'])) {
+                                //起点时间
+                                $promoteRow[] = Carbon::createFromTimestampMs($promoteData['start_odd_data']['time'])->format('Y-m-d H:i:s');
+                                //起点水位
+                                $promoteRow[] = floatval($promoteData['start_odd_data']['value']);
+                            } else {
+                                $promoteRow[] = '';
+                                $promoteRow[] = '';
+                            }
+
+                            //终点数据
+                            if (!empty($promoteData['end_odd_data'])) {
+                                //终点时间
+                                $promoteRow[] = Carbon::createFromTimestampMs($promoteData['end_odd_data']['time'])->format('Y-m-d H:i:s');
+                                //终点水位
+                                $promoteRow[] = floatval($promoteData['end_odd_data']['value']);
+                            } else {
+                                $promoteRow[] = '';
+                                $promoteRow[] = '';
+                            }
+
+                            //距离开赛时间
+                            $promoteRow[] = duration(
+                                (int)Carbon::parse($match['match_time'])->diffInSeconds(Carbon::parse($promoteData['created_at'])),
+                            );
+
+                            //赛果
+                            if (isset($promoteData['result'])) {
+                                //赛果
+                                $promoteRow[] = $promoteData['score'];
+                                //输赢
+                                $promoteRow[] = match ($promoteData['result']) {
+                                    1 => '赢',
+                                    -1 => '输',
+                                    0 => '和'
+                                };
+                            } else {
+                                //赛果
+                                $promoteRow[] = '';
+                                //输赢
+                                $promoteRow[] = '';
+                            }
+
+                            $sheet->fromArray($promoteRow, startCell: "A$rowIndex");
+                            //设置距离开赛时间的单元格格式
+                            $sheet->getCell([13, $rowIndex])->setDataType(DataType::TYPE_STRING);
+                            $rowIndex++;
+                        }
+                    }
+                }
+            });
+
+
+        //创建导出文件
+        $writer = new Xlsx($excel);
         $filePath = runtime_path() . '/' . uniqid() . '.xlsx';
         $writer->save($filePath);
+
         return $filePath;
     }
 
     /**
-     * 删除已经推荐出来的记录
-     * @param int $id
-     * @return void
+     * 获取指定比赛的盘口列表
+     * @param int $matchId
+     * @param string $type
+     * @return array
      */
-    public function removePromoted(int $id): void
+    public function getOddRecords(int $matchId, string $type): array
     {
-        $row = PromotedOdd::query()
-            ->where('id', '=', $id)
-            ->first();
-        if (!$row) {
-            throw new BusinessError('未找到推荐记录');
-        }
-
-        if (!$row->is_valid) {
-            throw new BusinessError('未找到推荐记录');
-        }
-
-        $row->is_valid = 0;
-        $row->save();
+        return CrownOdd::query()
+            ->where('match_id', '=', $matchId)
+            ->where('type', '=', $type)
+            ->where('variety', '=', 'goal')
+            ->where('period', '=', 'regularTime')
+            ->orderBy('id', 'desc')
+            ->get()
+            ->toArray();
     }
 }

@@ -3,7 +3,6 @@
 namespace app\process;
 
 use app\model\NotificationLog;
-use app\model\PromotedOddChannel2View;
 use app\model\PromotedOddView;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -21,7 +20,6 @@ class MatchScoreCheck
     {
         Timer::add(60, function () {
             $this->checkChannel1();
-            $this->checkChannel2();
         });
     }
 
@@ -89,13 +87,6 @@ EOF;
     {
         $this->check(
             PromotedOddView::query()
-        );
-    }
-
-    protected function checkChannel2(): void
-    {
-        $this->check(
-            PromotedOddChannel2View::query()
         );
     }
 }

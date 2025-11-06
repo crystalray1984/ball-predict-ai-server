@@ -3,11 +3,9 @@
 namespace app\admin\service;
 
 use app\model\ManualPromoteOdd;
-use app\model\ManualPromoteRecord;
 use app\model\Match1;
 use app\model\MatchView;
 use app\model\PromotedOdd;
-use app\model\PromotedOddChannel2;
 use app\model\Tournament;
 use Carbon\Carbon;
 use support\Db;
@@ -98,26 +96,8 @@ class MatchService
             ])
             ->toArray();
 
-        $query2 = PromotedOddChannel2::query()
-            ->where('match_id', '=', $data['match_id']);
-        if ($data['period1']) {
-            $query2->where('period', '=', 'period1');
-        }
-        $odds2 = $query2
-            ->get([
-                'id',
-                'variety',
-                'period',
-                'type',
-                'condition',
-                'type2',
-                'condition2',
-            ])
-            ->toArray();
-
         //然后进行赛果计算
         $updates = [];
-        $updates2 = [];
 
         foreach ($odds as $odd) {
             //角球无数据的判断
@@ -169,56 +149,6 @@ class MatchService
             $updates[$odd['id']] = $update;
         }
 
-        foreach ($odds2 as $odd2) {
-            //角球无数据的判断
-            if ($odd2['variety'] === 'corner') {
-                if ($odd['period'] === 'period1') {
-                    if (!is_int($data['corner1_period1']) || !is_int($data['corner2_period1'])) {
-                        continue;
-                    }
-                } else {
-                    if (!is_int($data['corner1']) || !is_int($data['corner2'])) {
-                        continue;
-                    }
-                }
-            }
-
-            //计算第一赛果
-            $update = [];
-            $result1 = get_odd_score($data, $odd2);
-            $update['score'] = $result1['score'];
-            $update['score1'] = $result1['score1'];
-            $update['score2'] = $result1['score2'];
-            $update['result1'] = $result1['result'];
-
-            if (isset($odd['type2'])) {
-                //有设置了第二盘口的，就计算第二赛果
-                $result2 = get_odd_score($data, [
-                    'variety' => $odd['variety'],
-                    'period' => $odd['variety'],
-                    'type' => $odd['type2'],
-                    'condition' => $odd['condition2'],
-                ]);
-                $update['result2'] = $result2['result'];
-
-                //两个结果合并起来作为最终推荐的结果
-                if ($result1['result'] > 0 || $result2['result'] > 0) {
-                    //两个盘口只要有一个赢了就是赢
-                    $update['result'] = 1;
-                } elseif ($result1['result'] < 0 || $result2['result'] < 0) {
-                    //没有赢的盘，那么两个盘口中有一个输就是输
-                    $update['result'] = -1;
-                } else {
-                    $update['result'] = 0;
-                }
-            } else {
-                //没有设置第二盘口就直接把第一盘口的结果当成最终结果
-                $update['result'] = $update['result1'];
-            }
-
-            $updates2[$odd2['id']] = $update;
-        }
-
         Db::beginTransaction();
         try {
             //首先设置赛果
@@ -252,12 +182,6 @@ class MatchService
             //然后设置推荐盘口的结果
             foreach ($updates as $oddId => $update) {
                 PromotedOdd::query()
-                    ->where('id', '=', $oddId)
-                    ->update($update);
-            }
-
-            foreach ($updates2 as $oddId => $update) {
-                PromotedOddChannel2::query()
                     ->where('id', '=', $oddId)
                     ->update($update);
             }

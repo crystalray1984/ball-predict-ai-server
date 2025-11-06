@@ -119,33 +119,14 @@ Route::group('/admin', function () {
         Route::post('/set_error_status', [\app\admin\controller\MatchController::class, 'setMatchErrorStatus']);
     });
 
-    //数据列表接口
+    #盘口数据
     Route::group('/odd', function () {
-        //获取盘口抓取数据列表
-        Route::post('/list', [\app\admin\controller\OddController::class, 'getOddList']);
-        //通过比赛id获取盘口列表
-        Route::post('/list_by_match', [\app\admin\controller\OddController::class, 'getOddsByMatch']);
-        //导出盘口列表
-        Route::post('/export', [\app\admin\controller\OddController::class, 'exportOddList']);
-        //根据现有的原始盘口，补充推荐盘口
-        Route::post('/add', [\app\admin\controller\OddController::class, 'addOdd']);
-        //删除已经推荐的记录
-        Route::post('/remove_promoted', [\app\admin\controller\OddController::class, 'removePromoted']);
-        //切换盘口的开启和关闭
-        Route::post('/toggle_open', [\app\admin\controller\OddController::class, 'toggleOpen']);
-        //获取第二通道盘口抓取数据列表
-        Route::post('/list_channel2', [\app\admin\controller\OddController::class, 'getChannel2OddList']);
-        //导出第二通道盘口列表
-        Route::post('/export_channel2', [\app\admin\controller\OddController::class, 'exportChannel2OddList']);
-    });
-
-    Route::group('/odd_v3', function () {
         //获取比赛列表
-        Route::post('/list', [\app\admin\controller\OddV3Controller::class, 'getMatchList']);
+        Route::post('/list', [\app\admin\controller\OddController::class, 'getMatchList']);
         //导出比赛列表
-        Route::post('/export', [\app\admin\controller\OddV3Controller::class, 'exportMatchList']);
+        Route::post('/export', [\app\admin\controller\OddController::class, 'exportMatchList']);
         //获取盘口追踪列表
-        Route::post('/odd_records', [\app\admin\controller\OddV3Controller::class, 'getOddRecords']);
+        Route::post('/odd_records', [\app\admin\controller\OddController::class, 'getOddRecords']);
     });
 
     //用户管理接口
