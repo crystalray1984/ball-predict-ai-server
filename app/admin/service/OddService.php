@@ -299,7 +299,7 @@ class OddService
                         Carbon::parse($match['match_time'])->format('Y-m-d H:i:s'), //比赛时间
                         $match['tournament_name'],  //赛事
                         $match['team1_name'],   //主队
-                        $match['team1_name'],   //客队
+                        $match['team2_name'],   //客队
                     ];
 
                     $surebet = $odds[$match['id']] ?? null;

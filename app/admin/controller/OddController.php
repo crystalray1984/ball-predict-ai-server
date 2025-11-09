@@ -5,6 +5,7 @@ namespace app\admin\controller;
 use app\admin\service\OddService;
 use DI\Attribute\Inject;
 use Respect\Validation\Validator as v;
+use support\attribute\CheckAdminToken;
 use support\Controller;
 use support\Request;
 use support\Response;
@@ -19,6 +20,7 @@ class OddController extends Controller
      * @param Request $request
      * @return Response
      */
+    #[CheckAdminToken]
     public function getMatchList(Request $request): Response
     {
         $params = v::input($request->post(), [
@@ -65,6 +67,7 @@ class OddController extends Controller
      * @param Request $request
      * @return Response
      */
+    #[CheckAdminToken]
     public function getOddRecords(Request $request): Response
     {
         $params = v::input($request->post(), [

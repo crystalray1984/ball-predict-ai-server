@@ -168,6 +168,14 @@ Route::group('/admin', function () {
         //导出
         Route::post('/export', [\app\admin\controller\SurebetRecordController::class, 'export']);
     });
+
+    //新老融合
+    Route::group('/v2_to_v3', function () {
+        //列表接口
+        Route::post('/list', [\app\admin\controller\SurebetV2Controller::class, 'list']);
+        //导出接口
+        Route::post('/export', [\app\admin\controller\SurebetV2Controller::class, 'export']);
+    });
 });
 
 Route::disableDefaultRoute();
