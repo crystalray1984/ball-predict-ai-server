@@ -38,9 +38,12 @@ class ManualPromoteService
                 throw new BusinessError('已临近比赛时间，无法创建推荐');
             }
 
-            $check_type = match ($odd['type']) {
-                'ah1', 'ah2' => ['ah1', 'ah2', 'draw'],
-                'over', 'under' => ['over', 'under'],
+
+            $odd_type = get_odd_identification($odd['type']);
+
+            $check_type = match ($odd_type) {
+                'ah' => ['ah1', 'ah2', 'draw'],
+                'sum' => ['over', 'under'],
             };
 
             //检查是否存在同类的推荐
@@ -59,7 +62,7 @@ class ManualPromoteService
                 ->where('match_id', '=', $odd['match_id'])
                 ->where('variety', '=', $odd['variety'])
                 ->where('period', '=', $odd['period'])
-                ->whereIn('type', $check_type)
+                ->where('odd_type', '=', $odd_type)
                 ->exists();
             if ($exists) {
                 throw new BusinessError('已经存在相同类型的自动推荐');
@@ -99,6 +102,7 @@ class ManualPromoteService
                     'source' => 'manual_promote_odd',
                     'source_id' => $manualPromoteId,
                     'week_day' => $week_day,
+                    'odd_type' => get_odd_identification($odd['type']),
                 ]);
 
                 $lastRow = PromotedOdd::query()

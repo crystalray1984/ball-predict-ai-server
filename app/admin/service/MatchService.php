@@ -6,6 +6,7 @@ use app\model\ManualPromoteOdd;
 use app\model\Match1;
 use app\model\MatchView;
 use app\model\PromotedOdd;
+use app\model\SurebetV2Promoted;
 use app\model\Tournament;
 use Carbon\Carbon;
 use support\Db;
@@ -99,6 +100,7 @@ class MatchService
         //然后进行赛果计算
         $updates = [];
 
+
         foreach ($odds as $odd) {
             //角球无数据的判断
             if ($odd['variety'] === 'corner') {
@@ -149,6 +151,47 @@ class MatchService
             $updates[$odd['id']] = $update;
         }
 
+        $surebet_v2_updates = [];
+        $query = SurebetV2Promoted::query()
+            ->where('match_id', '=', $data['match_id']);
+        if ($data['period1']) {
+            $query->where('period', '=', 'period1');
+        }
+        $odds = $query
+            ->get([
+                'id',
+                'variety',
+                'period',
+                'type',
+                'condition',
+            ])
+            ->toArray();
+
+        foreach ($odds as $odd) {
+            //角球无数据的判断
+            if ($odd['variety'] === 'corner') {
+                if ($odd['period'] === 'period1') {
+                    if (!is_int($data['corner1_period1']) || !is_int($data['corner2_period1'])) {
+                        continue;
+                    }
+                } else {
+                    if (!is_int($data['corner1']) || !is_int($data['corner2'])) {
+                        continue;
+                    }
+                }
+            }
+
+            //计算第一赛果
+            $update = [];
+            $result1 = get_odd_score($data, $odd);
+            $update['score'] = $result1['score'];
+            $update['score1'] = $result1['score1'];
+            $update['score2'] = $result1['score2'];
+            $update['result'] = $result1['result'];
+
+            $surebet_v2_updates[$odd['id']] = $update;
+        }
+
         Db::beginTransaction();
         try {
             //首先设置赛果
@@ -182,6 +225,12 @@ class MatchService
             //然后设置推荐盘口的结果
             foreach ($updates as $oddId => $update) {
                 PromotedOdd::query()
+                    ->where('id', '=', $oddId)
+                    ->update($update);
+            }
+
+            foreach ($surebet_v2_updates as $oddId => $update) {
+                SurebetV2Promoted::query()
                     ->where('id', '=', $oddId)
                     ->update($update);
             }

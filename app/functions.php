@@ -380,3 +380,19 @@ if (!function_exists('duration')) {
             ':' . str_pad((string)$seconds, 2, '0', STR_PAD_LEFT);
     }
 }
+
+if (!function_exists('get_odd_identification')) {
+    /**
+     * 获取投注方向的综合类型
+     * @param string $type
+     * @return string
+     */
+    function get_odd_identification(string $type): string
+    {
+        return match ($type) {
+            'ah1', 'ah2', 'draw' => 'ah',
+            'under', 'over' => 'sum',
+            'default' => '',
+        };
+    }
+}
