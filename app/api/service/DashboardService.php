@@ -7,6 +7,7 @@ use app\model\Match1;
 use app\model\MatchView;
 use app\model\Odd;
 use app\model\PromotedOdd;
+use app\model\SurebetV2Promoted;
 use app\model\Team;
 use app\model\Tournament;
 use Carbon\Carbon;
@@ -24,9 +25,9 @@ class DashboardService
      */
     public function summary(array $params): array
     {
-        $query = PromotedOdd::query()
-            ->join('match', 'match.id', '=', 'promoted_odd.match_id')
-            ->where('promoted_odd.is_valid', '=', 1);
+        $query = SurebetV2Promoted::query()
+            ->join('match', 'match.id', '=', 'surebet_v2_promoted.match_id')
+            ->where('surebet_v2_promoted.is_valid', '=', 1);
 
         if (!empty($params['start_date'])) {
             $query->where(
@@ -47,10 +48,10 @@ class DashboardService
 
         $total = $query->count();
 
-        $data = $query->whereNotNull('promoted_odd.result')
-            ->groupBy('promoted_odd.result')
+        $data = $query->whereNotNull('surebet_v2_promoted.result')
+            ->groupBy('surebet_v2_promoted.result')
             ->select([
-                'promoted_odd.result',
+                'surebet_v2_promoted.result',
             ])
             ->selectRaw('count(*) as count')
             ->get()
@@ -94,9 +95,9 @@ class DashboardService
      */
     public function promoted(array $params, DateTimeInterface|string|null $expires = null): array
     {
-        $query = PromotedOdd::query()
-            ->join('match', 'match.id', '=', 'promoted_odd.match_id')
-            ->where('promoted_odd.is_valid', '=', 1);
+        $query = SurebetV2Promoted::query()
+            ->join('match', 'match.id', '=', 'surebet_v2_promoted.match_id')
+            ->where('surebet_v2_promoted.is_valid', '=', 1);
 
         if (!empty($params['start_date'])) {
             $query->where(
@@ -132,21 +133,21 @@ class DashboardService
         //排序
         $query
             ->orderBy('match.match_time', $params['sort_order'] ?? 'desc')
-            ->orderBy('promoted_odd.match_id')
-            ->orderBy('promoted_odd.id', 'DESC');
+            ->orderBy('surebet_v2_promoted.match_id')
+            ->orderBy('surebet_v2_promoted.id', 'DESC');
 
         //查询
         $rows = $query->get([
-            'promoted_odd.id',
-            'promoted_odd.match_id',
-            'promoted_odd.result',
-            'promoted_odd.variety',
-            'promoted_odd.period',
-            'promoted_odd.type',
-            'promoted_odd.condition',
-            'promoted_odd.score',
-            'promoted_odd.score1',
-            'promoted_odd.score2',
+            'surebet_v2_promoted.id',
+            'surebet_v2_promoted.match_id',
+            'surebet_v2_promoted.result',
+            'surebet_v2_promoted.variety',
+            'surebet_v2_promoted.period',
+            'surebet_v2_promoted.type',
+            'surebet_v2_promoted.condition',
+            'surebet_v2_promoted.score',
+            'surebet_v2_promoted.score1',
+            'surebet_v2_promoted.score2',
             'match.match_time',
             'match.team1_id',
             'match.team2_id',
