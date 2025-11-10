@@ -12,6 +12,7 @@ use app\model\TournamentLabel;
 use Carbon\Carbon;
 use support\Db;
 use support\exception\BusinessError;
+use support\Redis;
 use Throwable;
 
 /**
@@ -496,6 +497,9 @@ class MatchService
         $label->luffa_type = $data['luffa_type'];
         $label->title = $data['title'];
         $label->save();
+
+        //清空标签缓存
+        Redis::del('tournament_labels');
     }
 
     /**
@@ -519,6 +523,9 @@ class MatchService
             Db::rollBack();
             throw $e;
         }
+
+        //清空标签缓存
+        Redis::del('tournament_labels');
     }
 
     /**
