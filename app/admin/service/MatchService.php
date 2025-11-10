@@ -8,6 +8,7 @@ use app\model\MatchView;
 use app\model\PromotedOdd;
 use app\model\SurebetV2Promoted;
 use app\model\Tournament;
+use app\model\TournamentLabel;
 use Carbon\Carbon;
 use support\Db;
 use support\exception\BusinessError;
@@ -284,19 +285,30 @@ class MatchService
      */
     public function getTournamentList(array $params): array
     {
-        $query = Tournament::query();
+        $query = Tournament::query()
+            ->leftJoin('tournament_label', 'tournament_label.id', '=', 'tournament.label_id');
         if (!empty($params['name'])) {
-            $query->where('name', 'like', '%' . $params['name'] . '%');
+            $query->where('tournament.name', 'like', '%' . $params['name'] . '%');
+        }
+
+        if (isset($params['label_id'])) {
+            $query->where('tournament.label_id', '=', $params['label_id']);
         }
 
         if (!empty($params['order_field']) && !empty($params['order_order'])) {
-            $query->orderBy($params['order_field'], $params['order_order']);
+            $query->orderBy('tournament.' . $params['order_field'], $params['order_order']);
         } else {
-            $query->orderBy('name');
+            $query->orderBy('tournament.name');
         }
 
         return $query
-            ->get(['id', 'name', 'is_open'])
+            ->get([
+                'tournament.id',
+                'tournament.name',
+                'tournament.is_open',
+                'tournament.label_id',
+                'tournament_label.title AS label_title',
+            ])
             ->toArray();
     }
 
@@ -438,5 +450,100 @@ class MatchService
             ->update([
                 'error_status' => $error_status,
             ]);
+    }
+
+    /**
+     * 获取联赛标签列表
+     * @return array
+     */
+    public function getTournamentLabelList(): array
+    {
+        return TournamentLabel::query()
+            ->orderBy('id', 'DESC')
+            ->get()
+            ->toArray();
+    }
+
+    /**
+     * 保存联赛标签
+     * @param array $data
+     * @return void
+     */
+    public function saveTournamentLabel(array $data): void
+    {
+        if (!empty($data['id'])) {
+            $label = TournamentLabel::query()
+                ->where('id', '=', $data['id'])
+                ->first();
+            if (!$label) {
+                throw new BusinessError('未找到要编辑的标签');
+            }
+        } else {
+            $label = new TournamentLabel();
+        }
+
+        //检查重复的uid
+        $exists = TournamentLabel::query()
+            ->where('luffa_uid', '=', $data['luffa_uid'])
+            ->when(!empty($data['id']), fn($query) => $query->where('id', '!=', $data['id']))
+            ->exists();
+        if ($exists) {
+            throw new BusinessError('推送目标已被其他标签使用');
+        }
+
+        //保存信息
+        $label->luffa_uid = $data['luffa_uid'];
+        $label->luffa_type = $data['luffa_type'];
+        $label->title = $data['title'];
+        $label->save();
+    }
+
+    /**
+     * 删除联赛标签
+     * @param int $id
+     * @return void
+     */
+    public function deleteTournamentLabel(int $id): void
+    {
+        Db::beginTransaction();
+        try {
+            Tournament::query()
+                ->where('label_id', '=', $id)
+                ->update(['label_id' => 0]);
+            TournamentLabel::query()
+                ->where('id', '=', $id)
+                ->delete();
+
+            Db::beginTransaction();
+        } catch (Throwable $e) {
+            Db::rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * 设置联赛标签
+     * @param int $label_id 标签id
+     * @param int|int[] $tournament_id 联赛id或数组
+     * @return void
+     */
+    public function setTournamentLabel(int $label_id, int|array $tournament_id): void
+    {
+        //检查标签是否存在
+        $exists = TournamentLabel::query()
+            ->where('id', '=', $label_id)
+            ->exists();
+        if (!$exists) {
+            throw new BusinessError('标签不存在');
+        }
+
+        $query = Tournament::query();
+        if (is_array($tournament_id)) {
+            $query->whereIn('id', $tournament_id);
+        } else {
+            $query->where('id', '=', $tournament_id);
+        }
+
+        $query->update(['label_id' => $label_id]);
     }
 }

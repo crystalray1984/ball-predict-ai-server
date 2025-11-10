@@ -117,6 +117,18 @@ Route::group('/admin', function () {
         Route::post('/match', [\app\admin\controller\MatchController::class, 'getMatch']);
         //设置赛事的异常状态
         Route::post('/set_error_status', [\app\admin\controller\MatchController::class, 'setMatchErrorStatus']);
+
+        //联赛标签接口
+        Route::group('/label', function () {
+            //获取标签列表
+            Route::post('/list', [\app\admin\controller\MatchController::class, 'getTournamentLabelList']);
+            //保存标签
+            Route::post('/save', [\app\admin\controller\MatchController::class, 'saveTournamentLabel']);
+            //删除标签
+            Route::post('/delete', [\app\admin\controller\MatchController::class, 'deleteTournamentLabel']);
+            //设置联赛标签
+            Route::post('/set', [\app\admin\controller\MatchController::class, 'setTournamentLabel']);
+        });
     });
 
     #盘口数据

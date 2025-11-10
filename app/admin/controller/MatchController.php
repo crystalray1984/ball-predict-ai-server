@@ -29,6 +29,7 @@ class MatchController extends Controller
     {
         $params = v::input($request->post(), [
             'name' => v::optional(v::stringType())->setName('name'),
+            'label_id' => v::optional(v::intType())->setName('label_id'),
             'order_field' => v::optional(v::stringType())->setName('order_field'),
             'order_order' => v::optional(v::in(['asc', 'desc']))->setName('order_order'),
         ]);
@@ -184,5 +185,77 @@ class MatchController extends Controller
         return $this->success(
             $this->matchService->getRequireScoreMatches()
         );
+    }
+
+    /**
+     * 获取联赛标签列表
+     * @return Response
+     */
+    #[CheckAdminToken]
+    public function getTournamentLabelList(): Response
+    {
+        return $this->success(
+            $this->matchService->getTournamentLabelList()
+        );
+    }
+
+    /**
+     * 保存标签
+     * @param Request $request
+     * @return Response
+     */
+    #[CheckAdminToken]
+    public function saveTournamentLabel(Request $request): Response
+    {
+        $data = v::input($request->post(), [
+            'id' => v::optional(v::intType())->setName('id'),
+            'luffa_uid' => v::stringType()->notEmpty()->setName('luffa_uid'),
+            'luffa_type' => v::in([0, 1])->setName('luffa_type'),
+            'title' => v::stringType()->notEmpty()->setName('title'),
+        ]);
+
+        $this->matchService->saveTournamentLabel($data);
+        return $this->success();
+    }
+
+    /**
+     * 删除联赛标签
+     * @param Request $request
+     * @return Response
+     */
+    #[CheckAdminToken]
+    public function deleteTournamentLabel(Request $request): Response
+    {
+        [
+            'id' => $id,
+        ] = v::input($request->post(), [
+            'id' => v::intType()->notEmpty()->setName('id'),
+        ]);
+
+        $this->matchService->deleteTournamentLabel($id);
+        return $this->success();
+    }
+
+    /**
+     * 设置联赛标签
+     * @param Request $request
+     * @return Response
+     */
+    #[CheckAdminToken]
+    public function setTournamentLabel(Request $request): Response
+    {
+        [
+            'label_id' => $label_id,
+            'tournament_id' => $tournament_id,
+        ] = v::input($request->post(), [
+            'label_id' => v::intType()->setName('label_id'),
+            'tournament_id' => v::anyOf(
+                v::intType()->notEmpty(),
+                v::arrayType()->notEmpty()->each(v::intType()->notEmpty())
+            )->setName('tournament_id'),
+        ]);
+
+        $this->matchService->setTournamentLabel($label_id, $tournament_id);
+        return $this->success();
     }
 }
