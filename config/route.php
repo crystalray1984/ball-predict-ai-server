@@ -155,8 +155,12 @@ Route::group('/admin', function () {
     Route::group('/dashboard', function () {
         //概览数据统计
         Route::post('/summary', [\app\admin\controller\DashboardController::class, 'summary']);
+        //用户数据统计
+        Route::post('/user_summary', [\app\admin\controller\DashboardController::class, 'userSummary']);
         //VIP购买数据统计
         Route::post('/vip_summary', [\app\admin\controller\DashboardController::class, 'vipSummary']);
+        //各个标签的数据统计
+        Route::post('/label_summary', [\app\admin\controller\DashboardController::class, 'labelSummary']);
     });
 
     //订单接口

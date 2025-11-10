@@ -27,6 +27,16 @@ class DashboardController extends Controller
     }
 
     /**
+     * 用户数据统计
+     * @return Response
+     */
+    #[CheckAdminToken]
+    public function userSummary(): Response
+    {
+        return $this->success($this->dashboardService->getUserSummary());
+    }
+
+    /**
      * 概览面板的VIP订单统计
      * @return Response
      */
@@ -34,5 +44,15 @@ class DashboardController extends Controller
     public function vipSummary(): Response
     {
         return $this->success($this->dashboardService->getVipSummary());
+    }
+
+    /**
+     * 各个标签的胜率统计
+     * @return Response
+     */
+    #[CheckAdminToken]
+    public function labelSummary(): Response
+    {
+        return $this->success($this->dashboardService->getLabelSummary());
     }
 }
