@@ -26,6 +26,12 @@ class DashboardController extends Controller
         return $this->success($this->dashboardService->getSummary());
     }
 
+    #[CheckAdminToken]
+    public function v2ToV3Summary(): Response
+    {
+        return $this->success($this->dashboardService->getV2ToV3Summary());
+    }
+
     /**
      * 用户数据统计
      * @return Response
