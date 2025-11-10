@@ -121,13 +121,13 @@ class DashboardService
     {
         //总推荐数据
         $promoted = SurebetV2Promoted::query()
-            ->join('match', 'match.id', '=', 'promoted_odd.match_id')
-            ->where('promoted_odd.is_valid', '=', 1)
+            ->join('match', 'match.id', '=', 'surebet_v2_promoted.match_id')
+            ->where('surebet_v2_promoted.is_valid', '=', 1)
             ->when(isset($start), fn($query) => $query->where('match.match_time', '>=', $start->clone()->addHours(12)->toISOString()))
             ->when(isset($end), fn($query) => $query->where('match.match_time', '<', $end->clone()->addHours(12)->toISOString()))
-            ->groupBy('promoted_odd.result')
+            ->groupBy('surebet_v2_promoted.result')
             ->selectRaw('COUNT(1) AS total')
-            ->addSelect(['promoted_odd.result'])
+            ->addSelect(['surebet_v2_promoted.result'])
             ->get()
             ->toArray();
 
