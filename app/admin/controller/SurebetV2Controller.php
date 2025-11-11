@@ -21,6 +21,7 @@ class SurebetV2Controller extends Controller
         $params = v::input($request->post(), [
             'start_date' => v::optional(v::stringType()->date())->setName('start_date'),
             'end_date' => v::optional(v::stringType()->date())->setName('end_date'),
+            'label_id' => v::optional(v::intType())->setName('label_id'),
             'order' => v::optional(v::in(['match_time', 'promote_time']))->setName('order'),
         ]);
 

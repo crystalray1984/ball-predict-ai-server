@@ -2,11 +2,9 @@
 
 namespace app\admin\service;
 
-use app\model\PromotedOdd;
 use app\model\SurebetV2Promoted;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Query\JoinClause;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
@@ -34,6 +32,10 @@ class SurebetV2Service
             );
         }
 
+        if (isset($params['label_id'])) {
+            $query->where('v_match.tournament_label_id', '=', $params['label_id']);
+        }
+
         if ($params['order'] === 'match_time') {
             $query->orderBy('v_match.match_time', 'DESC');
         } else {
@@ -49,6 +51,8 @@ class SurebetV2Service
             'v_match.team1_name',
             'v_match.team2_id',
             'v_match.team2_name',
+            'v_match.tournament_label_id',
+            'v_match.tournament_label_title',
         ]);
 
         return $query;
@@ -75,7 +79,11 @@ class SurebetV2Service
                 'tournament' => [
                     'id' => $row['tournament_id'],
                     'name' => $row['tournament_name'],
-                ]
+                ],
+                'label' => !empty($row['tournament_label_id']) ? [
+                    'id' => $row['tournament_label_id'],
+                    'title' => $row['tournament_label_title'],
+                ] : null,
             ];
 
             unset(
@@ -84,7 +92,9 @@ class SurebetV2Service
                 $result['team2_id'],
                 $result['team2_name'],
                 $result['tournament_id'],
-                $result['tournament_name']
+                $result['tournament_name'],
+                $result['tournament_label_id'],
+                $result['tournament_label_title'],
             );
 
             return $result;
@@ -100,6 +110,7 @@ class SurebetV2Service
         $sheet->fromArray([
             '比赛时间',
             '赛事',
+            '标签',
             '主队',
             '客队',
             '类型',
@@ -139,6 +150,7 @@ class SurebetV2Service
                     $row = [
                         Carbon::parse($match['match_time'])->format('Y-m-d H:i:s'), //比赛时间
                         $match['tournament_name'],  //赛事
+                        $match['tournament_label_title'] ?? '', //标签
                         $match['team1_name'],   //主队
                         $match['team2_name'],   //客队
 
