@@ -301,13 +301,13 @@ class DashboardService
     {
         //总推荐数据
         $promoted = LabelPromoted::query()
-            ->join('promoted_odd', 'promoted_odd.id', '=', 'label_promoted.promote_id')
-            ->join('match', 'match.id', '=', 'promoted_odd.match_id')
+            ->join('surebet_v2_promoted', 'surebet_v2_promoted.id', '=', 'label_promoted.promote_id')
+            ->join('match', 'match.id', '=', 'surebet_v2_promoted.match_id')
             ->when(isset($start), fn($query) => $query->where('match.match_time', '>=', $start->clone()->addHours(12)->toISOString()))
             ->when(isset($end), fn($query) => $query->where('match.match_time', '<', $end->clone()->addHours(12)->toISOString()))
-            ->groupBy('label_promoted.label_id', 'promoted_odd.result')
+            ->groupBy('label_promoted.label_id', 'surebet_v2_promoted.result')
             ->selectRaw('COUNT(1) AS total')
-            ->addSelect(['label_promoted.label_id', 'promoted_odd.result'])
+            ->addSelect(['label_promoted.label_id', 'surebet_v2_promoted.result'])
             ->get()
             ->toArray();
 
