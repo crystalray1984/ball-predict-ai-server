@@ -17,7 +17,7 @@ class RockBallService
     {
         $query = RockBallOdd::query()
             ->join('v_match', 'v_match.id', '=', 'rockball_odd.match_id')
-            ->leftJoin('rockball_promoted', 'rockball_promoted.promote_id', '=', 'rockball_odd.id');
+            ->leftJoin('rockball_promoted', 'rockball_promoted.odd_id', '=', 'rockball_odd.id');
 
         if (!empty($params['start_date'])) {
             $query->where(
