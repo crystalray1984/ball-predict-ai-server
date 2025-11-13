@@ -194,6 +194,16 @@ Route::group('/admin', function () {
         //导出接口
         Route::post('/export', [\app\admin\controller\SurebetV2Controller::class, 'export']);
     });
+
+    //滚球接口
+    Route::group('/rockball', function () {
+        //列表接口
+        Route::post('/list', [\app\admin\controller\RockBallController::class, 'getList']);
+        //导出接口
+        Route::post('/export', [\app\admin\controller\RockBallController::class, 'exportList']);
+        //设置推送接口
+        Route::post('/set_is_open', [\app\admin\controller\RockBallController::class, 'setIsOpen']);
+    });
 });
 
 Route::disableDefaultRoute();
