@@ -66,7 +66,7 @@ class RockBallController extends Controller
      * @param Request $request
      * @return Response
      */
-    #[Inject]
+    #[CheckAdminToken]
     public function setIsOpen(Request $request): Response
     {
         [

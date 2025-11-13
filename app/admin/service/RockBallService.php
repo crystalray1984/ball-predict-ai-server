@@ -59,6 +59,7 @@ class RockBallService
             'v_match.team2_name',
             'v_match.tournament_name',
             'rockball_promoted.is_valid',
+            'rockball_promoted.value AS promoted_value',
             'rockball_promoted.result',
             'rockball_promoted.score',
             'rockball_promoted.created_at AS promoted_at',
