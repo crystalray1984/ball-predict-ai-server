@@ -30,7 +30,7 @@ class RockBallController extends Controller
             'variety' => v::optional(v::stringType()->in(['goal', 'corner']))->setName('variety'),
             'type' => v::optional(v::stringType()->in(['ah1', 'ah2', 'under', 'over']))->setName('type'),
             'promoted' => v::optional(v::in([0, 1]))->setName('promoted'),
-            'order' => v::optional(v::in(['match_time', 'ready_time']))->setName('order'),
+            'order' => v::optional(v::in(['match_time', 'ready_time', 'promote_time']))->setName('order'),
         ]);
 
         return $this->success(

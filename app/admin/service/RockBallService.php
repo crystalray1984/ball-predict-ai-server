@@ -47,8 +47,12 @@ class RockBallService
             }
         }
 
-        if (isset($params['order']) && $params['order'] === 'match_time') {
-            $query->orderBy('v_match.match_time', 'DESC');
+        if (isset($params['order'])) {
+            if ($params['order'] === 'match_time') {
+                $query->orderBy('v_match.match_time', 'DESC');
+            } else if ($params['order'] === 'promote_time') {
+                $query->orderBy('rockball_promoted.id', 'DESC');
+            }
         }
         $query->orderBy('rockball_odd.id', 'DESC');
 
