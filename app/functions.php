@@ -442,7 +442,7 @@ if (!function_exists('get_odd_type_text')) {
 if (!function_exists('get_condition_text')) {
     function get_condition_text(string|int|float $condition, string $type): string
     {
-        $condition = floatval($condition['condition']);
+        $condition = floatval($condition);
         return match ($type) {
             'ah1', 'ah2' => $condition <= 0 ? strval($condition) : "+$condition",
             default => strval($condition),
