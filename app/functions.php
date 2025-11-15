@@ -396,3 +396,56 @@ if (!function_exists('get_odd_identification')) {
         };
     }
 }
+
+if (!function_exists('get_period_text')) {
+    /**
+     * 获取时段的展示文字
+     * @param string $period
+     * @return string
+     */
+    function get_period_text(string $period): string
+    {
+        return match ($period) {
+            'regularTime' => '全场',
+            'period1' => '半场',
+            default => '',
+        };
+    }
+}
+
+if (!function_exists('get_variety_text')) {
+    function get_variety_text(string $variety): string
+    {
+        return match ($variety) {
+            'goal' => '进球',
+            'corner' => '角球',
+            default => '',
+        };
+    }
+}
+
+if (!function_exists('get_odd_type_text')) {
+    function get_odd_type_text(string $type): string
+    {
+        //推荐方向
+        return match ($type) {
+            'ah1' => '主队',
+            'ah2' => '客队',
+            'under' => '小球',
+            'over' => '大球',
+            'draw' => '平局',
+            default => '',
+        };
+    }
+}
+
+if (!function_exists('get_condition_text')) {
+    function get_condition_text(string|int|float $condition, string $type): string
+    {
+        $condition = floatval($condition['condition']);
+        return match ($type) {
+            'ah1', 'ah2' => $condition <= 0 ? strval($condition) : "+$condition",
+            default => strval($condition),
+        };
+    }
+}
