@@ -3,6 +3,7 @@
 namespace app\process;
 
 use app\model\NotificationLog;
+use app\model\PromotedOddMansionView;
 use app\model\PromotedOddView;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -20,6 +21,7 @@ class MatchScoreCheck
     {
         Timer::add(60, function () {
             $this->checkChannel1();
+            $this->checkMansion();
         });
     }
 
@@ -87,6 +89,13 @@ EOF;
     {
         $this->check(
             PromotedOddView::query()
+        );
+    }
+
+    protected function checkMansion(): void
+    {
+        $this->check(
+            PromotedOddMansionView::query()
         );
     }
 }

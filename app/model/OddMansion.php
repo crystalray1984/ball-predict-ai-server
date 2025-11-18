@@ -26,9 +26,9 @@ use support\BaseModel;
  * @property Carbon $crown_updated_at
  * @property int $is_open
  */
-class Odd extends BaseModel
+class OddMansion extends BaseModel
 {
-    protected $table = 'odd';
+    protected $table = 'odd_mansion';
 
     protected $casts = [
         'ready_at' => 'datetime',
