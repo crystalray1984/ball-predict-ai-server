@@ -204,6 +204,14 @@ Route::group('/admin', function () {
         //设置推送接口
         Route::post('/set_is_open', [\app\admin\controller\RockBallController::class, 'setIsOpen']);
     });
+
+    //Mansion接口
+    Route::group('/mansion', function () {
+        //列表接口
+        Route::post('/list', [\app\admin\controller\MansionController::class, 'getList']);
+        //导出接口
+        Route::post('/export', [\app\admin\controller\MansionController::class, 'exportList']);
+    });
 });
 
 Route::disableDefaultRoute();
