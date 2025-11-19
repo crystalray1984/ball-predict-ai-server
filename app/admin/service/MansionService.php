@@ -51,6 +51,15 @@ class MansionService
         if (isset($params['period'])) {
             $query->where('odd_mansion.period', '=', $params['period']);
         }
+
+        if (isset($params['ready_status']) && $params['ready_status'] !== -1) {
+            if ($params['ready_status'] === 0) {
+                $query->where('odd_mansion.status', '=', '');
+            } else if ($params['ready_status'] === 1) {
+                $query->where('odd_mansion.status', '=', 'ready');
+            }
+        }
+
         if (isset($params['promoted']) && $params['promoted'] !== -1) {
             $query->leftJoin('promoted_odd_mansion', function (JoinClause $join) use ($params) {
                 $join->on('promoted_odd_mansion.odd_mansion_id', '=', 'odd_mansion.id');

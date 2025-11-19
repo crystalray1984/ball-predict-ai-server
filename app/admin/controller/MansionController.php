@@ -22,7 +22,7 @@ class MansionController extends Controller
             'start_date' => v::optional(v::stringType()->date())->setName('start_date'),
             'end_date' => v::optional(v::stringType()->date())->setName('end_date'),
             'ready_status' => v::optional(v::in([0, 1, -1]))->setName('ready_status'),
-            'promoted' => v::optional(v::in([0, 1, -1]))->setName('promoted'),
+            'promoted' => v::optional(v::in([0, 1, 2, -1]))->setName('promoted'),
         ]);
 
         return $this->success($this->mansionService->getOddList($params));
@@ -34,7 +34,7 @@ class MansionController extends Controller
             'start_date' => v::optional(v::stringType()->date())->setName('start_date'),
             'end_date' => v::optional(v::stringType()->date())->setName('end_date'),
             'ready_status' => v::optional(v::in([0, 1, -1, '0', '1', '-1']))->setName('ready_status'),
-            'promoted' => v::optional(v::in([0, 1, -1, '0', '1', '-1']))->setName('promoted'),
+            'promoted' => v::optional(v::in([0, 1, 2, -1, '0', '1', '-1']))->setName('promoted'),
         ]);
 
         if (isset($params['ready_status'])) {
