@@ -41,10 +41,12 @@ class OddService
         }
 
         if ($params['ready_status'] === 0) {
-            $query->whereNotIn('id', Odd::query()->where('status', '=', 'ready')->select(['match_id']));
+            $query->whereIn('id', Odd::query()->where('status', '=', '')->select(['match_id']));
         } else {
             if ($params['ready_status'] === 1) {
                 $query->whereIn('id', Odd::query()->where('status', '=', 'ready')->select(['match_id']));
+            } else {
+                $query->whereIn('id', Odd::query()->select(['match_id']));
             }
 
             if (isset($params['promoted'])) {
