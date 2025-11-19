@@ -55,15 +55,15 @@ class MansionService
             $query->leftJoin('promoted_odd_mansion', function (JoinClause $join) use ($params) {
                 $join->on('promoted_odd_mansion.odd_mansion_id', '=', 'odd_mansion.id');
                 if ($params['promoted'] === 1) {
-                    $join->where('promoted_odd.is_valid', '=', 1);
+                    $join->where('promoted_odd_mansion.is_valid', '=', 1);
                 } else if ($params['promoted'] === 2) {
-                    $join->where('promoted_odd.is_valid', '=', 0);
+                    $join->where('promoted_odd_mansion.is_valid', '=', 0);
                 }
             });
             if ($params['promoted']) {
-                $query->whereNotNull('promoted_odd.id');
+                $query->whereNotNull('promoted_odd_mansion.id');
             } else {
-                $query->whereNull('promoted_odd.id');
+                $query->whereNull('promoted_odd_mansion.id');
             }
         }
 
@@ -79,26 +79,8 @@ class MansionService
     }
 
     /**
-     * 通过比赛id获取盘口数据
-     * @param int $match_id
-     * @return array
-     */
-    public function getOddsByMatch(int $match_id): array
-    {
-        return $this->processOddList(
-            $this->createOddQuery()
-                ->where('match.id', '=', $match_id)
-                ->get()
-                ->toArray()
-        );
-    }
-
-    /**
      * 处理查询好的盘口列表
      * @param array $rows
-     * @param bool $virtual 是否生成虚拟推荐数据
-     * @param bool $manual 是否为手动推荐数据
-     * @param bool $channel2 是否为第二通道的数据
      * @return array
      */
     public function processOddList(array $rows): array
