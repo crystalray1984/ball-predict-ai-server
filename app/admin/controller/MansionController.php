@@ -44,7 +44,9 @@ class MansionController extends Controller
             $params['promoted'] = intval($params['promoted']);
         }
 
-        $filePath = $this->mansionService->exportOddList($params);
+        $filePath = $this->mansionService->exportOddList(
+            $this->mansionService->getOddList($params)
+        );
         $resp = new Response();
         $resp->download($filePath, basename($filePath));
         return $resp;
