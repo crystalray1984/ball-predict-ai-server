@@ -140,7 +140,6 @@ class MansionService
                     'back',
                     'skip',
                     'is_valid',
-                    'final_rule',
                 ])
                 ->toArray();
 
