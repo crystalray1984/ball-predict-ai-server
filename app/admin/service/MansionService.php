@@ -131,6 +131,7 @@ class MansionService
                     'back',
                     'skip',
                     'is_valid',
+                    'created_at',
                 ])
                 ->toArray();
 
