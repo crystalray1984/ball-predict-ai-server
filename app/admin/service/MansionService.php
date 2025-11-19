@@ -185,10 +185,10 @@ class MansionService
     protected function createOddQuery(): Builder
     {
         return OddMansion::query()
-            ->join('match', 'match.id', '=', 'odd.match_id')
+            ->join('match', 'match.id', '=', 'odd_mansion.match_id')
             ->orderBy('match.match_time', 'DESC')
-            ->orderBy('odd.match_id')
-            ->orderBy('odd.id')
+            ->orderBy('odd_mansion.match_id')
+            ->orderBy('odd_mansion.id')
             ->select([
                 'odd_mansion.id',
                 'odd_mansion.match_id',
