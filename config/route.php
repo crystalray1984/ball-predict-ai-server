@@ -157,6 +157,8 @@ Route::group('/admin', function () {
         Route::post('/summary', [\app\admin\controller\DashboardController::class, 'summary']);
         //新老融合数据统计
         Route::post('/v2_to_v3_summary', [\app\admin\controller\DashboardController::class, 'v2ToV3Summary']);
+        //对比数据统计
+        Route::post('/compare_summary', [\app\admin\controller\DashboardController::class, 'compareSummary']);
         //用户数据统计
         Route::post('/user_summary', [\app\admin\controller\DashboardController::class, 'userSummary']);
         //VIP购买数据统计

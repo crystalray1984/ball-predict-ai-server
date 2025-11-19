@@ -61,4 +61,10 @@ class DashboardController extends Controller
     {
         return $this->success($this->dashboardService->getLabelSummary());
     }
+
+    #[CheckAdminToken]
+    public function compareSummary(): Response
+    {
+        return $this->success($this->dashboardService->getMansionSummary());
+    }
 }

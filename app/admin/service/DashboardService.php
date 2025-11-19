@@ -5,6 +5,7 @@ namespace app\admin\service;
 use app\model\LabelPromoted;
 use app\model\Order;
 use app\model\PromotedOdd;
+use app\model\PromotedOddMansion;
 use app\model\SurebetV2Promoted;
 use app\model\TournamentLabel;
 use app\model\User;
@@ -339,5 +340,74 @@ class DashboardService
         }
 
         return $result;
+    }
+
+    public function getMansionSummary(): array
+    {
+        $today_start = Carbon::today();
+        $days_7_start = Carbon::today()->subDays(6);
+        $days_30_start = Carbon::today()->subDays(29);
+
+        return [
+            'today' => $this->getMansionSummaryByDateRange($today_start),
+            'yesterday' => $this->getMansionSummaryByDateRange($today_start->clone()->subDays(), $today_start),
+            'days_7' => $this->getMansionSummaryByDateRange($days_7_start),
+            'days_30' => $this->getMansionSummaryByDateRange($days_30_start),
+            'all' => $this->getMansionSummaryByDateRange(),
+        ];
+    }
+
+    /**
+     * 获取指定日期的概览面板数据统计
+     * @param Carbon|null $start
+     * @param Carbon|null $end
+     * @return array
+     */
+    public function getMansionSummaryByDateRange(?Carbon $start = null, ?Carbon $end = null): array
+    {
+        //总推荐数据
+        $promoted = PromotedOddMansion::query()
+            ->join('match', 'match.id', '=', 'promoted_odd_mansion.match_id')
+            ->where('promoted_odd_mansion.is_valid', '=', 1)
+            ->when(isset($start), fn($query) => $query->where('match.match_time', '>=', $start->clone()->addHours(12)->toISOString()))
+            ->when(isset($end), fn($query) => $query->where('match.match_time', '<', $end->clone()->addHours(12)->toISOString()))
+            ->groupBy('promoted_odd_mansion.result')
+            ->selectRaw('COUNT(1) AS total')
+            ->addSelect(['promoted_odd_mansion.result'])
+            ->get()
+            ->toArray();
+
+        $win = 0;
+        $loss = 0;
+        $draw = 0;
+        $win_rate = 0;
+        $all = 0;
+
+        if (!empty($promoted)) {
+            foreach ($promoted as $row) {
+                $all += $row['total'];
+                if ($row['result'] === 1) {
+                    $win += $row['total'];
+                } else if ($row['result'] === -1) {
+                    $loss += $row['total'];
+                } else if ($row['result'] === 0) {
+                    $draw += $row['total'];
+                }
+            }
+        }
+
+        $total = $win + $loss;
+
+        if ($total > 0) {
+            $win_rate = round($win * 1000 / $total) / 10;
+        }
+
+        return [
+            'total' => $all,
+            'win' => $win,
+            'loss' => $loss,
+            'draw' => $draw,
+            'win_rate' => $win_rate,
+        ];
     }
 }
