@@ -47,6 +47,13 @@ class RockBallService
             }
         }
 
+        if (!empty($params['auto_hide'])) {
+            $query->where(function ($query) {
+                $query->whereNotNull('rockball_promoted.id')
+                    ->orWhere('v_match.match_time', '>', Carbon::now()->subHours(2)->toISOString());
+            });
+        }
+
         if (isset($params['order'])) {
             if ($params['order'] === 'match_time') {
                 $query->orderBy('v_match.match_time', 'DESC');

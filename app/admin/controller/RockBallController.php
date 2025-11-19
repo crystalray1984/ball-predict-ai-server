@@ -31,6 +31,7 @@ class RockBallController extends Controller
             'type' => v::optional(v::stringType()->in(['ah1', 'ah2', 'under', 'over']))->setName('type'),
             'promote' => v::optional(v::in([0, 1]))->setName('promote'),
             'order' => v::optional(v::in(['match_time', 'ready_time', 'promote_time']))->setName('order'),
+            'auto_hide' => v::optional(v::boolType())->setName('auto_hide'),
         ]);
 
         return $this->success(
