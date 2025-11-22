@@ -2,7 +2,7 @@
 
 namespace app\api\service;
 
-use app\model\MatchView;
+use app\model\Match1;
 use app\model\RockBallOdd;
 use app\model\RockBallPromoted;
 use app\model\Team;
@@ -91,47 +91,57 @@ class RockballDashboardService
      */
     public function preparing(): array
     {
-        $rows = MatchView::query()
-            ->whereIn(
-                'id',
-                Db::table(
-                    RockBallOdd::getQuery()
-                        ->join('match', 'match.id', '=', 'rockball_odd.match_id')
-                        ->where('rockball_odd.is_open', '=', 1)
-                        ->where('rockball_odd.status', '=', '')
-                        ->selectRaw("CASE WHEN rockball_odd.period = 'period1' THEN match.match_time + interval '60 minutes' ELSE match.match_time + interval '120 minutes' END AS end_time")
-                        ->selectRaw("CASE WHEN rockball_odd.period = 'period1' THEN match.score1_period1 ELSE match.score1 END AS score")
-                        ->addSelect('match.id')
-                    , 'a'
-                )
-                    ->where('a.end_time', '>', MatchView::raw('CURRENT_TIMESTAMP'))
-                    ->whereNull('a.score')
-                    ->distinct()
-                    ->select(['a.id'])
+        $rows = Tournament::query()
+            ->joinSub(
+                Match1::query()
+                    ->whereIn(
+                        'id',
+                        Db::table(
+                            RockBallOdd::getQuery()
+                                ->join('match', 'match.id', '=', 'rockball_odd.match_id')
+                                ->where('rockball_odd.is_open', '=', 1)
+                                ->where('rockball_odd.status', '=', '')
+                                ->selectRaw("CASE WHEN rockball_odd.period = 'period1' THEN match.match_time + interval '60 minutes' ELSE match.match_time + interval '120 minutes' END AS end_time")
+                                ->selectRaw("CASE WHEN rockball_odd.period = 'period1' THEN match.score1_period1 ELSE match.score1 END AS score")
+                                ->addSelect('match.id')
+                            , 'a'
+                        )
+                            ->where('a.end_time', '>', Tournament::raw('CURRENT_TIMESTAMP'))
+                            ->whereNull('a.score')
+                            ->distinct()
+                            ->select(['a.id'])
+                    )
+                    ->groupBy('tournament_id', 'match_time')
+                    ->select(['tournament_id', 'match_time']),
+                'a',
+                'a.tournament_id',
+                '=',
+                'tournament.id',
             )
-            ->orderBy('match_time')
-            ->get()
+            ->orderBy('a.match_time')
+            ->get([
+                'tournament.id',
+                'tournament.name',
+                'a.match_time',
+            ])
             ->toArray();
 
-        //组装数据
-        return array_map(function (array $row) {
-            return [
+        return array_map(fn(array $row) => [
+            'id' => $row['id'],
+            'match_time' => $row['match_time'],
+            'tournament' => [
                 'id' => $row['id'],
-                'match_time' => $row['match_time'],
-                'tournament' => [
-                    'id' => $row['id'],
-                    'name' => "{$row['team1_name']} vs {$row['team2_name']}",
-                ],
-                'team1' => [
-                    'id' => $row['team1_id'],
-                    'name' => $row['team1_name'],
-                ],
-                'team2' => [
-                    'id' => $row['team2_id'],
-                    'name' => $row['team2_name'],
-                ],
-            ];
-        }, $rows);
+                'name' => $row['name'],
+            ],
+            'team1' => [
+                'id' => $row['id'],
+                'name' => $row['name'],
+            ],
+            'team2' => [
+                'id' => $row['id'],
+                'name' => $row['name'],
+            ],
+        ], $rows);
     }
 
     /**
