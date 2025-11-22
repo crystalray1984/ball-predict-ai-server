@@ -2,7 +2,7 @@
 
 namespace app\api\controller;
 
-use app\api\service\DashboardService;
+use app\api\service\RockballDashboardService;
 use DI\Attribute\Inject;
 use Respect\Validation\Validator as v;
 use support\attribute\CheckUserToken;
@@ -11,12 +11,12 @@ use support\Request;
 use support\Response;
 
 /**
- * 首页面板控制器
+ * 提供滚球数据的控制器
  */
-class DashboardController extends Controller
+class RockballDashboardController extends Controller
 {
     #[Inject]
-    protected DashboardService $dashboardService;
+    protected RockballDashboardService $rockballDashboardService;
 
     /**
      * 获取统计数据
@@ -31,7 +31,7 @@ class DashboardController extends Controller
         ]);
 
         return $this->success(
-            $this->dashboardService->summary($params)
+            $this->rockballDashboardService->summary($params)
         );
     }
 
@@ -42,12 +42,12 @@ class DashboardController extends Controller
     public function preparing(): Response
     {
         return $this->success(
-            $this->dashboardService->preparingV3()
+            $this->rockballDashboardService->preparing()
         );
     }
 
     #[CheckUserToken]
-    public function promotedV2(Request $request): Response
+    public function promoted(Request $request): Response
     {
         $params = v::input($request->post(), [
             'start_date' => v::optional(v::stringType()->date())->setName('start_date'),
@@ -55,7 +55,7 @@ class DashboardController extends Controller
             'sort_order' => v::optional(v::in(['asc', 'desc']))->setName('sort_order'),
         ]);
 
-        $list = $this->dashboardService->promoted($params, $request->user->expire_time);
+        $list = $this->rockballDashboardService->promoted($params, $request->user->expire_time);
 
         return $this->success([
             'is_expired' => $request->user->is_expired,

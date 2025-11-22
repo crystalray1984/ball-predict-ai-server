@@ -69,15 +69,37 @@ Route::group('/api', function () {
     });
 
     //首页看板接口
+//    Route::group('/dashboard', function () {
+//        //统计数据
+//        Route::post('/summary', [\app\api\controller\DashboardController::class, 'summary']);
+//        //准备中的比赛
+//        Route::post('/preparing', [\app\api\controller\DashboardController::class, 'preparing']);
+//        //已推荐的比赛(带有效期判断)
+//        Route::post('/promoted_v2', [\app\api\controller\DashboardController::class, 'promotedV2']);
+//    });
+
+    //首页看板接口
     Route::group('/dashboard', function () {
         //统计数据
-        Route::post('/summary', [\app\api\controller\DashboardController::class, 'summary']);
+        Route::post('/summary', [\app\api\controller\RockballDashboardController::class, 'summary']);
         //准备中的比赛
-        Route::post('/preparing', [\app\api\controller\DashboardController::class, 'preparing']);
-        //已推荐的比赛
-//        Route::post('/promoted', [\app\api\controller\DashboardController::class, 'promoted']);
+        Route::post('/preparing', [\app\api\controller\RockballDashboardController::class, 'preparing']);
         //已推荐的比赛(带有效期判断)
-        Route::post('/promoted_v2', [\app\api\controller\DashboardController::class, 'promotedV2']);
+        Route::post('/promoted', [\app\api\controller\RockballDashboardController::class, 'promoted']);
+        //已推荐的比赛(带有效期判断)
+        Route::post('/promoted_v2', [\app\api\controller\RockballDashboardController::class, 'promoted']);
+    });
+
+    //滚球首页看板接口
+    Route::group('/rockball_dashboard', function () {
+        //统计数据
+        Route::post('/summary', [\app\api\controller\RockballDashboardController::class, 'summary']);
+        //准备中的比赛
+        Route::post('/preparing', [\app\api\controller\RockballDashboardController::class, 'preparing']);
+        //已推荐的比赛(带有效期判断)
+        Route::post('/promoted', [\app\api\controller\RockballDashboardController::class, 'promoted']);
+        //已推荐的比赛(带有效期判断)
+        Route::post('/promoted_v2', [\app\api\controller\RockballDashboardController::class, 'promoted']);
     });
 });
 
