@@ -4,6 +4,7 @@ namespace app\api\service;
 
 use app\model\Order;
 use app\model\User;
+use app\model\UserConnect;
 use Carbon\Carbon;
 use support\Db;
 use support\exception\BusinessError;
@@ -146,5 +147,29 @@ class UserService
 
         //清空用户的缓存
         Redis::del(CACHE_USER_KEY . $user_id);
+    }
+
+    /**
+     * 获取完整的用户信息
+     * @param int|User $user
+     * @return array
+     */
+    public function getUserInfo(int|User $user): array
+    {
+        if (is_int($user)) {
+            $user = get_user($user);
+        }
+
+        $user = $user->toArray();
+        $user['connect'] = UserConnect::query()
+            ->where('user_id', '=', $user['id'])
+            ->get([
+                'platform',
+                'platform_id',
+                'account',
+            ])
+            ->toArray();
+
+        return $user;
     }
 }

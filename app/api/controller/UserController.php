@@ -50,7 +50,7 @@ class UserController extends Controller
 
         return $this->success([
             'token' => $token,
-            'user' => $user,
+            'user' => $this->userService->getUserInfo($user),
         ]);
     }
 
@@ -74,7 +74,7 @@ class UserController extends Controller
 
         return $this->success([
             'token' => $token,
-            'user' => $user,
+            'user' => $this->userService->getUserInfo($user),
         ]);
     }
 
@@ -100,7 +100,7 @@ class UserController extends Controller
 
         return $this->success([
             'token' => $token,
-            'user' => $user,
+            'user' => $this->userService->getUserInfo($user),
         ]);
     }
 
@@ -113,7 +113,7 @@ class UserController extends Controller
     public function info(Request $request): Response
     {
         return $this->success(
-            $request->user
+            $this->userService->getUserInfo($request->user)
         );
     }
 
