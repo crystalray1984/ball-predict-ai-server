@@ -6,6 +6,7 @@ use app\model\ManualPromoteOdd;
 use app\model\ManualPromoteRecord;
 use app\model\Match1;
 use app\model\PromotedOdd;
+use app\model\User;
 use Carbon\Carbon;
 use support\Db;
 use support\exception\BusinessError;
@@ -234,6 +235,57 @@ class ManualPromoteService
         return [
             'count' => $count,
             'list' => $list,
+        ];
+    }
+
+    /**
+     * 手动推荐的胜率
+     * @return array
+     */
+    public function getSummary(): array
+    {
+        //总推荐数据
+        $promoted = PromotedOdd::query()
+            ->join('match', 'match.id', '=', 'promoted_odd.match_id')
+            ->join('manual_promote_odd', 'manual_promote_odd.promoted_odd_id', '=', 'promoted_odd.id')
+            ->where('promoted_odd.is_valid', '=', 1)
+            ->groupBy('promoted_odd.result')
+            ->selectRaw('COUNT(1) AS total')
+            ->addSelect(['promoted_odd.result'])
+            ->get()
+            ->toArray();
+
+        $win = 0;
+        $loss = 0;
+        $draw = 0;
+        $win_rate = 0;
+        $all = 0;
+
+        if (!empty($promoted)) {
+            foreach ($promoted as $row) {
+                $all += $row['total'];
+                if ($row['result'] === 1) {
+                    $win += $row['total'];
+                } else if ($row['result'] === -1) {
+                    $loss += $row['total'];
+                } else if ($row['result'] === 0) {
+                    $draw += $row['total'];
+                }
+            }
+        }
+
+        $total = $win + $loss;
+
+        if ($total > 0) {
+            $win_rate = round($win * 1000 / $total) / 10;
+        }
+
+        return [
+            'total' => $all,
+            'win' => $win,
+            'loss' => $loss,
+            'draw' => $draw,
+            'win_rate' => $win_rate,
         ];
     }
 }

@@ -211,6 +211,8 @@ Route::group('/admin', function () {
         Route::post('/remove', [\app\admin\controller\ManualPromoteController::class, 'remove']);
         //手动推荐列表
         Route::post('/list', [\app\admin\controller\ManualPromoteController::class, 'list']);
+        //手动推荐统计
+        Route::post('/summary', [\app\admin\controller\ManualPromoteController::class, 'summary']);
     });
 
     //Surebet推送记录

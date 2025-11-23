@@ -79,4 +79,16 @@ class ManualPromoteController extends Controller
             $this->manualPromoteService->getList($params)
         );
     }
+
+    /**
+     * 手动推荐统计
+     * @return Response
+     */
+    #[CheckAdminToken]
+    public function summary(): Response
+    {
+        return $this->success(
+            $this->manualPromoteService->getSummary()
+        );
+    }
 }
