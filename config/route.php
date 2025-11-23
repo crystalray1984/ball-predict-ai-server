@@ -12,6 +12,8 @@ Route::group('/api', function () {
     Route::group('/common', function () {
         //获取验证码图片
         Route::any('/captcha', [\app\api\controller\CommonController::class, 'captcha']);
+        //发送邮件验证码
+        Route::post('/send_email_code', [\app\api\controller\CommonController::class, 'sendEmailCode']);
     });
 
     //用户接口
@@ -26,6 +28,8 @@ Route::group('/api', function () {
         Route::post('/vip_records', [\app\api\controller\UserController::class, 'getVipRecords']);
         //绑定邀请关系
         Route::post('/bind_inviter', [\app\api\controller\UserController::class, 'bindInviter']);
+        //通过邮箱注册新用户
+        Route::post('/email_register', [\app\api\controller\UserController::class, 'emailRegister']);
     });
 
     //佣金接口

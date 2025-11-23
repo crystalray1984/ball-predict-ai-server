@@ -55,6 +55,30 @@ class UserController extends Controller
     }
 
     /**
+     * 新用户通过邮箱注册
+     * @param Request $request
+     * @return Response
+     */
+    public function emailRegister(Request $request): Response
+    {
+        $params = v::input($request->post(), [
+            'username' => v::stringType()->notEmpty()->setName('username'),
+            'password' => v::stringType()->notEmpty()->setName('password'),
+            'code' => v::stringType()->notEmpty()->setName('code'),
+        ]);
+
+        $user = $this->loginRegisterService->emailRegister($params);
+
+        //生成token
+        $token = Token::create(['id' => $user->id, 'type' => 'user']);
+
+        return $this->success([
+            'token' => $token,
+            'user' => $user,
+        ]);
+    }
+
+    /**
      * Luffa用户登录
      * @param Request $request
      * @return Response

@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Sqids\Sqids;
 use support\Db;
 use support\exception\BusinessError;
+use support\Redis;
 use Throwable;
 
 /**
@@ -109,6 +110,52 @@ class LoginRegisterService
         }
 
         return $user;
+    }
+
+    /**
+     * 通过邮箱注册
+     * @param array $params
+     * @return User
+     */
+    public function emailRegister(array $params): User
+    {
+        //检查邮箱验证码
+        $code = Redis::get('email_code:' . $params['username']);
+        if (empty($code)) {
+            throw new BusinessError('验证码错误');
+        }
+
+        $connect = UserConnect::query()
+            ->where('platform', '=', 'email')
+            ->where('account', '=', $params['username'])
+            ->first(['id']);
+
+        if ($connect) {
+            throw new BusinessError('此邮箱已被使用');
+        }
+
+        $connect = new UserConnect();
+        $connect->platform = 'email';
+        $connect->account = $params['username'];
+        $connect->password = md5($params['password']);
+
+        Db::beginTransaction();
+        try {
+            //创建用户
+            $user = $this->createUser([
+                'reg_source' => 'email',
+            ]);
+
+            //写入用户连接表里的用户id并保存
+            $connect->user_id = $user->id;
+            $connect->save();
+            Db::commit();
+
+            return $user;
+        } catch (Throwable $exception) {
+            Db::rollBack();
+            throw $exception;
+        }
     }
 
     /**
