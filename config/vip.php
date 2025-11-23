@@ -12,10 +12,10 @@ return [
                 'price' => 180,
                 'currency' => 'EDS',
             ],
-//            'eds' => [
-//                'price' => 1,
-//                'currency' => 'EDS',
-//            ],
+            'bsc' => [
+                'price' => 18,
+                'currency' => 'EDS',
+            ],
             'tron' => [
                 'price' => 18,
                 'currency' => 'USDT',
@@ -36,10 +36,10 @@ return [
                 'price' => 1180,
                 'currency' => 'EDS',
             ],
-//            'eds' => [
-//                'price' => 2,
-//                'currency' => 'EDS',
-//            ],
+            'bsc' => [
+                'price' => 120,
+                'currency' => 'EDS',
+            ],
             'tron' => [
                 'price' => 120,
                 'currency' => 'USDT',
@@ -60,10 +60,10 @@ return [
                 'price' => 4200,
                 'currency' => 'EDS',
             ],
-//            'eds' => [
-//                'price' => 3,
-//                'currency' => 'EDS',
-//            ],
+            'bsc' => [
+                'price' => 420,
+                'currency' => 'EDS',
+            ],
             'tron' => [
                 'price' => 420,
                 'currency' => 'USDT',

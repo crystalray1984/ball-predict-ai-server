@@ -16,6 +16,7 @@ abstract class Engine
         'endless' => Endless::class,
         'tron' => Tron::class,
         'ethereum' => Ethereum::class,
+        'bsc' => Bsc::class,
     ];
 
     /**
