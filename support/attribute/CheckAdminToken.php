@@ -14,4 +14,6 @@ class CheckAdminToken
     use ResolveAttribute;
 
     public string $type = 'admin';
+
+    public bool $optional = false;
 }

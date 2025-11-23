@@ -14,4 +14,6 @@ class CheckAgentToken
     use ResolveAttribute;
 
     public string $type = 'agent';
+
+    public bool $optional = false;
 }

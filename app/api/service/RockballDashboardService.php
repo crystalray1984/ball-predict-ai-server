@@ -7,6 +7,7 @@ use app\model\RockBallOdd;
 use app\model\RockBallPromoted;
 use app\model\Team;
 use app\model\Tournament;
+use app\model\User;
 use Carbon\Carbon;
 use DateTimeInterface;
 use support\Db;
@@ -192,6 +193,124 @@ class RockballDashboardService
             ->orderBy('match.match_time', $params['sort_order'] ?? 'desc')
             ->orderBy('rockball_promoted.match_id')
             ->orderBy('rockball_promoted.id', 'DESC');
+
+        //查询
+        $rows = $query->get([
+            'rockball_promoted.id',
+            'rockball_promoted.match_id',
+            'rockball_promoted.result',
+            'rockball_promoted.variety',
+            'rockball_promoted.period',
+            'rockball_promoted.type',
+            'rockball_promoted.condition',
+            'rockball_promoted.score',
+            'rockball_promoted.score1',
+            'rockball_promoted.score2',
+            'match.match_time',
+            'match.team1_id',
+            'match.team2_id',
+            'match.tournament_id',
+            'match.error_status',
+        ])
+            ->toArray();
+
+        if (!empty($rows)) {
+            //查询赛事
+            $tournaments = Tournament::query()
+                ->whereIn('id', array_unique(
+                    array_column($rows, 'tournament_id')
+                ))
+                ->get(['id', 'name'])
+                ->toArray();
+            $tournaments = array_column($tournaments, null, 'id');
+
+            //查询队伍
+            $teams = array_reduce($rows, function (array $result, array $row) {
+                $result[] = $row['team1_id'];
+                $result[] = $row['team2_id'];
+                return $result;
+            }, []);
+            $teams = Team::query()
+                ->whereIn('id', array_unique($teams))
+                ->get(['id', 'name'])
+                ->toArray();
+            $teams = array_column($teams, null, 'id');
+
+            //写入数据
+            $rows = array_map(function (array $row) use ($tournaments, $teams) {
+                $output = [
+                    'id' => $row['id'],
+                    'match_id' => $row['match_id'],
+                    'match_time' => Carbon::parse($row['match_time']),
+                    'variety' => $row['variety'],
+                    'period' => $row['period'],
+                    'type' => $row['type'],
+                    'condition' => $row['condition'],
+                    'tournament' => $tournaments[$row['tournament_id']],
+                    'team1' => $teams[$row['team1_id']],
+                    'team2' => $teams[$row['team2_id']],
+                    'error_status' => $row['error_status'],
+                ];
+                if ($row['error_status'] === '' && isset($row['result'])) {
+                    $output['result'] = [
+                        'score' => $row['score'],
+                        'score1' => $row['score1'],
+                        'score2' => $row['score2'],
+                        'result' => $row['result'],
+                    ];
+                } else {
+                    $output['result'] = null;
+                }
+
+                return $output;
+            }, $rows);
+        }
+
+        return $rows;
+    }
+
+    /**
+     * 获取推荐的赛事
+     * @param array $params
+     * @param User|null $user
+     * @return array
+     */
+    public function promotedDesktop(array $params, ?User $user = null): array
+    {
+        $query = RockBallPromoted::query()
+            ->join('match', 'match.id', '=', 'rockball_promoted.match_id')
+            ->where('rockball_promoted.is_valid', '=', 1);
+
+        if (!empty($params['start_date'])) {
+            $query->where(
+                'match.match_time',
+                '>=',
+                Carbon::parse($params['start_date'])->toISOString(),
+            );
+        }
+
+
+        if (!empty($params['end_date'])) {
+            $end = Carbon::parse($params['end_date'])->addDays();
+        } else {
+            $end = Carbon::now()->addDays();
+        }
+
+        if (empty($user) || $user->expire_time->unix() <= time()) {
+            //如果没有用户或者用户已经过期了，那么只能展示有结果的推荐
+            $query->whereNotNull('rockball_promoted.result');
+        }
+
+        $query->where(
+            'match.match_time',
+            '<',
+            $end->toISOString(),
+        );
+
+        $query
+            ->orderBy('rockball_promoted.id', 'DESC')
+            ->orderBy('match.match_time', $params['sort_order'] ?? 'desc')
+            ->orderBy('rockball_promoted.match_id');
 
         //查询
         $rows = $query->get([

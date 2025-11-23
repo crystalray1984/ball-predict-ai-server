@@ -14,4 +14,9 @@ class CheckUserToken
     use ResolveAttribute;
 
     public string $type = 'user';
+
+    public function __construct(public bool $optional = false)
+    {
+        
+    }
 }

@@ -92,6 +92,8 @@ Route::group('/api', function () {
         Route::post('/promoted', [\app\api\controller\RockballDashboardController::class, 'promoted']);
         //已推荐的比赛(带有效期判断)
         Route::post('/promoted_v2', [\app\api\controller\RockballDashboardController::class, 'promoted']);
+        //桌面版使用的推荐数据
+        Route::post('/promoted_desktop', [\app\api\controller\RockballDashboardController::class, 'promotedDesktop']);
     });
 
     //滚球首页看板接口
@@ -104,6 +106,8 @@ Route::group('/api', function () {
         Route::post('/promoted', [\app\api\controller\RockballDashboardController::class, 'promoted']);
         //已推荐的比赛(带有效期判断)
         Route::post('/promoted_v2', [\app\api\controller\RockballDashboardController::class, 'promoted']);
+        //桌面版使用的推荐数据
+        Route::post('/promoted_desktop', [\app\api\controller\RockballDashboardController::class, 'promotedDesktop']);
     });
 });
 

@@ -62,4 +62,26 @@ class RockballDashboardController extends Controller
             'list' => $list,
         ]);
     }
+
+    /**
+     * 桌面版使用的推荐数据
+     * @param Request $request
+     * @return Response
+     */
+    #[CheckUserToken(true)]
+    public function promotedDesktop(Request $request): Response
+    {
+        $params = v::input($request->post(), [
+            'start_date' => v::optional(v::stringType()->date())->setName('start_date'),
+            'end_date' => v::optional(v::stringType()->date())->setName('end_date'),
+            'sort_by' => v::optional(v::in(['promote_time', 'match_time']))->setName('sort_by'),
+        ]);
+
+        $list = $this->rockballDashboardService->promotedDesktop($params, $request->user);
+
+        return $this->success([
+            'is_expired' => $request->user?->is_expired ?? 0,
+            'list' => $list,
+        ]);
+    }
 }

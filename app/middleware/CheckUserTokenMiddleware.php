@@ -20,7 +20,7 @@ class CheckUserTokenMiddleware extends CheckTokenMiddleware
      * @param callable $handler
      * @return Response
      */
-    protected function checkToken(int $id, Request $request, callable $handler): Response
+    protected function checkToken(int $id, Request $request, callable $handler, bool $optional): Response
     {
         /**
          * @var User $user
@@ -29,7 +29,7 @@ class CheckUserTokenMiddleware extends CheckTokenMiddleware
 
         if (!$user) {
             //用户不存在
-            return $this->fail();
+            return $optional ? $handler($request) : $this->fail();
         }
 
         if ($user->status !== 1) {

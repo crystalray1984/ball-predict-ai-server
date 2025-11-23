@@ -16,7 +16,7 @@ abstract class CheckTokenMiddleware implements MiddlewareInterface
 {
     protected abstract function getAttributeClass(): string;
 
-    protected abstract function checkToken(int $id, Request $request, callable $handler): Response;
+    protected abstract function checkToken(int $id, Request $request, callable $handler, bool $optional): Response;
 
     public function process(Request $request, callable $handler): Response
     {
@@ -34,14 +34,16 @@ abstract class CheckTokenMiddleware implements MiddlewareInterface
             return $handler($request);
         }
 
+        $optional = !!array_find($attrs, fn($attr) => $attr->optional);
+
         //再判断是否在请求头中有token
         $token = $request->header('authorization', '');
         if (empty($token)) {
-            return $this->fail();
+            return $optional ? $handler($request) : $this->fail();
         }
 
         if (!preg_match('/^Bearer\s(\S+)$/', $token, $matches)) {
-            return $this->fail();
+            return $optional ? $handler($request) : $this->fail();
         }
 
         $token = $matches[1];
@@ -50,16 +52,16 @@ abstract class CheckTokenMiddleware implements MiddlewareInterface
         try {
             $claims = Token::verify($token);
         } catch (Exception) {
-            return $this->fail();
+            return $optional ? $handler($request) : $this->fail();
         }
 
         //检查是否存在与token类型对应的注解
         $attr = array_find($attrs, fn($attr) => $attr->type === $claims['payload']['type']);
         if (!$attr) {
-            return $handler($request);
+            return $optional ? $handler($request) : $this->fail();
         }
 
-        return $this->checkToken($claims['payload']['id'], $request, $handler);
+        return $this->checkToken($claims['payload']['id'], $request, $handler, $optional);
     }
 
 

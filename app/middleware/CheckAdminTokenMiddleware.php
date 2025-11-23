@@ -18,7 +18,7 @@ class CheckAdminTokenMiddleware extends CheckTokenMiddleware
         return CheckAdminToken::class;
     }
 
-    protected function checkToken(int $id, Request $request, callable $handler): Response
+    protected function checkToken(int $id, Request $request, callable $handler, bool $optional): Response
     {
         /**
          * @var Admin $admin
