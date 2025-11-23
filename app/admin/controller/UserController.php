@@ -29,6 +29,7 @@ class UserController extends Controller
     {
         $params = v::input($request->post(), [
             'luffa_id' => v::optional(v::stringType())->setName('luffa_id'),
+            'email' => v::optional(v::stringType())->setName('email'),
             'register_date_start' => v::optional(v::stringType()->date())->setName('register_date_start'),
             'register_date_end' => v::optional(v::stringType()->date())->setName('register_date_end'),
             'page' => v::optional(v::intType()->min(1))->setName('page'),

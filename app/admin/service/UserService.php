@@ -23,6 +23,10 @@ class UserService
             ->leftJoin('user_connect AS user_connect_luffa', function (JoinClause $join) {
                 $join->on('user_connect_luffa.user_id', '=', 'user.id')
                     ->where('user_connect_luffa.platform', '=', 'luffa');
+            })
+            ->leftJoin('user_connect AS user_connect_email', function (JoinClause $join) {
+                $join->on('user_connect_email.user_id', '=', 'user.id')
+                    ->where('user_connect_email.platform', '=', 'email');
             });
 
         if (!empty($params['register_date_start'])) {
@@ -44,6 +48,9 @@ class UserService
 
         if (!empty($params['luffa_id'])) {
             $query->where('user_connect_luffa.account', '=', $params['luffa_id']);
+        }
+        if (!empty($params['email'])) {
+            $query->where('user_connect_email.account', '=', $params['email']);
         }
 
         $count = $query->count();
@@ -77,6 +84,7 @@ class UserService
             foreach ($list as $k => $row) {
                 //读取用户的各个子账号数据
                 $list[$k]['luffa'] = array_find($connects, fn(array $connect) => $connect['platform'] === 'luffa' && $connect['user_id'] === $row['id']);
+                $list[$k]['email'] = array_find($connects, fn(array $connect) => $connect['platform'] === 'email' && $connect['user_id'] === $row['id']);
             }
         }
 
