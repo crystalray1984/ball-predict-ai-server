@@ -309,7 +309,7 @@ class RockballDashboardService
 
         $query
             ->orderBy('rockball_promoted.id', 'DESC')
-            ->orderBy('match.match_time', $params['sort_order'] ?? 'desc')
+            ->orderBy('match.match_time', 'desc')
             ->orderBy('rockball_promoted.match_id');
 
         //查询
@@ -324,6 +324,7 @@ class RockballDashboardService
             'rockball_promoted.score',
             'rockball_promoted.score1',
             'rockball_promoted.score2',
+            'rockball_promoted.value',
             'match.match_time',
             'match.team1_id',
             'match.team2_id',
@@ -368,6 +369,7 @@ class RockballDashboardService
                     'team1' => $teams[$row['team1_id']],
                     'team2' => $teams[$row['team2_id']],
                     'error_status' => $row['error_status'],
+                    'value' => $row['value'],
                 ];
                 if ($row['error_status'] === '' && isset($row['result'])) {
                     $output['result'] = [
