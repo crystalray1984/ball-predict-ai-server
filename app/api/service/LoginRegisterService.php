@@ -139,11 +139,14 @@ class LoginRegisterService
         $connect->account = $params['username'];
         $connect->password = md5($params['password']);
 
+        $nickname = substr($params['username'], 0, strpos($params['username'], '@'));
+
         Db::beginTransaction();
         try {
             //创建用户
             $user = $this->createUser([
                 'reg_source' => 'email',
+                'nickname' => $nickname,
             ]);
 
             //写入用户连接表里的用户id并保存
