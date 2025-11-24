@@ -113,6 +113,12 @@ Route::group('/api', function () {
 
 //管理端接口
 Route::group('/admin', function () {
+
+    Route::group('/common', function () {
+        //获取上传表单接口
+        Route::post('/create_upload_form', [\app\admin\controller\CommonController::class, 'createUploadForm']);
+    });
+
     //管理用户接口
     Route::group('/admin', function () {
         //管理员登录
@@ -245,6 +251,13 @@ Route::group('/admin', function () {
         Route::post('/list', [\app\admin\controller\MansionController::class, 'getList']);
         //导出接口
         Route::post('/export', [\app\admin\controller\MansionController::class, 'exportList']);
+    });
+
+    //版本接口
+    Route::group('/version', function () {
+        Route::post('/list', [\app\admin\controller\VersionController::class, 'getVersionList']);
+        Route::post('/save_desktop', [\app\admin\controller\VersionController::class, 'saveDesktopVersion']);
+        Route::post('/delete', [\app\admin\controller\VersionController::class, 'deleteVersion']);
     });
 });
 

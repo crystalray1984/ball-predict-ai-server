@@ -83,6 +83,9 @@
       <excludeFolder url="file://$MODULE_DIR$/vendor/webman-tech/crontab-task" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/workerman/crontab" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/phpmailer/phpmailer" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/aws/aws-crt-php" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/aws/aws-sdk-php" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/mtdowling/jmespath.php" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

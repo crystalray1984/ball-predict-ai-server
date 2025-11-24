@@ -195,9 +195,9 @@ class ManualPromoteService
 
         if (!empty($list)) {
             $odds = ManualPromoteOdd::query()
-                ->join('match', 'match.id', '=', 'manual_promote_odd.match_id')
+                ->join('v_match', 'v_match.id', '=', 'manual_promote_odd.match_id')
                 ->whereIn('manual_promote_odd.record_id', array_column($list, 'id'))
-                ->orderBy('match.match_time')
+                ->orderBy('v_match.match_time')
                 ->get([
                     'manual_promote_odd.id',
                     'manual_promote_odd.record_id',
@@ -209,22 +209,56 @@ class ManualPromoteService
                     'manual_promote_odd.type2',
                     'manual_promote_odd.condition2',
                     'manual_promote_odd.promoted_odd_id',
-                    'match.match_time',
-                    'match.team1_id',
-                    'match.team2_id',
-                    'match.tournament_id',
-                    'match.has_score',
-                    'match.has_period1_score',
-                    'match.score1',
-                    'match.score2',
-                    'match.corner1',
-                    'match.corner2',
-                    'match.score1_period1',
-                    'match.score2_period1',
-                    'match.corner1_period1',
-                    'match.corner2_period1',
+                    'v_match.match_time',
+                    'v_match.team1_id',
+                    'v_match.team1_name',
+                    'v_match.team2_id',
+                    'v_match.team2_name',
+                    'v_match.tournament_id',
+                    'v_match.tournament_name',
+                    'v_match.has_score',
+                    'v_match.has_period1_score',
+                    'v_match.score1',
+                    'v_match.score2',
+                    'v_match.corner1',
+                    'v_match.corner2',
+                    'v_match.score1_period1',
+                    'v_match.score2_period1',
+                    'v_match.corner1_period1',
+                    'v_match.corner2_period1',
                 ])
                 ->toArray();
+
+            $promoted = [];
+            if (!empty($odds)) {
+                $promotedIds = array_values(
+                    array_filter(array_column($odds, 'promoted_odd_id'), fn($v) => !empty($v))
+                );
+                if (!empty($promotedIds)) {
+                    $promoted = PromotedOdd::query()
+                        ->whereIn('id', $promotedIds)
+                        ->get()
+                        ->toArray();
+                    $promoted = array_column($promoted, null, 'id');
+                }
+            }
+
+            $odds = array_map(fn(array $row) => [
+                ...$row,
+                'team1' => [
+                    'id' => $row['team1_id'],
+                    'name' => $row['team1_name'],
+                ],
+                'team2' => [
+                    'id' => $row['team2_id'],
+                    'name' => $row['team2_name'],
+                ],
+                'tournament' => [
+                    'id' => $row['tournament_id'],
+                    'name' => $row['tournament_name'],
+                ],
+                'promoted' => $promoted[$row['promoted_odd_id']] ?? null,
+            ], $odds);
 
             $list = array_map(fn(array $record) => [
                 ...$record,
