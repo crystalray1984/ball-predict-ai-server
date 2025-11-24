@@ -31,7 +31,17 @@ class S3Engine extends Engine
      */
     public function getUploadForm(string $remotePath): array
     {
-        $obj = new PostObjectV4($this->s3Client, $this->bucket, ['key' => $remotePath]);
+        $obj = new PostObjectV4(
+            $this->s3Client,
+            $this->bucket,
+            [
+                'key' => $remotePath
+            ],
+            [
+                ['key' => $remotePath],
+                ['bucket' => $this->bucket],
+            ]
+        );
 
         return [
             'post_url' => "https://$this->bucket.s3.{$this->config['region']}.amazonaws.com/",

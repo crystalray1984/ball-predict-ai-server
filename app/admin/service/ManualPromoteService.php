@@ -119,6 +119,10 @@ class ManualPromoteService
                         'week_id' => $lastRow ? $lastRow->week_id + 1 : 1,
                     ]);
 
+                ManualPromoteOdd::query()
+                    ->where('id', '=', $manualPromoteId)
+                    ->update(['promoted_odd_id' => $id]);
+
                 $promotedIds[] = $id;
             }
 

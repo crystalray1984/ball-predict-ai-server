@@ -26,7 +26,7 @@ class CommonController extends Controller
 
         $dot = strrpos($params['filename'], '.');
         $ext = substr($params['filename'], $dot);
-        $remotePath = $params['type'] . '/' . uniqid() . '.' . $ext;
+        $remotePath = $params['type'] . '/' . uniqid() . $ext;
 
         return $this->success(
             Storage::instance()->getUploadForm($remotePath)
