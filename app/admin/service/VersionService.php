@@ -48,6 +48,15 @@ class VersionService
             ])
             ->toArray();
 
+        $list = array_map(function (array $row) {
+            if (!empty($row['full_info'])) {
+                $row['full_info']['url'] = Storage::getUrl($row['full_info']['path']);
+            }
+            if (!empty($row['hot_update_info'])) {
+                $row['hot_update_info']['url'] = Storage::getUrl($row['hot_update_info']['path']);
+            }
+        }, $list);
+
         return [
             'count' => $count,
             'list' => $list,
