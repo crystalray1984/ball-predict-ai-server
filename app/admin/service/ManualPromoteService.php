@@ -273,6 +273,7 @@ class ManualPromoteService
         return [
             'count' => $count,
             'list' => $list,
+            'summary' => $this->getSummary(),
         ];
     }
 
