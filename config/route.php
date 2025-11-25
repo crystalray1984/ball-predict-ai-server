@@ -15,7 +15,7 @@ Route::group('/api', function () {
         //发送邮件验证码
         Route::post('/send_email_code', [\app\api\controller\CommonController::class, 'sendEmailCode']);
         //桌面版检查更新
-        Route::any('/check_desktop_update', [\app\api\controller\CommonController::class, 'checkDesktopUpdate']);
+        Route::any('/check_desktop_update/{name}', [\app\api\controller\CommonController::class, 'checkDesktopUpdate']);
     });
 
     //用户接口
