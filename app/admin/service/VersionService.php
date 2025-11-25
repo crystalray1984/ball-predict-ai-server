@@ -55,6 +55,7 @@ class VersionService
             if (!empty($row['hot_update_info'])) {
                 $row['hot_update_info']['url'] = Storage::getUrl($row['hot_update_info']['path']);
             }
+            return $row;
         }, $list);
 
         return [
