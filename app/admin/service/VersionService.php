@@ -71,12 +71,7 @@ class VersionService
      */
     public function saveDesktopVersion(array $data): void
     {
-        $version_base = 1;
-        $version_number = array_reduce(explode('.', $data['version']), function (int $result, string $value) use (&$version_base) {
-            $result += intval($value) * $version_base;
-            $version_base *= 1000;
-            return $result;
-        }, 0);
+        $version_number = get_version_number($data['version']);
 
         if (!empty($data['id'])) {
             /** @var ClientVersion $version */

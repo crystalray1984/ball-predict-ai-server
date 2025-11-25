@@ -449,3 +449,23 @@ if (!function_exists('get_condition_text')) {
         };
     }
 }
+
+if (!function_exists('get_version_number')) {
+    /**
+     * 获取版本号对应的数值
+     * @param string $version
+     * @return int
+     */
+    function get_version_number(string $version): int
+    {
+        if (!preg_match('/^(\d+)\.(\d+)(\.\d+)?$/', $version, $matches)) {
+            return 0;
+        }
+
+        $value = intval($matches[1]) * 1000000 + intval($matches[2]) * 1000;
+        if (!empty($matches[3])) {
+            $value += intval(substr($matches[3], 1));
+        }
+        return $value;
+    }
+}

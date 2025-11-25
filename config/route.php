@@ -14,6 +14,8 @@ Route::group('/api', function () {
         Route::any('/captcha', [\app\api\controller\CommonController::class, 'captcha']);
         //发送邮件验证码
         Route::post('/send_email_code', [\app\api\controller\CommonController::class, 'sendEmailCode']);
+        //桌面版检查更新
+        Route::any('/check_desktop_update', [\app\api\controller\CommonController::class, 'checkDesktopUpdate']);
     });
 
     //用户接口

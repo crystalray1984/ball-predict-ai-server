@@ -2,7 +2,10 @@
 
 namespace app\api\controller;
 
+use app\model\ClientVersion;
+use app\model\ClientVersionBuild;
 use app\model\UserConnect;
+use Carbon\Carbon;
 use Respect\Validation\Validator as v;
 use support\Controller;
 use support\Redis;
@@ -10,6 +13,8 @@ use support\Request;
 use support\Response;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
+use support\storage\Storage;
+use Symfony\Component\Yaml\Yaml;
 use Tinywan\Captcha\Captcha;
 
 /**
@@ -75,5 +80,77 @@ class CommonController extends Controller
         $mail->send();
 
         return $this->success();
+    }
+
+    /**
+     * 桌面版检查更新
+     * @param Request $request
+     * @return Response
+     */
+    public function checkDesktopUpdate(Request $request): Response
+    {
+        $platform = $request->get('platform', $request->header('platform'));
+        $arch = $request->get('arch', $request->header('arch'));
+        $version_number = get_version_number(
+            $request->get('version', $request->header('version'))
+        );
+
+        $version = ClientVersionBuild::query()
+            ->join('client_version', 'client_version_build.client_version_id', '=', 'client_version.id')
+            ->where('client_version.platform', '=', $platform)
+            ->when(!empty($arch), fn($query) => $query->where('client_version.arch', '=', $arch))
+            ->where('client_version.version_number', '>=', $version_number)
+            ->where('client_version.status', '=', 1)
+            ->whereNull('client_version.deleted_at')
+            ->first([
+                'client_version.id',
+                'client_version.version',
+                'client_version.version_number',
+                'client_version.is_mandatory',
+                'client_version_build.hot_update_info',
+                'client_version_build.updated_at',
+            ]);
+
+        if (!$version) {
+            if (empty($request->method() === 'POST')) {
+                return $this->success();
+            } else {
+                return \response();
+            }
+        }
+
+        //判断是否需要强制更新
+        if (!$version->is_mandatory && $version->version_number > $version_number) {
+            $exists = ClientVersion::query()
+                ->where('client_version.platform', '=', $platform)
+                ->when(!empty($arch), fn($query) => $query->where('client_version.arch', '=', $arch))
+                ->where('client_version.version_number', '>', $version_number)
+                ->where('client_version.version_number', '<', $version->version_number)
+                ->where('client_version.status', '=', 1)
+                ->where('client_version.is_mandatory', '=', 1)
+                ->exists();
+            if ($exists) {
+                $version->is_mandatory = 1;
+            }
+        }
+
+        $url = Storage::getUrl($version->hot_update_info['path']);
+
+        //输出yaml
+        $result = [
+            'version' => $version->version,
+            'files' => [
+                [
+                    'url' => $url,
+                    'sha512' => $version->hot_update_info['hash'],
+                    'size' => $version->hot_update_info['size'],
+                ]
+            ],
+            'path' => $url,
+            'sha512' => $version->hot_update_info['hash'],
+            'releaseDate' => $version->updated_at->toISOString(),
+            'releaseNotes' => $version->is_mandatory ? '1' : null,
+        ];
+        return response(Yaml::dump($result, 2, 2), 200, ['Content-Type' => 'application/yaml']);
     }
 }
