@@ -64,9 +64,7 @@ class VersionController extends Controller
             'full_info' => v::optional(
                 v::arrayType()
                     ->key('path', v::stringType()->notEmpty()->setName('full_info.path'))
-                    ->key('hash', v::stringType()->notEmpty()->setName('full_info.hash'))
                     ->key('size', v::intType()->positive()->setName('full_info.size'))
-                    ->key('blockmap', v::stringType()->notEmpty()->setName('full_info.blockmap'))
             )->setName('full_info'),
             'hot_update_info' => v::optional(
                 v::arrayType()
