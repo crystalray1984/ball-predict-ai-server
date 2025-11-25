@@ -6,6 +6,7 @@ use app\model\ClientVersion;
 use app\model\ClientVersionBuild;
 use app\model\UserConnect;
 use Carbon\Carbon;
+use GatewayWorker\Lib\Gateway;
 use Respect\Validation\Validator as v;
 use support\Controller;
 use support\Redis;
@@ -152,5 +153,37 @@ class CommonController extends Controller
             'releaseNotes' => $version->is_mandatory ? '1' : null,
         ];
         return response(Yaml::dump($result, 2, 2), 200, ['Content-Type' => 'application/yaml']);
+    }
+
+    /**
+     * 向指定的WS连接发送消息
+     * @param Request $request
+     * @return Response
+     */
+    public function sendSocketMessage(Request $request): Response
+    {
+        $params = v::input($request->post(), [
+            'type' => v::in(['uid', 'group'])->setName('type'),
+            'target' => v::anyOf(
+                v::arrayType()->notEmpty(),
+                v::stringType()->notEmpty(),
+                v::intType()->positive(),
+            )->setName('target'),
+            'message' => v::arrayType()
+                ->key('type', v::stringType()->notEmpty())
+                ->setName('message'),
+        ]);
+
+        $message = json_enc($params['message']);
+        switch ($params['type']) {
+            case 'uid':
+                Gateway::sendToUid($params['target'], $message);
+                break;
+            case 'group':
+                Gateway::sendToGroup($params['target'], $message);
+                break;
+        }
+
+        return $this->success();
     }
 }

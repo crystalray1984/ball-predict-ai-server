@@ -211,6 +211,42 @@ if (!function_exists('get_user')) {
     }
 }
 
+if (!function_exists('get_users')) {
+    /**
+     * 通过id数组批量获取用户信息
+     * @param array $idList
+     * @param bool $allowCache
+     * @return array
+     */
+    function get_users(array $idList, bool $allowCache = true): array
+    {
+        if (empty($idList)) return [];
+
+        $result = [];
+        if ($allowCache) {
+            $cache = \support\Redis::mGet(array_map(fn(mixed $id) => CACHE_USER_KEY . $id, $idList));
+            $result = array_combine($idList, $cache);
+            $idList = array_keys(
+                array_filter($result, fn($item) => empty($item))
+            );
+            $result = array_filter($result, fn($item) => !empty($item));
+        }
+
+        if (empty($idList)) {
+            return $result;
+        }
+
+        $users = User::query()->whereIn('id', $idList)->get()->toArray();
+        if (!empty($users)) {
+            foreach ($users as $user) {
+                \support\Redis::setEx(CACHE_USER_KEY . $user['id'], 3600, json_enc($user));
+            }
+            $result += array_column($users, null, 'id');
+        }
+        return $result;
+    }
+}
+
 if (!function_exists('get_admin')) {
     /**
      * 通过id获取管理员信息

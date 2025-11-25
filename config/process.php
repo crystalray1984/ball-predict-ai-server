@@ -72,4 +72,14 @@ if (yaml('app.match_score_check', false) === true) {
     ];
 }
 
+//VIP的WS连接检查
+if (yaml('app.vip_socket_check', false) === true) {
+    $processes['CheckVipSocket'] = [
+        'handler' => app\process\CheckVipSocket::class,
+        'count' => 1,
+        'reloadable' => true,
+        'constructor' => [],
+    ];
+}
+
 return $processes;

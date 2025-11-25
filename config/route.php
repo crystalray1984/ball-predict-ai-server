@@ -16,6 +16,8 @@ Route::group('/api', function () {
         Route::post('/send_email_code', [\app\api\controller\CommonController::class, 'sendEmailCode']);
         //桌面版检查更新
         Route::any('/check_desktop_update/{name}', [\app\api\controller\CommonController::class, 'checkDesktopUpdate']);
+        //发送WS消息
+        Route::post('/send_socket_message', [\app\api\controller\CommonController::class, 'sendSocketMessage']);
     });
 
     //用户接口

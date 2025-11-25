@@ -27,7 +27,8 @@
     "sqids/sqids": "^0.5.0",
     "webman-tech/crontab-task": "^1.2",
     "phpmailer/phpmailer": "^7.0",
-    "aws/aws-sdk-php": "^3.363"
+    "aws/aws-sdk-php": "^3.363",
+    "webman/gateway-worker": "^2.1"
   },
   "autoload": {
     "psr-4": {
