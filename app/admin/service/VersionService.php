@@ -7,6 +7,8 @@ use app\model\ClientVersionBuild;
 use Illuminate\Database\Query\JoinClause;
 use support\Db;
 use support\exception\BusinessError;
+use support\storage\Storage;
+use ZipArchive;
 
 /**
  * 客户端版本相关业务逻辑
@@ -121,14 +123,57 @@ class VersionService
         $version->status = $build->status = $data['status'];
         $version->is_mandatory = $data['is_mandatory'];
         $version->note = $data['note'];
-        if (!empty($data['full_info'])) {
-            $build->full_info = $data['full_info'];
-        }
-        if (!empty($data['hot_update_info'])) {
-            $build->hot_update_info = $data['hot_update_info'];
-        }
-        if (!empty($data['zip_info'])) {
-            $build->zip_info = $data['zip_info'];
+
+        //处理上传的文件
+        if ($version->platform === 'win32') {
+            //处理安装包
+            if (!empty($data['full_info'])) {
+                //把安装包和blockmap文件放置到新的位置
+                $base_path = "update/win32/setup-$version->version-$version->arch-" . uniqid();
+                $full_path = $base_path . '.exe';
+                $blockmap_path = $full_path . '.blockmap';
+
+                Storage::copyFile($data['full_info']['path'], $full_path);
+                Storage::copyFile($data['full_info']['blockmap'], $blockmap_path);
+
+                $build->hot_update_info = [
+                    'path' => $full_path,
+                    'size' => $data['full_info']['size'],
+                    'hash' => $data['full_info']['hash'],
+                    'blockmap' => $blockmap_path,
+                ];
+
+                //生成压缩包
+                $zip_path = $base_path . '.zip';
+                $build->full_info = [
+                    'path' => $zip_path,
+                    'size' => $this->createZipFile($full_path, $zip_path)
+                ];
+            }
+        } else if ($version->platform === 'darwin') {
+            //MacOS
+            //处理安装包
+            if (!empty($data['full_info'])) {
+                $full_path = "update/darwin/setup-$version->version-" . uniqid() . '.dmg';
+                Storage::copyFile($data['full_info']['path'], $full_path);
+                $build->full_info = [
+                    'path' => $full_path,
+                    'size' => $data['full_info']['size'],
+                ];
+            }
+
+            //处理更新包
+            if (!empty($data['hot_update_info'])) {
+                $hot_update_path = "update/darwin/setup-$version->version-" . uniqid() . '.zip';
+                $blockmap_path = $hot_update_path . '.blockmap';
+                Storage::copyFile($data['hot_update_info']['path'], $hot_update_path);
+                $build->hot_update_info = [
+                    'path' => $hot_update_path,
+                    'size' => $data['hot_update_info']['size'],
+                    'hash' => $data['hot_update_info']['hash'],
+                    'blockmap' => $blockmap_path,
+                ];
+            }
         }
 
         //保存数据
@@ -143,6 +188,46 @@ class VersionService
             Db::rollBack();
             throw $e;
         }
+    }
+
+    /**
+     * 生成压缩包
+     * @param string $remotePath 远端的原始文件
+     * @param string $toPath 生成完压缩包之后要写入的远端文件
+     * @return int
+     */
+    protected function createZipFile(string $remotePath, string $toPath): int
+    {
+        $fileName = substr($remotePath, strrpos($remotePath, '/') + 1);
+        $extName = substr($fileName, strrpos($fileName, '.'));
+        $remoteTempPath = runtime_path(uniqid() . $extName);
+        Storage::getFile($remotePath, $remoteTempPath);
+        $zipTempPath = runtime_path(uniqid() . '.zip');
+
+        try {
+            //把文件打入压缩包
+            try {
+                $zip = new ZipArchive();
+                $zip->open($zipTempPath, ZipArchive::CREATE);
+                $zip->addFile($remoteTempPath, $fileName);
+                $zip->close();
+
+                //上传文件
+                $fp = fopen($zipTempPath, 'r');
+                try {
+                    Storage::putFile($toPath, $fp);
+                    return filesize($zipTempPath);
+                } finally {
+                    fclose($fp);
+                }
+            } finally {
+                @unlink($zipTempPath);
+            }
+        } finally {
+            @unlink($remoteTempPath);
+        }
+
+        return 0;
     }
 
     /**

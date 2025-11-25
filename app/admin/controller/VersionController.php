@@ -63,16 +63,18 @@ class VersionController extends Controller
             'note' => v::optional(v::stringType())->setName('note'),
             'full_info' => v::optional(
                 v::arrayType()
-                    ->key('url', v::stringType()->notEmpty()->setName('full_info.url'))
+                    ->key('path', v::stringType()->notEmpty()->setName('full_info.path'))
                     ->key('hash', v::stringType()->notEmpty()->setName('full_info.hash'))
                     ->key('size', v::intType()->positive()->setName('full_info.size'))
+                    ->key('blockmap', v::stringType()->notEmpty()->setName('full_info.blockmap'))
             )->setName('full_info'),
-            'zip_info' => v::optional(
+            'hot_update_info' => v::optional(
                 v::arrayType()
-                    ->key('url', v::stringType()->notEmpty()->setName('zip_info.url'))
-                    ->key('hash', v::stringType()->notEmpty()->setName('zip_info.hash'))
-                    ->key('size', v::intType()->positive()->setName('zip_info.size'))
-            )->setName('zip_info'),
+                    ->key('path', v::stringType()->notEmpty()->setName('hot_update_info.path'))
+                    ->key('hash', v::stringType()->notEmpty()->setName('hot_update_info.hash'))
+                    ->key('size', v::intType()->positive()->setName('hot_update_info.size'))
+                    ->key('blockmap', v::stringType()->notEmpty()->setName('full_info.blockmap'))
+            )->setName('hot_update_info'),
         ]);
 
         $this->versionService->saveDesktopVersion($data);

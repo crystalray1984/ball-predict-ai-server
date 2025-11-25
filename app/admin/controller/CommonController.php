@@ -29,7 +29,7 @@ class CommonController extends Controller
         $remotePath = $params['type'] . '/' . uniqid() . $ext;
 
         return $this->success(
-            Storage::instance()->getUploadForm($remotePath)
+            Storage::getUploadForm($remotePath)
         );
     }
 }
