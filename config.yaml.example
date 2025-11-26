@@ -1,8 +1,16 @@
 app:
   #HTTP服务器进程数
-  http_process_count: 1
+  http_process_count: 8
   #设置给外部回调的地址
-  callback_url: 'https://v2.188zq.vip'
+  callback_url: 'https://v3.188zq.vip'
+  #是否开启赛果检查进程
+  match_score_check: false
+  #是否开启代码重载
+  monitor: true
+  #是否开启VIP检查
+  vip_socket_check: false
+  #BusinessWorker进程数
+  worker_process_count: 8
 
 #Postgres数据库配置
 pgsql:
@@ -53,3 +61,25 @@ plisio:
   name: ''
   api_url: ''
   secret: ''
+
+
+#邮件配置
+mail:
+  #邮件发送配置
+  transport:
+    host: '
+    username: ''
+    password: ''
+    port: 25
+  #默认发件人
+  from: ''
+
+#存储配置
+storage:
+  type: 's3'
+  s3:
+    region: ''
+    bucket: ''
+    key: ''
+    secret: ''
+    url_prefix: 'https://188zq-files.s3.ap-southeast-1.amazonaws.com/'
