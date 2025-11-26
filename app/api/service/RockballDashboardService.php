@@ -5,6 +5,7 @@ namespace app\api\service;
 use app\model\Match1;
 use app\model\RockBallOdd;
 use app\model\RockBallPromoted;
+use app\model\RockBallPromotedView;
 use app\model\Team;
 use app\model\Tournament;
 use app\model\User;
@@ -19,38 +20,19 @@ class RockballDashboardService
 {
     /**
      * 获取推荐统计数据
-     * @param array $params
      * @return array
      */
-    public function summary(array $params): array
+    public function summary(): array
     {
         $query = RockBallPromoted::query()
-            ->join('match', 'match.id', '=', 'rockball_promoted.match_id')
-            ->where('rockball_promoted.is_valid', '=', 1);
-
-        if (!empty($params['start_date'])) {
-            $query->where(
-                'match.match_time',
-                '>=',
-                Carbon::parse($params['start_date'])->toISOString(),
-            );
-        }
-        if (!empty($params['end_date'])) {
-            $query->where(
-                'match.match_time',
-                '<',
-                Carbon::parse($params['end_date'])
-                    ->addDays()
-                    ->toISOString(),
-            );
-        }
+            ->where('is_valid', '=', 1);
 
         $total = $query->count();
 
-        $data = $query->whereNotNull('rockball_promoted.result')
-            ->groupBy('rockball_promoted.result')
+        $data = $query->whereNotNull('result')
+            ->groupBy('result')
             ->select([
-                'rockball_promoted.result',
+                'result',
             ])
             ->selectRaw('count(*) as count')
             ->get()
@@ -385,6 +367,108 @@ class RockballDashboardService
                 return $output;
             }, $rows);
         }
+
+        return $rows;
+    }
+
+    /**
+     * 基于id获取最新推荐的赛事
+     * @param array $params
+     * @param User|null $user
+     * @return array
+     */
+    public function promotedById(array $params, ?User $user = null): array
+    {
+        $query = RockBallPromotedView::query()
+            ->where('is_valid', '=', 1);
+
+        if (!empty($params['start_date'])) {
+            $query->where(
+                'match_time',
+                '>=',
+                Carbon::parse($params['start_date'])->toISOString(),
+            );
+        }
+
+        if (!empty($params['last_id'])) {
+            $query->where('id', '>', $params['last_id']);
+        }
+
+        if (empty($user)) {
+            //如果没有用户，那么只能展示有结果的推荐
+            $query->whereNotNull('result');
+        } else if ($user->expire_time->unix() <= time()) {
+            //如果用户已经过期了，那么只能展示有结果的或者在VIP到期之前推出来的
+            $query->where(function ($where) use ($user) {
+                $where->whereNotNull('result')
+                    ->orWhere('created_at', '<', $user->expire_time->toISOString());
+            });
+        }
+
+        $query
+            ->orderBy('id', 'DESC')
+            ->orderBy('match_time', 'desc')
+            ->orderBy('match_id');
+
+        //查询
+        $rows = $query->get([
+            'id',
+            'match_id',
+            'result',
+            'variety',
+            'period',
+            'type',
+            'condition',
+            'score',
+            'score1',
+            'score2',
+            'value',
+            'match_time',
+            'team1_id',
+            'team1_name',
+            'team2_id',
+            'team2_name',
+            'tournament_id',
+            'tournament_name',
+        ])
+            ->toArray();
+
+        $rows = array_map(function (array $row) {
+            $output = [
+                'id' => $row['id'],
+                'match_id' => $row['match_id'],
+                'match_time' => Carbon::parse($row['match_time']),
+                'variety' => $row['variety'],
+                'period' => $row['period'],
+                'type' => $row['type'],
+                'condition' => $row['condition'],
+                'tournament' => [
+                    'id' => $row['tournament_id'],
+                    'name' => $row['tournament_name'],
+                ],
+                'team1' => [
+                    'id' => $row['team1_id'],
+                    'name' => $row['team1_name'],
+                ],
+                'team2' => [
+                    'id' => $row['team2_id'],
+                    'name' => $row['team2_name'],
+                ],
+                'value' => $row['value'],
+            ];
+            if (isset($row['result'])) {
+                $output['result'] = [
+                    'score' => $row['score'],
+                    'score1' => $row['score1'],
+                    'score2' => $row['score2'],
+                    'result' => $row['result'],
+                ];
+            } else {
+                $output['result'] = null;
+            }
+
+            return $output;
+        }, $rows);
 
         return $rows;
     }

@@ -112,6 +112,26 @@ Route::group('/api', function () {
         Route::post('/promoted_v2', [\app\api\controller\RockballDashboardController::class, 'promoted']);
         //桌面版使用的推荐数据
         Route::post('/promoted_desktop', [\app\api\controller\RockballDashboardController::class, 'promotedDesktop']);
+        //基于ID获取最新的推荐数据
+        Route::post('/promoted_by_id', [\app\api\controller\RockballDashboardController::class, 'promotedById']);
+    });
+
+    //滚球接口
+    Route::group('/rockball', function () {
+        //获取最新推荐
+        Route::post('/promoted', [\app\api\controller\RockballDashboardController::class, 'promotedById']);
+    });
+
+    //对比推荐接口
+    Route::group('/compare', function () {
+        //获取最新推荐
+        Route::post('/promoted', [\app\api\controller\CompareDashboardController::class, 'promotedById']);
+    });
+
+    //手动推荐接口
+    Route::group('/manual', function () {
+        //获取最新推荐
+        Route::post('/promoted', [\app\api\controller\ManualDashboardController::class, 'promotedById']);
     });
 });
 

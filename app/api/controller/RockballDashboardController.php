@@ -20,18 +20,12 @@ class RockballDashboardController extends Controller
 
     /**
      * 获取统计数据
-     * @param Request $request
      * @return Response
      */
-    public function summary(Request $request): Response
+    public function summary(): Response
     {
-        $params = v::input($request->post(), [
-            'start_date' => v::optional(v::stringType()->date())->setName('start_date'),
-            'end_date' => v::optional(v::stringType()->date())->setName('end_date'),
-        ]);
-
         return $this->success(
-            $this->rockballDashboardService->summary($params)
+            $this->rockballDashboardService->summary()
         );
     }
 
@@ -82,6 +76,28 @@ class RockballDashboardController extends Controller
         return $this->success([
             'is_expired' => $request->user?->is_expired ?? 0,
             'list' => $list,
+        ]);
+    }
+
+    /**
+     * 按推荐顺序获取滚球推荐数据
+     * @param Request $request
+     * @return Response
+     */
+    #[CheckUserToken(true)]
+    public function promotedById(Request $request): Response
+    {
+        $params = v::input($request->post(), [
+            'start_date' => v::stringType()->date()->setName('start_date'),
+            'last_id' => v::optional(v::intType())->setName('last_id'),
+        ]);
+
+        $list = $this->rockballDashboardService->promotedById($params, $request->user);
+
+        return $this->success([
+            'is_expired' => $request->user?->is_expired ?? 0,
+            'list' => $list,
+            'summary' => $this->rockballDashboardService->summary()
         ]);
     }
 }
