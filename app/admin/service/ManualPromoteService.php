@@ -6,8 +6,10 @@ use app\model\ManualPromoteOdd;
 use app\model\ManualPromoteRecord;
 use app\model\Match1;
 use app\model\PromotedOdd;
+use app\model\PromotedOddView;
 use app\model\User;
 use Carbon\Carbon;
+use GatewayWorker\Lib\Gateway;
 use support\Db;
 use support\exception\BusinessError;
 use Throwable;
@@ -136,6 +138,70 @@ class ManualPromoteService
             //把数据抛到队列去发送luffa消息
             $content = array_map(fn(int $id) => json_enc(['id' => $id]), $promotedIds);
             rabbitmq_publish('v3:send_promoted', $content);
+
+            //立即把推荐发送到客户端
+            $promotes = PromotedOddView::query()
+                ->whereIn('id', $promotedIds)
+                ->orderBy('id')
+                ->get([
+                    'id',
+                    'match_id',
+                    'result',
+                    'variety',
+                    'period',
+                    'type',
+                    'condition',
+                    'score',
+                    'score1',
+                    'score2',
+                    'match_time',
+                    'team1_id',
+                    'team1_name',
+                    'team2_id',
+                    'team2_name',
+                    'tournament_id',
+                    'tournament_name',
+                ])
+                ->toArray();
+            foreach ($promotes as $row) {
+                $output = [
+                    'id' => $row['id'],
+                    'match_id' => $row['match_id'],
+                    'match_time' => Carbon::parse($row['match_time']),
+                    'variety' => $row['variety'],
+                    'period' => $row['period'],
+                    'type' => $row['type'],
+                    'condition' => $row['condition'],
+                    'tournament' => [
+                        'id' => $row['tournament_id'],
+                        'name' => $row['tournament_name'],
+                    ],
+                    'team1' => [
+                        'id' => $row['team1_id'],
+                        'name' => $row['team1_name'],
+                    ],
+                    'team2' => [
+                        'id' => $row['team2_id'],
+                        'name' => $row['team2_name'],
+                    ],
+                ];
+                if (isset($row['result'])) {
+                    $output['result'] = [
+                        'score' => $row['score'],
+                        'score1' => $row['score1'],
+                        'score2' => $row['score2'],
+                        'result' => $row['result'],
+                    ];
+                } else {
+                    $output['result'] = null;
+                }
+
+                Gateway::sendToGroup('vip', json_enc([
+                    'type' => 'promote',
+                    'sub_type' => 'manual',
+                    'data' => $output,
+                ]));
+            }
         }
     }
 

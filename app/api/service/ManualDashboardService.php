@@ -3,6 +3,7 @@
 namespace app\api\service;
 
 use app\model\PromotedOdd;
+use app\model\PromotedOddView;
 use app\model\User;
 use Carbon\Carbon;
 
@@ -68,60 +69,58 @@ class ManualDashboardService
      */
     public function promotedById(array $params, ?User $user = null): array
     {
-        $query = PromotedOdd::query()
-            ->join('manual_promote_odd', 'manual_promote_odd.promoted_odd_id', '=', 'promoted_odd.id')
-            ->join('v_match', 'v_match.id', '=', 'rockball_promoted.match_id')
-            ->where('promoted_odd.is_valid', '=', 1)
+        $query = PromotedOddView::query()
+            ->join('manual_promote_odd', 'manual_promote_odd.promoted_odd_id', '=', 'v_promoted_odd.id')
+            ->where('v_promoted_odd.is_valid', '=', 1)
             ->whereNull('manual_promote_odd.deleted_at');
 
         if (!empty($params['start_date'])) {
             $query->where(
-                'v_match.match_time',
+                'v_promoted_odd.match_time',
                 '>=',
                 Carbon::parse($params['start_date'])->toISOString(),
             );
         }
 
         if (!empty($params['last_id'])) {
-            $query->where('promoted_odd.id', '>', $params['last_id']);
+            $query->where('v_promoted_odd.id', '>', $params['last_id']);
         }
 
         if (empty($user)) {
             //如果没有用户，那么只能展示有结果的推荐
-            $query->whereNotNull('promoted_odd.result');
+            $query->whereNotNull('v_promoted_odd.result');
         } else if ($user->expire_time->unix() <= time()) {
             //如果用户已经过期了，那么只能展示有结果的或者在VIP到期之前推出来的
             $query->where(function ($where) use ($user) {
-                $where->whereNotNull('promoted_odd.result')
-                    ->orWhere('promoted_odd.created_at', '<', $user->expire_time->toISOString());
+                $where->whereNotNull('v_promoted_odd.result')
+                    ->orWhere('v_promoted_odd.created_at', '<', $user->expire_time->toISOString());
             });
         }
 
         $query
-            ->orderBy('promoted_odd.id', 'DESC')
-            ->orderBy('v_match.match_time', 'desc')
-            ->orderBy('promoted_odd.match_id');
+            ->orderBy('v_promoted_odd.id', 'DESC')
+            ->orderBy('v_promoted_odd.match_time', 'desc')
+            ->orderBy('v_promoted_odd.match_id');
 
         //查询
         $rows = $query->get([
-            'promoted_odd.id',
-            'promoted_odd.match_id',
-            'promoted_odd.result',
-            'promoted_odd.variety',
-            'promoted_odd.period',
-            'promoted_odd.type',
-            'promoted_odd.condition',
-            'promoted_odd.score',
-            'promoted_odd.score1',
-            'promoted_odd.score2',
-            'v_match.match_time',
-            'v_match.team1_id',
-            'v_match.team1_name',
-            'v_match.team2_id',
-            'v_match.team2_name',
-            'v_match.tournament_id',
-            'v_match.tournament_name',
-            'v_match.error_status',
+            'v_promoted_odd.id',
+            'v_promoted_odd.match_id',
+            'v_promoted_odd.result',
+            'v_promoted_odd.variety',
+            'v_promoted_odd.period',
+            'v_promoted_odd.type',
+            'v_promoted_odd.condition',
+            'v_promoted_odd.score',
+            'v_promoted_odd.score1',
+            'v_promoted_odd.score2',
+            'v_promoted_odd.match_time',
+            'v_promoted_odd.team1_id',
+            'v_promoted_odd.team1_name',
+            'v_promoted_odd.team2_id',
+            'v_promoted_odd.team2_name',
+            'v_promoted_odd.tournament_id',
+            'v_promoted_odd.tournament_name',
         ])
             ->toArray();
 
