@@ -36,7 +36,8 @@ class ManualDashboardController extends Controller
         return $this->success([
             'is_expired' => $request->user?->is_expired ?? 0,
             'list' => $list,
-            'summary' => $this->manualDashboardService->summary()
+            'summary' => $this->manualDashboardService->summary(),
+            'preparing' => [],
         ]);
     }
 }

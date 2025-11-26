@@ -2,9 +2,11 @@
 
 namespace app\api\service;
 
-use app\model\PromotedOdd;
+use app\model\Match1;
+use app\model\OddMansion;
 use app\model\PromotedOddMansion;
 use app\model\PromotedOddMansionView;
+use app\model\Tournament;
 use app\model\User;
 use Carbon\Carbon;
 
@@ -61,6 +63,60 @@ class CompareDashboardService
         }
 
         return $result;
+    }
+
+    /**
+     * 准备中的数据
+     * @return array
+     */
+    public function preparing(): array
+    {
+        ['final_check_time' => $finalCheckTime] = get_settings(['final_check_time']);
+
+        $rows = Tournament::query()
+            ->joinSub(
+                Match1::query()
+                    ->where('status', '=', '')
+                    ->where(
+                        'match_time',
+                        '>',
+                        Carbon::now()
+                            ->addMinutes($finalCheckTime ?? 5)
+                            ->toISOString())
+                    ->whereIn('id', OddMansion::query()
+                        ->where('status', '=', 'ready')
+                        ->select('match_id'))
+                    ->groupBy('tournament_id', 'match_time')
+                    ->select(['tournament_id', 'match_time']),
+                'a',
+                'a.tournament_id',
+                '=',
+                'tournament.id',
+            )
+            ->orderBy('a.match_time')
+            ->get([
+                'tournament.id',
+                'tournament.name',
+                'a.match_time',
+            ])
+            ->toArray();
+
+        return array_map(fn(array $row) => [
+            'id' => $row['id'],
+            'match_time' => $row['match_time'],
+            'tournament' => [
+                'id' => $row['id'],
+                'name' => $row['name'],
+            ],
+            'team1' => [
+                'id' => $row['id'],
+                'name' => $row['name'],
+            ],
+            'team2' => [
+                'id' => $row['id'],
+                'name' => $row['name'],
+            ],
+        ], $rows);
     }
 
     /**

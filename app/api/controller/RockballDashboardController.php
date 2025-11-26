@@ -97,7 +97,8 @@ class RockballDashboardController extends Controller
         return $this->success([
             'is_expired' => $request->user?->is_expired ?? 0,
             'list' => $list,
-            'summary' => $this->rockballDashboardService->summary()
+            'summary' => $this->rockballDashboardService->summary(),
+            'preparing' => $this->rockballDashboardService->preparing(),
         ]);
     }
 }

@@ -36,7 +36,8 @@ class CompareDashboardController extends Controller
         return $this->success([
             'is_expired' => $request->user?->is_expired ?? 0,
             'list' => $list,
-            'summary' => $this->compareDashboardService->summary()
+            'summary' => $this->compareDashboardService->summary(),
+            'preparing' => $this->compareDashboardService->preparing(),
         ]);
     }
 }
