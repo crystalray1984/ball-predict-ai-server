@@ -6,6 +6,7 @@ use app\model\ManualPromoteOdd;
 use app\model\Match1;
 use app\model\MatchView;
 use app\model\PromotedOdd;
+use app\model\PromotedOddMansion;
 use app\model\RockBallPromoted;
 use app\model\SurebetV2Promoted;
 use app\model\Tournament;
@@ -236,6 +237,47 @@ class MatchService
             $rockball_updates[$odd['id']] = $update;
         }
 
+        $mansion_updates = [];
+        $query = PromotedOddMansion::query()
+            ->where('match_id', '=', $data['match_id']);
+        if ($data['period1']) {
+            $query->where('period', '=', 'period1');
+        }
+        $odds = $query
+            ->get([
+                'id',
+                'variety',
+                'period',
+                'type',
+                'condition',
+            ])
+            ->toArray();
+
+        foreach ($odds as $odd) {
+            //角球无数据的判断
+            if ($odd['variety'] === 'corner') {
+                if ($odd['period'] === 'period1') {
+                    if (!is_int($data['corner1_period1']) || !is_int($data['corner2_period1'])) {
+                        continue;
+                    }
+                } else {
+                    if (!is_int($data['corner1']) || !is_int($data['corner2'])) {
+                        continue;
+                    }
+                }
+            }
+
+            //计算第一赛果
+            $update = [];
+            $result1 = get_odd_score($data, $odd);
+            $update['score'] = $result1['score'];
+            $update['score1'] = $result1['score1'];
+            $update['score2'] = $result1['score2'];
+            $update['result'] = $result1['result'];
+
+            $mansion_updates[$odd['id']] = $update;
+        }
+
         Db::beginTransaction();
         try {
             //首先设置赛果
@@ -281,6 +323,12 @@ class MatchService
 
             foreach ($rockball_updates as $oddId => $update) {
                 RockBallPromoted::query()
+                    ->where('id', '=', $oddId)
+                    ->update($update);
+            }
+
+            foreach ($mansion_updates as $oddId => $update) {
+                PromotedOddMansion::query()
                     ->where('id', '=', $oddId)
                     ->update($update);
             }
