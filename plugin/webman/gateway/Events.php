@@ -3,6 +3,8 @@
 namespace plugin\webman\gateway;
 
 use GatewayWorker\Lib\Gateway;
+use Respect\Validation\Exceptions\ValidationException;
+use Respect\Validation\Validator as v;
 use support\Token;
 use Throwable;
 
@@ -74,6 +76,8 @@ class Events
 
         //设置连接的组
         Gateway::bindUid($client_id, $user->id);
+        //设置连接的类型标识
+        Gateway::updateSession($client_id, ['type' => 'user']);
 
         //加入vip组
         if ($user->expire_time->unix() > time()) {
@@ -94,12 +98,69 @@ class Events
         if (!empty($data['get']['service_type'])) {
             Gateway::joinGroup($client_id, $data['get']['service_type']);
         }
+        //设置连接的类型标识
+        Gateway::updateSession($client_id, ['type' => 'service']);
         return true;
     }
 
     public static function onMessage(string $client_id, string $message): void
     {
+        //解析消息
+        $data = json_decode($message, true);
+        if (empty($data) || !empty($data['type'])) return;
 
+        //检查消息连接上的
+        $checkClientType = fn(string $type) => !empty($_SESSION['type']) && $_SESSION['type'] === $type;
+
+        //根据不同的消息类型，进行不同的处理
+        switch ($data['type']) {
+            case 'send_to': //发送消息到其他客户端
+                //需要检查只有服务客户端允许发消息
+                if ($checkClientType('service')) {
+                    self::doSendTo($client_id, $data);
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
+     * 执行消息发送操作
+     * @param string $client_id
+     * @param array $data
+     * @return void
+     */
+    protected static function doSendTo(string $client_id, array $data): void
+    {
+        //消息格式检测
+        try {
+            $params = v::input($data['data'], [
+                'type' => v::in(['uid', 'group'])->setName('type'),
+                'target' => v::anyOf(
+                    v::arrayType()->notEmpty(),
+                    v::stringType()->notEmpty(),
+                    v::intType()->positive(),
+                )->setName('target'),
+                'message' => v::arrayType()
+                    ->key('type', v::stringType()->notEmpty())
+                    ->setName('message'),
+            ]);
+        } catch (ValidationException) {
+            return;
+        }
+
+        $message = json_enc($params['message']);
+
+        //发送
+        switch ($params['type']) {
+            case 'uid':
+                Gateway::sendToUid($params['target'], $message);
+                break;
+            case 'group':
+                Gateway::sendToGroup($params['target'], $message, [$client_id]);
+                break;
+        }
     }
 
     public static function onClose(string $client_id): void
