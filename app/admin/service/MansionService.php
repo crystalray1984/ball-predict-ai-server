@@ -133,6 +133,8 @@ class MansionService
                     'is_valid',
                     'created_at',
                     'value',
+                    'value0',
+                    'value1',
                 ])
                 ->toArray();
 
@@ -189,7 +191,6 @@ class MansionService
                 'odd_mansion.period',
                 'odd_mansion.type',
                 'odd_mansion.condition',
-                'odd_mansion.surebet_value',
                 'odd_mansion.status',
                 'odd_mansion.created_at',
                 'odd_mansion.ready_at',
@@ -239,6 +240,8 @@ class MansionService
                 '距离开赛',
                 '推荐方向',
                 '推荐盘口',
+                '正推水位',
+                '反推水位',
                 '推荐水位',
                 '结果',
                 '对应赛果',
@@ -324,6 +327,8 @@ class MansionService
                 $row['promoted'] ? $row['promoted']['duration'] : '',
                 $promoted_type,
                 $promoted_condition,
+                $row['promoted']['value0'] ?? '',
+                $row['promoted']['value1'] ?? '',
                 $row['promoted']['value'] ?? '',
                 $result,
                 $result_score,
