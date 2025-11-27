@@ -177,6 +177,8 @@ Route::group('/admin', function () {
         Route::post('/match', [\app\admin\controller\MatchController::class, 'getMatch']);
         //设置赛事的异常状态
         Route::post('/set_error_status', [\app\admin\controller\MatchController::class, 'setMatchErrorStatus']);
+        //修改比赛时间
+        Route::post('/set_time', [\app\admin\controller\MatchController::class, 'setMatchTime']);
 
         //联赛标签接口
         Route::group('/label', function () {

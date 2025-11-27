@@ -3,7 +3,9 @@
 namespace app\admin\controller;
 
 use app\admin\service\MatchService;
+use app\model\Match1;
 use app\model\Tournament;
+use Carbon\Carbon;
 use DI\Attribute\Inject;
 use Respect\Validation\Validator as v;
 use support\attribute\CheckAdminToken;
@@ -140,6 +142,30 @@ class MatchController extends Controller
             ->check($data);
 
         $this->matchService->multiSetMatchScore($data);
+        return $this->success();
+    }
+
+    /**
+     * 修改比赛时间
+     * @param Request $request
+     * @return Response
+     */
+    #[CheckAdminToken]
+    public function setMatchTime(Request $request): Response
+    {
+        [
+            'id' => $id,
+            'match_time' => $match_time,
+        ] = v::input($request->post(), [
+            'id' => v::intType()->positive()->setName('id'),
+            'match_time' => v::intType()->positive()->setName('match_time'),
+        ]);
+
+        Match1::withoutTimestamps(function ($query) use ($id, $match_time) {
+            $query->where('id', '=', $id)
+                ->update(['match_time' => Carbon::createFromTimestampMs($match_time)->toISOString()]);
+        });
+
         return $this->success();
     }
 
