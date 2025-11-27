@@ -237,6 +237,7 @@ class MansionService
                 '推荐时间',
                 '推荐方向',
                 '推荐盘口',
+                '推荐水位',
                 '结果',
                 '对应赛果',
             ];
@@ -320,6 +321,7 @@ class MansionService
                 $row['promoted'] ? Carbon::parse($row['promoted']['created_at'])->toDateTimeString() : '',
                 $promoted_type,
                 $promoted_condition,
+                $row['promoted']['value'] ?? '',
                 $result,
                 $result_score,
             ];
