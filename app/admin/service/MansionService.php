@@ -150,6 +150,7 @@ class MansionService
                 //推荐数据
                 $promoted = $promotes[$row['id']] ?? null;
                 if ($promoted) {
+                    $promoted['duration'] = round(Carbon::parse($promoted['created_at'])->diffInHours($row['match_time']));
                     //计算结果
                     if (isset($promoted['result'])) {
                         $promoted['result'] = [
