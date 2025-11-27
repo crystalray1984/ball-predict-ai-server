@@ -1,3 +1,3 @@
 #!/usr/bin/env sh
 git fetch && git pull
-docker exec "ball-predict-ai-server-v3" php start.php reload
+docker exec "ball-predict-ai-server" php start.php reload
