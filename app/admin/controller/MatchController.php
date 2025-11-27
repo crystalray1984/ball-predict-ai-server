@@ -161,10 +161,9 @@ class MatchController extends Controller
             'match_time' => v::intType()->positive()->setName('match_time'),
         ]);
 
-        Match1::withoutTimestamps(function ($query) use ($id, $match_time) {
-            $query->where('id', '=', $id)
-                ->update(['match_time' => Carbon::createFromTimestampMs($match_time)->toISOString()]);
-        });
+        Match1::query()
+            ->where('id', '=', $id)
+            ->update(['match_time' => Carbon::createFromTimestampMs($match_time)->toISOString()]);
 
         return $this->success();
     }
