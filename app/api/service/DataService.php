@@ -98,7 +98,7 @@ class DataService
         $list = OddMansion::query()
             ->join('v_match', "v_match.id", '=', "odd_mansion.match_id")
             ->where('odd_mansion.status', '=', 'ready')
-            ->where('v_match.match_time', '>', OddMansion::raw("CURRENT_TIMESTAMP - interval '$finalCheckTime minutes'"))
+            ->where('v_match.match_time', '>', OddMansion::raw("CURRENT_TIMESTAMP + interval '$finalCheckTime minutes'"))
             ->where('v_match.tournament_is_open', '=', 1)
             ->orderBy('v_match.match_time')
             ->orderBy('v_match.tournament_id')
