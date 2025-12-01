@@ -22,8 +22,8 @@ class DataReportService
     {
         $list = PromotedView::query()
             ->whereIn('channel', $channels)
-            ->where('match_time', '>=', Carbon::parse($start)->toISOString())
-            ->where('match_time', '<', Carbon::parse($end)->toISOString())
+            ->where('match_time', '>=', crown_time($start)->toISOString())
+            ->where('match_time', '<', crown_time($end)->toISOString())
             ->whereNotNull('result')
             ->whereNotNull('value')
             ->orderBy('variety')
@@ -104,7 +104,7 @@ class DataReportService
     public function getReport(array $channels, int $week, bool $force = false): array
     {
         //周起点
-        $week_start = Carbon::now()->startOf('week')->subDays($week * 7);
+        $week_start = crown_time(Carbon::now()->startOf('week')->subDays($week * 7));
         $week_end = $week_start->clone()->addDays(7);
         $week_day = (int)$week_start->format('Ymd');
 

@@ -172,4 +172,45 @@ class UserService
 
         return $user;
     }
+
+    /**
+     * 通过邮箱重设密码
+     * @param array{
+     *     username: string,
+     *     password: string,
+     *     code: string
+     * } $data
+     * @return User
+     */
+    public function resetPassword(array $data): User
+    {
+        //检查邮箱验证码
+        $code = Redis::get('email_code:' . $data['username']);
+        if (empty($code) || $code !== $data['code']) {
+            throw new BusinessError('验证码错误');
+        }
+
+        $connect = UserConnect::query()
+            ->where('platform', '=', 'email')
+            ->where('account', '=', $data['username'])
+            ->first();
+        if (!$connect) {
+            throw new BusinessError('该邮箱尚未注册用户');
+        }
+
+        $connect->password = md5($data['password']);
+        $connect->save();
+
+        $user = get_user($connect->user_id);
+
+        if (!$user) {
+            throw new BusinessError('用户不存在');
+        }
+
+        if (!$user->status) {
+            throw new BusinessError('用户已被禁用');
+        }
+
+        return $user;
+    }
 }

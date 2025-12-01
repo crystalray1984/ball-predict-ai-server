@@ -117,7 +117,7 @@ class LoginRegisterService
     {
         //检查邮箱验证码
         $code = Redis::get('email_code:' . $params['username']);
-        if (empty($code)) {
+        if (empty($code) || $code !== $params['code']) {
             throw new BusinessError('验证码错误');
         }
 

@@ -3,6 +3,7 @@
 namespace app\admin\controller;
 
 use app\admin\service\UserService;
+use app\model\UserConnect;
 use Carbon\Carbon;
 use DI\Attribute\Inject;
 use Respect\Validation\Validator as v;
@@ -102,5 +103,27 @@ class UserController extends Controller
         }
 
         return $this->success($result);
+    }
+
+    /**
+     * 修改用户密码
+     * @param Request $request
+     * @return Response
+     */
+    #[CheckAdminToken]
+    public function setPassword(Request $request): Response
+    {
+        $params = v::input($request->post(), [
+            'user_id' => v::intType()->min(1)->setName('user_id'),
+            'platform' => v::optional(v::in(['email']))->setName('platform'),
+            'password' => v::stringType()->notEmpty()->setName('password'),
+        ]);
+
+        UserConnect::query()
+            ->where('user_id', '=', $params['user_id'])
+            ->where('platform', '=', $params['platform'] ?? 'email')
+            ->update(['password' => md5($params['password'])]);
+
+        return $this->success();
     }
 }

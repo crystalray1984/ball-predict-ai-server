@@ -2,16 +2,18 @@
 
 use app\model\Admin;
 use app\model\User;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use support\Container;
+use Webman\Http\Request;
 
 if (!function_exists('enable_debug')) {
     /**
      * 判断是否开启了调试
-     * @param \Webman\Http\Request|null $request
+     * @param Request|null $request
      * @return bool
      */
-    function enable_debug(?\Webman\Http\Request $request = null): bool
+    function enable_debug(?Request $request = null): bool
     {
         if ($request) {
             //尝试从请求头或者请求参数中获取调试开关
@@ -28,7 +30,7 @@ if (!function_exists('G')) {
      * 获取全局缓存的实例
      * @template T
      * @param class-string<T> $class
-     * @return T
+     * @return T|mixed
      */
     function G(string $class): mixed
     {
@@ -635,5 +637,21 @@ if (!function_exists('get_odd_profit')) {
         }
 
         return [$profit, $win_count];
+    }
+}
+
+if (!function_exists('crown_time')) {
+    /**
+     * 返回以皇冠结算日期划定的时间
+     * @param Carbon|string|null $input
+     * @return Carbon
+     */
+    function crown_time(Carbon|string|null $input = null): Carbon
+    {
+        if (is_null($input)) {
+            return Carbon::now()->addHours(12);
+        } else {
+            return Carbon::parse($input)->addHours(12);
+        }
     }
 }

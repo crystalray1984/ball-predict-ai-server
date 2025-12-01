@@ -36,6 +36,8 @@ Route::group('/api', function () {
         Route::post('/bind_inviter', [\app\api\controller\UserController::class, 'bindInviter']);
         //通过邮箱注册新用户
         Route::post('/email_register', [\app\api\controller\UserController::class, 'emailRegister']);
+        //通过邮箱+验证码重设密码
+        Route::post('/reset_password', [\app\api\controller\UserController::class, 'resetPassword']);
     });
 
     //佣金接口
@@ -178,6 +180,8 @@ Route::group('/admin', function () {
         Route::post('/set_status', [\app\admin\controller\UserController::class, 'setStatus']);
         //设置用户的VIP有效期
         Route::post('/set_expire_time', [\app\admin\controller\UserController::class, 'setExpireTime']);
+        //设置用户的密码
+        Route::post('/set_password', [\app\admin\controller\UserController::class, 'setPassword']);
     });
 
     //概览页统计接口

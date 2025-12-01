@@ -20,14 +20,14 @@ class SurebetV2Service
             $query->where(
                 'v_match.match_time',
                 '>=',
-                Carbon::parse($params['start_date'])->toISOString(),
+                crown_time($params['start_date'])->toISOString(),
             );
         }
         if (!empty($params['end_date'])) {
             $query->where(
                 'v_match.match_time',
                 '<',
-                Carbon::parse($params['end_date'])
+                crown_time($params['end_date'])
                     ->addDays()
                     ->toISOString(),
             );

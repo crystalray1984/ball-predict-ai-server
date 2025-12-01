@@ -34,11 +34,11 @@ class SurebetRecordService
         }
 
         if (!empty($params['match_date_start'])) {
-            $query->where('v_match.match_time', '>=', Carbon::parse($params['match_date_start'])->toISOString());
+            $query->where('v_match.match_time', '>=', crown_time($params['match_date_start'])->toISOString());
         }
 
         if (!empty($params['match_date_end'])) {
-            $query->where('v_match.match_time', '<', Carbon::parse($params['match_date_end'])->addDay()->toISOString());
+            $query->where('v_match.match_time', '<', crown_time($params['match_date_end'])->addDay()->toISOString());
         }
 
         if (!empty($params['date_start'])) {

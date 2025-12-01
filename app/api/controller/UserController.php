@@ -154,4 +154,28 @@ class UserController extends Controller
         $this->userService->bindInviter($request->user->id, $code);
         return $this->success();
     }
+
+    /**
+     * 通过邮箱和验证码重设用户密码并登录
+     * @param Request $request
+     * @return Response
+     */
+    public function resetPassword(Request $request): Response
+    {
+        $params = v::input($request->post(), [
+            'username' => v::stringType()->notEmpty()->setName('username'),
+            'password' => v::stringType()->notEmpty()->setName('password'),
+            'code' => v::stringType()->notEmpty()->setName('code'),
+        ]);
+
+        $user = $this->userService->resetPassword($params);
+
+        //生成token
+        $token = Token::create(['id' => $user->id, 'type' => 'user']);
+
+        return $this->success([
+            'token' => $token,
+            'user' => $this->userService->getUserInfo($user),
+        ]);
+    }
 }

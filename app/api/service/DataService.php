@@ -132,10 +132,10 @@ class DataService
         if (!empty($start) || !empty($end)) {
             $query->join('match', "match.id", '=', "promoted.match_id");
             if (!empty($start)) {
-                $query->where('match.match_time', '>=', Carbon::parse($start)->toISOString());
+                $query->where('match.match_time', '>=', crown_time($start)->toISOString());
             }
             if (!empty($end)) {
-                $query->where('match.match_time', '<', Carbon::parse($end)->toISOString());
+                $query->where('match.match_time', '<', crown_time($end)->toISOString());
             }
         }
 
@@ -170,7 +170,7 @@ class DataService
             ->where('is_valid', '=', 1);
 
         if (!empty($matchTimeStart)) {
-            $query->where('match_time', '>=', Carbon::parse($matchTimeStart)->toISOString());
+            $query->where('match_time', '>=', crown_time($matchTimeStart)->toISOString());
         }
 
         if (empty($expireTime)) {
