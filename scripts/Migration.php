@@ -77,7 +77,7 @@ class Migration
 
         //生成数据
         foreach ($merged as $origin) {
-            echo Carbon::parse($origin['created_at'])->toDateTimeLocalString() . PHP_EOL;
+            echo $origin['channel'] . ' ' . $origin['id'] . ' ' . Carbon::parse($origin['created_at'])->toDateTimeLocalString() . PHP_EOL;
 
             //新表的字段
             $row = [
