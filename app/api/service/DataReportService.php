@@ -18,7 +18,7 @@ class DataReportService
      * @param Carbon|string $end
      * @return array
      */
-    public function createReport(array $channels, Carbon|string $start, Carbon|string $end): array
+    protected function createReport(array $channels, Carbon|string $start, Carbon|string $end): array
     {
         $list = PromotedView::query()
             ->whereIn('channel', $channels)
@@ -83,6 +83,7 @@ class DataReportService
     {
         //周起点
         $week_start = Carbon::now()->startOf('week')->subDays($week * 7);
+        $week_end = $week_start->clone()->addDays(7);
         $week_day = (int)$week_start->format('Ymd');
 
         //看看有没有缓存数据
@@ -94,8 +95,12 @@ class DataReportService
             }
         }
 
-        $data = $this->createReport($channels, $week_start, $week_start->clone()->addDays(7));
+        $data = $this->createReport($channels, $week_start, $week_end);
         Redis::setEx($key, 86400 * 14, json_enc($data));
-        return $data;
+        return [
+            'start' => $week_start,
+            'end' => $week_end->subMillisecond(),
+            'data' => $data
+        ];
     }
 }

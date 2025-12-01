@@ -77,9 +77,10 @@ Route::group('/api', function () {
         Route::post('/featured', [\app\api\controller\DataController::class, 'featured']);
         //综合数据
         Route::post('/synthesis', [\app\api\controller\DataController::class, 'synthesis']);
-        //数据统计
+        //数据报告
         Route::group('/report', function () {
-            
+            //滚球数据报告
+            Route::post('/rockball', [\app\api\controller\DataReportController::class, 'rockball']);
         });
     });
 
