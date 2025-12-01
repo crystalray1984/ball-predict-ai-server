@@ -187,8 +187,6 @@ class Migration
             }
         }
 
-        var_export($updates);
-
         //更新其他表
         foreach ($updates as $table => $list) {
             foreach ($list as $item) {
