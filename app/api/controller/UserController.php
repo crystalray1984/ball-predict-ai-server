@@ -195,7 +195,7 @@ class UserController extends Controller
             'marked' => v::boolType()->setName('marked'),
         ]);
 
-        $this->userService->mark($id, $request->user->id, $marked);
+        $this->userService->mark($request->user->id, $id, $marked);
         return $this->success();
     }
 }
