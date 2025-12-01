@@ -126,7 +126,6 @@ class MansionService
                     'type',
                     'condition',
                     'score',
-                    'back',
                     'skip',
                     'is_valid',
                     'created_at',
