@@ -104,6 +104,7 @@ class CommonController extends Controller
             ->where('client_version.version_number', '>=', $version_number)
             ->where('client_version.status', '=', 1)
             ->whereNull('client_version.deleted_at')
+            ->orderBy('client_version.version_number', 'DESC')
             ->first([
                 'client_version.id',
                 'client_version.version',
