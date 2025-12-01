@@ -275,7 +275,7 @@ class MatchController extends Controller
 
         Tournament::query()
             ->whereIn('id', $params['id_list'])
-            ->update($params);
+            ->update($params['update']);
 
         return $this->success();
     }
