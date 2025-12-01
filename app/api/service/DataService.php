@@ -7,7 +7,7 @@ use app\model\Promoted;
 use app\model\PromotedView;
 use app\model\RockBallOdd;
 use Carbon\Carbon;
-use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Eloquent\Builder;
 
 class DataService
 {
