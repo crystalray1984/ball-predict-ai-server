@@ -130,8 +130,6 @@ class MansionService
                     'is_valid',
                     'created_at',
                     'value',
-                    'value0',
-                    'value1',
                     'extra',
                 ])
                 ->toArray();
