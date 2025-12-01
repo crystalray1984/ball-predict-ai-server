@@ -26,6 +26,9 @@ class DataReportService
             ->where('match_time', '<', Carbon::parse($end)->toISOString())
             ->whereNotNull('result')
             ->whereNotNull('value')
+            ->orderBy('variety')
+            ->orderBy('period')
+            ->orderBy('condition')
             ->get([
                 'variety',
                 'period',
