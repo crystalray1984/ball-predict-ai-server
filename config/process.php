@@ -82,4 +82,14 @@ if (yaml('app.vip_socket_check', false) === true) {
     ];
 }
 
+//生成收益统计报告
+if (yaml('app.update_report', false) === true) {
+    $processes['UpdateReport'] = [
+        'handler' => app\process\UpdateReport::class,
+        'count' => 1,
+        'reloadable' => true,
+        'constructor' => [],
+    ];
+}
+
 return $processes;

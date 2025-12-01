@@ -4,6 +4,7 @@ namespace app\api\controller;
 
 use app\model\ClientVersion;
 use app\model\ClientVersionBuild;
+use app\model\LuffaGame;
 use app\model\UserConnect;
 use Carbon\Carbon;
 use GatewayWorker\Lib\Gateway;
@@ -185,5 +186,33 @@ class CommonController extends Controller
         }
 
         return $this->success();
+    }
+
+    /**
+     * 获取Luffa小游戏列表
+     * @return Response
+     */
+    public function luffaGameList(): Response
+    {
+        $list = LuffaGame::query()
+            ->where('is_visible', '=', 1)
+            ->orderBy('sort', 'DESC')
+            ->orderBy('id', 'DESC')
+            ->get([
+                'id',
+                'app_id',
+                'app_entry',
+                'img_path',
+                'name'
+            ])
+            ->toArray();
+
+        array_walk($list, function (&$item) {
+            if (!empty($item['img_path'])) {
+                $item['img_path'] = Storage::getUrl($item['img_path']);
+            }
+        });
+
+        return $this->success($list);
     }
 }

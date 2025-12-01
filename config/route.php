@@ -18,6 +18,8 @@ Route::group('/api', function () {
         Route::any('/check_desktop_update/{name}', [\app\api\controller\CommonController::class, 'checkDesktopUpdate']);
         //发送WS消息
         Route::post('/send_socket_message', [\app\api\controller\CommonController::class, 'sendSocketMessage']);
+        //获取Luffa小游戏列表
+        Route::any('/luffa_games', [\app\api\controller\CommonController::class, 'luffaGameList']);
     });
 
     //用户接口
@@ -75,6 +77,10 @@ Route::group('/api', function () {
         Route::post('/featured', [\app\api\controller\DataController::class, 'featured']);
         //综合数据
         Route::post('/synthesis', [\app\api\controller\DataController::class, 'synthesis']);
+        //数据统计
+        Route::group('/report', function () {
+            
+        });
     });
 
     //滚球接口
