@@ -116,7 +116,7 @@ class Migration
                 }
 
                 $id = Promoted::insertGetId($row);
-                if ($row['source'] === 'manual_promote_odd') {
+                if ($origin['source'] === 'manual_promote_odd') {
                     $updates['manual_promote_odd'][] = [
                         'where' => ['id' => $origin['source_id']],
                         'update' => ['promoted_odd_id' => $id],
