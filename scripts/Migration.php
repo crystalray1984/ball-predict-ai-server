@@ -11,6 +11,9 @@ use app\model\RockBallPromoted;
 use app\model\SurebetV2Promoted;
 use Carbon\Carbon;
 
+require_once __DIR__ . "/../vendor/autoload.php";
+require_once __DIR__ . "/../support/bootstrap.php";
+
 /**
  * 从v3到v4数据表迁移数据
  */
@@ -74,6 +77,8 @@ class Migration
 
         //生成数据
         foreach ($merged as $origin) {
+            echo Carbon::parse($origin['created_at'])->toDateTimeLocalString() . PHP_EOL;
+
             //新表的字段
             $row = [
                 'match_id' => $origin['match_id'],
@@ -184,3 +189,5 @@ class Migration
         var_export($updates);
     }
 }
+
+(new Migration())->run();
