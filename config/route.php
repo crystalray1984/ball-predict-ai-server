@@ -38,6 +38,8 @@ Route::group('/api', function () {
         Route::post('/email_register', [\app\api\controller\UserController::class, 'emailRegister']);
         //通过邮箱+验证码重设密码
         Route::post('/reset_password', [\app\api\controller\UserController::class, 'resetPassword']);
+        //标记或取消标记一个盘口
+        Route::post('/mark', [\app\api\controller\UserController::class, 'mark']);
     });
 
     //佣金接口
