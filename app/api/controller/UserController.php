@@ -178,4 +178,24 @@ class UserController extends Controller
             'user' => $this->userService->getUserInfo($user),
         ]);
     }
+
+    /**
+     * 标记推荐盘口
+     * @param Request $request
+     * @return Response
+     */
+    #[CheckUserToken]
+    public function mark(Request $request): Response
+    {
+        [
+            'id' => $id,
+            'marked' => $marked,
+        ] = v::input($request->post(), [
+            'id' => v::intType()->positive()->setName('id'),
+            'marked' => v::boolType()->setName('marked'),
+        ]);
+
+        $this->userService->mark($id, $request->user->id, $marked);
+        return $this->success();
+    }
 }

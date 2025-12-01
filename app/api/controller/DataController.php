@@ -32,7 +32,7 @@ class DataController extends Controller
 
         return $this->success([
             'is_expired' => $request->user?->is_expired ?? 0,
-            'list' => $this->dataService->promoted(['rockball'], $startDate, $request->user?->expire_time),
+            'list' => $this->dataService->promoted(['rockball'], $request->user?->id ?? 0, $startDate, $request->user?->expire_time),
             'summary' => $this->dataService->summary(['rockball']),
             'preparing' => $this->dataService->rockballPreparing(),
         ]);
@@ -52,7 +52,7 @@ class DataController extends Controller
 
         return $this->success([
             'is_expired' => $request->user?->is_expired ?? 0,
-            'list' => $this->dataService->promoted(['direct'], $startDate, $request->user?->expire_time),
+            'list' => $this->dataService->promoted(['direct'], $request->user?->id ?? 0, $startDate, $request->user?->expire_time),
             'summary' => $this->dataService->summary(['direct']),
             'preparing' => [],
         ]);
@@ -72,7 +72,7 @@ class DataController extends Controller
 
         return $this->success([
             'is_expired' => $request->user?->is_expired ?? 0,
-            'list' => $this->dataService->promoted(['mansion'], $startDate, $request->user?->expire_time),
+            'list' => $this->dataService->promoted(['mansion'], $request->user?->id ?? 0, $startDate, $request->user?->expire_time),
             'summary' => $this->dataService->summary(['mansion']),
             'preparing' => $this->dataService->mansionPreparing(),
         ]);

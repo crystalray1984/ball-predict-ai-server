@@ -6,6 +6,7 @@ use app\model\OddMansion;
 use app\model\Promoted;
 use app\model\PromotedView;
 use app\model\RockBallOdd;
+use app\model\UserMarked;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -163,7 +164,7 @@ class DataService
      * @param Carbon|string|null $expireTime 用户的VIP过期时间
      * @return array
      */
-    public function promoted(array $channels, Carbon|string|null $matchTimeStart = null, Carbon|string|null $expireTime = null): array
+    public function promoted(array $channels, int $userId = 0, Carbon|string|null $matchTimeStart = null, Carbon|string|null $expireTime = null): array
     {
         $query = PromotedView::query()
             ->whereIn('channel', $channels)
@@ -204,7 +205,16 @@ class DataService
             ])
             ->toArray();
 
-        return array_map(function (array $row) {
+        $marked = [];
+        if (!empty($userId) && !empty($list)) {
+            $marked = UserMarked::query()
+                ->where('user_id', '=', $userId)
+                ->whereIn('promote_id', array_column($list, 'id'))
+                ->pluck('promote_id')
+                ->toArray();
+        }
+
+        return array_map(function (array $row) use ($marked) {
             return [
                 'id' => $row['id'],
                 'variety' => $row['variety'],
@@ -229,6 +239,7 @@ class DataService
                     'result' => $row['result'],
                     'score' => $row['score'],
                 ] : null,
+                'marked' => in_array($row['id'], $marked),
             ];
         }, $list);
     }

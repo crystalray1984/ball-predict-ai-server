@@ -5,6 +5,7 @@ namespace app\api\service;
 use app\model\Order;
 use app\model\User;
 use app\model\UserConnect;
+use app\model\UserMarked;
 use Carbon\Carbon;
 use support\Db;
 use support\exception\BusinessError;
@@ -212,5 +213,27 @@ class UserService
         }
 
         return $user;
+    }
+
+    /**
+     * 操作用户标记数据
+     * @param int $userId
+     * @param int $promoteId
+     * @param bool $marked
+     * @return void
+     */
+    public function mark(int $userId, int $promoteId, bool $marked): void
+    {
+        if ($marked) {
+            UserMarked::insertOrIgnore([
+                'user_id' => $userId,
+                'promote_id' => $promoteId,
+            ]);
+        } else {
+            UserMarked::query()
+                ->where('user_id', '=', $userId)
+                ->where('promote_id', '=', $promoteId)
+                ->delete();
+        }
     }
 }
