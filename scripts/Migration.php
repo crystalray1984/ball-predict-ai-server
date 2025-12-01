@@ -10,6 +10,7 @@ use app\model\PromotedOddMansion;
 use app\model\RockBallPromoted;
 use app\model\SurebetV2Promoted;
 use Carbon\Carbon;
+use support\Db;
 
 require_once __DIR__ . "/../vendor/autoload.php";
 require_once __DIR__ . "/../support/bootstrap.php";
@@ -108,10 +109,10 @@ class Migration
                 $row['source_type'] = $origin['source'];
                 $row['source_id'] = $origin['source_id'];
                 if (!empty($origin['start_odd_data']) && !empty($origin['end_odd_data'])) {
-                    $row['extra'] = [
+                    $row['extra'] = json_enc([
                         'start_odd_data' => json_decode($origin['start_odd_data'], true),
                         'end_odd_data' => json_decode($origin['end_odd_data'], true),
-                    ];
+                    ]);
                 }
 
                 $id = Promoted::insertGetId($row);
@@ -125,13 +126,13 @@ class Migration
                 //mansion对比
                 $row['source_type'] = 'mansion';
                 $row['source_id'] = $origin['odd_mansion_id'];
-                $row['extra'] = [
+                $row['extra'] = json_enc([
                     'odd_id' => $origin['odd_id'],
                     'mansion_id' => $origin['odd_mansion_id'],
                     'value0' => $origin['value0'],
                     'value1' => $origin['value1'],
                     'back' => $origin['back'],
-                ];
+                ]);
                 Promoted::insert($row);
             } else if ($origin['channel'] === 'rockball') {
                 //滚球
@@ -165,10 +166,10 @@ class Migration
                     ->where('channel', '=', 'generic')
                     ->first(['id']);
 
-                $row['extra'] = [
+                $row['extra'] = json_enc([
                     'back' => 1 - $origin['back'],
                     'promoted_id' => $promoted?->id ?? 0,
-                ];
+                ]);
 
                 $id = Promoted::insertGetId($row);
 
@@ -187,6 +188,15 @@ class Migration
         }
 
         var_export($updates);
+
+        //更新其他表
+        foreach ($updates as $table => $list) {
+            foreach ($list as $item) {
+                Db::table($table)
+                    ->where($item['where'])
+                    ->update($item['update']);
+            }
+        }
     }
 }
 
