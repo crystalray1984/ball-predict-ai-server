@@ -18,12 +18,12 @@ class DataReportService
      * @param Carbon|string $end
      * @return array
      */
-    protected function createReport(array $channels, Carbon|string $start, Carbon|string $end): array
+    public function createReport(array $channels, Carbon|string $start, Carbon|string $end): array
     {
         $list = PromotedView::query()
             ->whereIn('channel', $channels)
-            ->where('match_time', '>=', $start->toISOString())
-            ->where('match_time', '<', $end->toISOString())
+            ->where('match_time', '>=', Carbon::parse($start)->toISOString())
+            ->where('match_time', '<', Carbon::parse($end)->toISOString())
             ->whereNotNull('result')
             ->whereNotNull('value')
             ->get([
@@ -67,8 +67,8 @@ class DataReportService
                     $output[$key]['draw']++;
                     break;
             }
-
-            $output[$key]['profit'] = bcadd($output[$key]['profit'], get_odd_profit($item));
+            $profit = get_odd_profit($item);
+            $output[$key]['profit'] = bcadd($output[$key]['profit'], $profit, 6);
         }
 
         return array_values($output);
