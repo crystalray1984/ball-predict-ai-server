@@ -125,9 +125,8 @@ class OddService
         //按比赛id组合数据
         $promoted = [];
         foreach ($_promoted as $row) {
-            $extra = json_decode($row['extra'], true);
-            $row['start_odd_data'] = $extra['start_odd_data'];
-            $row['end_odd_data'] = $extra['end_odd_data'];
+            $row['start_odd_data'] = $row['extra']['start_odd_data'];
+            $row['end_odd_data'] = $row['extra']['end_odd_data'];
             $promoted[$row['match_id']][] = $row;
         }
 
@@ -282,9 +281,8 @@ class OddService
                 //按比赛id组合数据
                 $promoted = [];
                 foreach ($_promoted as $row) {
-                    $extra = json_decode($row['extra'], true);
-                    $row['start_odd_data'] = $extra['start_odd_data'];
-                    $row['end_odd_data'] = $extra['end_odd_data'];
+                    $row['start_odd_data'] = $row['extra']['start_odd_data'];
+                    $row['end_odd_data'] = $row['extra']['end_odd_data'];
                     $promoted[$row['match_id']][] = $row;
                 }
 
