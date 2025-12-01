@@ -31,17 +31,7 @@ class Events
         $valid = false;
         switch ($data['get']['type']) {
             case 'user':
-                self::checkUserConnect($client_id, $data);
-                $valid = true;
-
-                //加入设备组，监听更新消息
-                if (!empty($data['get']['platform'])) {
-                    if ($data['get']['platform'] === 'win32') {
-                        Gateway::joinGroup($client_id, 'platform:win32:' . $data['get']['arch']);
-                    } else if ($data['get']['platform'] === 'darwin') {
-                        Gateway::joinGroup($client_id, 'platform:darwin');
-                    }
-                }
+                $valid = self::checkUserConnect($client_id, $data);
                 break;
             case 'service':
                 $valid = self::checkServiceConnect($client_id, $data);
