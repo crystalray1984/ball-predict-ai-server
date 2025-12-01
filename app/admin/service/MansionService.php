@@ -136,10 +136,9 @@ class MansionService
 
             array_walk($promotes, function (&$item) {
                 if (empty($item['extra'])) return;
-                $extra = json_decode($item['extra'], true);
-                $item['back'] = $extra['back'];
-                $item['value0'] = $extra['value0'];
-                $item['value1'] = $extra['value1'];
+                $item['back'] = $item['extra']['back'];
+                $item['value0'] = $item['extra']['value0'];
+                $item['value1'] = $item['extra']['value1'];
             });
 
             $promotes = array_column($promotes, null, 'odd_mansion_id');
