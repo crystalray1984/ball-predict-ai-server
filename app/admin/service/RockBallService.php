@@ -119,6 +119,7 @@ class RockBallService
             '追踪盘口-方向',
             '追踪盘口-盘口',
             '追踪盘口-水位条件',
+            '推荐开启',
             '推荐水位',
             '推荐时间',
             '赛果',
@@ -180,6 +181,9 @@ class RockBallService
                         get_condition_text($match['condition'], $match['type']),
                         //追踪盘口-水位
                         (float)$match['value'],
+
+                        //是否开启推荐
+                        $match['is_open'] ? '开启' : '关闭',
 
                         //推荐水位
                         isset($match['promoted_value']) ? (float)$match['promoted_value'] : '',

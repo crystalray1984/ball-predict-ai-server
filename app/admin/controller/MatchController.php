@@ -51,12 +51,20 @@ class MatchController extends Controller
     {
         $params = v::input($request->post(), [
             'id' => v::intType()->min(1)->setName('id'),
-            'is_open' => v::in([0, 1])->setName('is_open'),
+            'is_open' => v::optional(v::in([0, 1]))->setName('is_open'),
+            'is_rockball_open' => v::optional(v::in([0, 1]))->setName('is_rockball_open'),
         ]);
 
-        Tournament::query()
-            ->where('id', '=', $params['id'])
-            ->update(['is_open' => $params['is_open']]);
+        if (isset($params['is_open'])) {
+            Tournament::query()
+                ->where('id', '=', $params['id'])
+                ->update(['is_open' => $params['is_open']]);
+        }
+        if (isset($params['is_rockball_open'])) {
+            Tournament::query()
+                ->where('id', '=', $params['id'])
+                ->update(['is_rockball_open' => $params['is_rockball_open']]);
+        }
 
         return $this->success();
     }
@@ -249,6 +257,26 @@ class MatchController extends Controller
         ]);
 
         $this->matchService->setTournamentLabel($label_id, $tournament_id);
+        return $this->success();
+    }
+
+    /**
+     * 批量更新赛事数据
+     * @param Request $request
+     * @return Response
+     */
+    #[CheckAdminToken]
+    public function multiUpdateTournaments(Request $request): Response
+    {
+        $params = v::input($request->post(), [
+            'id_list' => v::arrayType()->notEmpty()->each(v::intType()->notEmpty())->setName('id_list'),
+            'update' => v::arrayType()->notEmpty()->setName('update'),
+        ]);
+
+        Tournament::query()
+            ->whereIn('id', $params['id_list'])
+            ->update($params);
+
         return $this->success();
     }
 }

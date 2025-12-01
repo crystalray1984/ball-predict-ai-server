@@ -128,6 +128,9 @@ Route::group('/admin', function () {
         Route::post('/tournament_list', [\app\admin\controller\MatchController::class, 'getTournamentList']);
         //切换赛事的开启和关闭
         Route::post('/tournament_toggle_open', [\app\admin\controller\MatchController::class, 'toggleTournamentOpen']);
+        //批量更新赛事参数
+        Route::post('/tournament_multi_update', [\app\admin\controller\MatchController::class, 'multiUpdateTournaments']);
+
         //获取比赛列表
         Route::post('/match_list', [\app\admin\controller\MatchController::class, 'getMatchList']);
         //获取单个比赛
