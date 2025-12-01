@@ -125,27 +125,6 @@ class MatchController extends Controller
     }
 
     /**
-     * 批量设置赛果
-     * @param Request $request
-     * @return Response
-     */
-    public function multiSetMatchScore(Request $request): Response
-    {
-        $data = $request->post();
-        v::arrayType()
-            ->notEmpty()
-            ->each(
-                v::arrayType()
-                    ->key('match_id', v::intType()->notEmpty())
-                    ->key('period1', v::boolType())
-            )
-            ->check($data);
-
-        $this->matchService->multiSetMatchScore($data);
-        return $this->success();
-    }
-
-    /**
      * 修改比赛时间
      * @param Request $request
      * @return Response
@@ -199,17 +178,6 @@ class MatchController extends Controller
 
         $this->matchService->setMatchScore($params);
         return $this->success();
-    }
-
-    /**
-     * 获取需要获取赛果的比赛
-     * @return Response
-     */
-    public function getRequireScoreMatches(): Response
-    {
-        return $this->success(
-            $this->matchService->getRequireScoreMatches()
-        );
     }
 
     /**

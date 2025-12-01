@@ -119,53 +119,41 @@ class DataService
     /**
      * 获取统计数据
      * @param string[] $channels 推荐频道的标识列表
+     * @param Carbon|string|null $start 开始时间（含）
+     * @param Carbon|string|null $end 结束时间（不含）
      * @return array
      */
-    public function summary(array $channels): array
+    public function summary(array $channels, Carbon|string|null $start = null, Carbon|string|null $end = null): array
     {
         $query = Promoted::query()
-            ->whereIn('channel', $channels)
-            ->where('is_valid', '=', 1);
+            ->whereIn('promoted.channel', $channels)
+            ->where('promoted.is_valid', '=', 1);
+
+        if (!empty($start) || !empty($end)) {
+            $query->join('match', "match.id", '=', "promoted.match_id");
+            if (!empty($start)) {
+                $query->where('match.match_time', '>=', Carbon::parse($start)->toISOString());
+            }
+            if (!empty($end)) {
+                $query->where('match.match_time', '<', Carbon::parse($end)->toISOString());
+            }
+        }
 
         $total = $query->count();
 
-        $data = $query->whereNotNull('result')
-            ->groupBy('result')
+        $data = $query->whereNotNull('promoted.result')
+            ->groupBy('promoted.result')
             ->select([
-                'result',
+                'promoted.result',
             ])
             ->selectRaw('count(*) as count')
             ->get()
             ->toArray();
 
-        if (empty($data)) {
-            //没有数据
-            return [
-                'total' => $total,
-                'win' => 0,
-                'loss' => 0,
-                'draw' => 0,
-                'win_rate' => 0,
-            ];
-        }
-
-        $data = array_column($data, 'count', 'result');
-
-        $result = [
+        return [
+            ...get_summary_data($data),
             'total' => $total,
-            'win' => $data[1] ?? 0,
-            'loss' => $data[-1] ?? 0,
-            'draw' => $data[0] ?? 0,
         ];
-
-        $valid = $result['win'] + $result['loss'];
-        if ($valid === 0) {
-            $result['win_rate'] = 0;
-        } else {
-            $result['win_rate'] = round($result['win'] * 100 / $valid, 1);
-        }
-
-        return $result;
     }
 
     /**

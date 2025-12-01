@@ -122,10 +122,6 @@ Route::group('/admin', function () {
 
     //比赛管理接口
     Route::group('/match', function () {
-        //获取需要拉取赛果的比赛列表
-        Route::post('/require_score_list', [\app\admin\controller\MatchController::class, 'getRequireScoreMatches']);
-        //批量设置赛果
-        Route::post('/multi_set_score', [\app\admin\controller\MatchController::class, 'multiSetMatchScore']);
         //设置赛果
         Route::post('/set_score', [\app\admin\controller\MatchController::class, 'setMatchScore']);
         //获取赛事列表

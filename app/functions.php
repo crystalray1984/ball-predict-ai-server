@@ -505,3 +505,40 @@ if (!function_exists('get_version_number')) {
         return $value;
     }
 }
+
+if (!function_exists('get_summary_data')) {
+    /**
+     * 按赛果整理统计数据
+     * @param array $data
+     * @return array
+     */
+    function get_summary_data(array $data): array
+    {
+        if (empty($data)) {
+            //没有数据
+            return [
+                'win' => 0,
+                'loss' => 0,
+                'draw' => 0,
+                'win_rate' => 0,
+            ];
+        }
+
+        $data = array_column($data, 'count', 'result');
+
+        $result = [
+            'win' => $data[1] ?? 0,
+            'loss' => $data[-1] ?? 0,
+            'draw' => $data[0] ?? 0,
+        ];
+
+        $valid = $result['win'] + $result['loss'];
+        if ($valid === 0) {
+            $result['win_rate'] = 0;
+        } else {
+            $result['win_rate'] = round($result['win'] * 100 / $valid, 1);
+        }
+
+        return $result;
+    }
+}

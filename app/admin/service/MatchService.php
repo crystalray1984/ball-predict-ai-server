@@ -2,13 +2,9 @@
 
 namespace app\admin\service;
 
-use app\model\ManualPromoteOdd;
 use app\model\Match1;
 use app\model\MatchView;
-use app\model\PromotedOdd;
-use app\model\PromotedOddMansion;
-use app\model\RockBallPromoted;
-use app\model\SurebetV2Promoted;
+use app\model\Promoted;
 use app\model\Tournament;
 use app\model\TournamentLabel;
 use Carbon\Carbon;
@@ -23,60 +19,6 @@ use Throwable;
 class MatchService
 {
     /**
-     * 获取需要获取赛果的比赛列表
-     * @return array
-     */
-    public function getRequireScoreMatches(): array
-    {
-        $now = time();
-
-        $list = Match1::query()
-            ->join('team AS team1', 'team1.id', '=', 'match.team1_id')
-            ->join('team AS team2', 'team2.id', '=', 'match.team2_id')
-            ->join('odd', 'odd.match_id', '=', 'match.id')
-            ->where('match.match_time', '<=', Carbon::createFromTimestamp($now)->subMinutes(45)->toISOString())
-            ->where('match.match_time', '>=', Carbon::createFromTimestamp($now)->subDays(2)->toISOString())
-            ->where('match.has_score', '=', false)
-            ->where('match.error_status', '=', '')
-            ->distinct()
-            ->orderBy('match.match_time')
-            ->get([
-                'match.id',
-                'match.match_time',
-                'team1.name AS team1',
-                'team2.name AS team2',
-                'match.has_period1_score'
-            ])
-            ->toArray();
-
-        $output = [];
-        foreach ($list as $match) {
-            $match_time = Carbon::parse($match['match_time'])->timestamp;
-            if ($now - $match_time >= 105 * 60) {
-                //可以获得全场数据了
-                $output[] = [
-                    'id' => $match['id'],
-                    'match_time' => $match['match_time'],
-                    'team1' => $match['team1'],
-                    'team2' => $match['team2'],
-                    'period1' => false,
-                ];
-            } elseif (!$match['has_period1_score']) {
-                //还没有半场数据
-                $output[] = [
-                    'id' => $match['id'],
-                    'match_time' => $match['match_time'],
-                    'team1' => $match['team1'],
-                    'team2' => $match['team2'],
-                    'period1' => true,
-                ];
-            }
-        }
-
-        return $output;
-    }
-
-    /**
      * 设置赛果
      * @param array $data 赛果数据
      * @return void
@@ -84,31 +26,28 @@ class MatchService
     public function setMatchScore(array $data): void
     {
         //首先读取所有需要更新的推荐盘口
-        $query = PromotedOdd::query()
+        $query = Promoted::query()
             ->where('match_id', '=', $data['match_id']);
         if ($data['period1']) {
             $query->where('period', '=', 'period1');
         }
-        $odds = $query
+        $promotes = $query
             ->get([
                 'id',
                 'variety',
                 'period',
                 'type',
                 'condition',
-                'type2',
-                'condition2',
             ])
             ->toArray();
 
         //然后进行赛果计算
         $updates = [];
 
-
-        foreach ($odds as $odd) {
+        foreach ($promotes as $promoted) {
             //角球无数据的判断
-            if ($odd['variety'] === 'corner') {
-                if ($odd['period'] === 'period1') {
+            if ($promoted['variety'] === 'corner') {
+                if ($promoted['period'] === 'period1') {
                     if (!is_int($data['corner1_period1']) || !is_int($data['corner2_period1'])) {
                         continue;
                     }
@@ -121,161 +60,13 @@ class MatchService
 
             //计算第一赛果
             $update = [];
-            $result1 = get_odd_score($data, $odd);
+            $result1 = get_odd_score($data, $promoted);
             $update['score'] = $result1['score'];
             $update['score1'] = $result1['score1'];
             $update['score2'] = $result1['score2'];
             $update['result1'] = $result1['result'];
 
-            if (isset($odd['type2'])) {
-                //有设置了第二盘口的，就计算第二赛果
-                $result2 = get_odd_score($data, [
-                    'variety' => $odd['variety'],
-                    'period' => $odd['variety'],
-                    'type' => $odd['type2'],
-                    'condition' => $odd['condition2'],
-                ]);
-                $update['result2'] = $result2['result'];
-
-                //两个结果合并起来作为最终推荐的结果
-                if ($result1['result'] > 0 || $result2['result'] > 0) {
-                    //两个盘口只要有一个赢了就是赢
-                    $update['result'] = 1;
-                } elseif ($result1['result'] < 0 || $result2['result'] < 0) {
-                    //没有赢的盘，那么两个盘口中有一个输就是输
-                    $update['result'] = -1;
-                } else {
-                    $update['result'] = 0;
-                }
-            } else {
-                //没有设置第二盘口就直接把第一盘口的结果当成最终结果
-                $update['result'] = $update['result1'];
-            }
-
-            $updates[$odd['id']] = $update;
-        }
-
-        $surebet_v2_updates = [];
-        $query = SurebetV2Promoted::query()
-            ->where('match_id', '=', $data['match_id']);
-        if ($data['period1']) {
-            $query->where('period', '=', 'period1');
-        }
-        $odds = $query
-            ->get([
-                'id',
-                'variety',
-                'period',
-                'type',
-                'condition',
-            ])
-            ->toArray();
-
-        foreach ($odds as $odd) {
-            //角球无数据的判断
-            if ($odd['variety'] === 'corner') {
-                if ($odd['period'] === 'period1') {
-                    if (!is_int($data['corner1_period1']) || !is_int($data['corner2_period1'])) {
-                        continue;
-                    }
-                } else {
-                    if (!is_int($data['corner1']) || !is_int($data['corner2'])) {
-                        continue;
-                    }
-                }
-            }
-
-            //计算第一赛果
-            $update = [];
-            $result1 = get_odd_score($data, $odd);
-            $update['score'] = $result1['score'];
-            $update['score1'] = $result1['score1'];
-            $update['score2'] = $result1['score2'];
-            $update['result'] = $result1['result'];
-
-            $surebet_v2_updates[$odd['id']] = $update;
-        }
-
-        $rockball_updates = [];
-        $query = RockBallPromoted::query()
-            ->where('match_id', '=', $data['match_id']);
-        if ($data['period1']) {
-            $query->where('period', '=', 'period1');
-        }
-        $odds = $query
-            ->get([
-                'id',
-                'variety',
-                'period',
-                'type',
-                'condition',
-            ])
-            ->toArray();
-
-        foreach ($odds as $odd) {
-            //角球无数据的判断
-            if ($odd['variety'] === 'corner') {
-                if ($odd['period'] === 'period1') {
-                    if (!is_int($data['corner1_period1']) || !is_int($data['corner2_period1'])) {
-                        continue;
-                    }
-                } else {
-                    if (!is_int($data['corner1']) || !is_int($data['corner2'])) {
-                        continue;
-                    }
-                }
-            }
-
-            //计算第一赛果
-            $update = [];
-            $result1 = get_odd_score($data, $odd);
-            $update['score'] = $result1['score'];
-            $update['score1'] = $result1['score1'];
-            $update['score2'] = $result1['score2'];
-            $update['result'] = $result1['result'];
-
-            $rockball_updates[$odd['id']] = $update;
-        }
-
-        $mansion_updates = [];
-        $query = PromotedOddMansion::query()
-            ->where('match_id', '=', $data['match_id']);
-        if ($data['period1']) {
-            $query->where('period', '=', 'period1');
-        }
-        $odds = $query
-            ->get([
-                'id',
-                'variety',
-                'period',
-                'type',
-                'condition',
-            ])
-            ->toArray();
-
-        foreach ($odds as $odd) {
-            //角球无数据的判断
-            if ($odd['variety'] === 'corner') {
-                if ($odd['period'] === 'period1') {
-                    if (!is_int($data['corner1_period1']) || !is_int($data['corner2_period1'])) {
-                        continue;
-                    }
-                } else {
-                    if (!is_int($data['corner1']) || !is_int($data['corner2'])) {
-                        continue;
-                    }
-                }
-            }
-
-            //计算第一赛果
-            $update = [];
-            $result1 = get_odd_score($data, $odd);
-            $update['score'] = $result1['score'];
-            $update['score1'] = $result1['score1'];
-            $update['score2'] = $result1['score2'];
-            $update['result'] = $result1['result'];
-
-            $mansion_updates[$odd['id']] = $update;
+            $updates[$promoted['id']] = $update;
         }
 
         Db::beginTransaction();
@@ -309,69 +100,16 @@ class MatchService
             }
 
             //然后设置推荐盘口的结果
-            foreach ($updates as $oddId => $update) {
-                PromotedOdd::query()
-                    ->where('id', '=', $oddId)
+            foreach ($updates as $id => $update) {
+                Promoted::query()
+                    ->where('id', '=', $id)
                     ->update($update);
-            }
-
-            foreach ($surebet_v2_updates as $oddId => $update) {
-                SurebetV2Promoted::query()
-                    ->where('id', '=', $oddId)
-                    ->update($update);
-            }
-
-            foreach ($rockball_updates as $oddId => $update) {
-                RockBallPromoted::query()
-                    ->where('id', '=', $oddId)
-                    ->update($update);
-            }
-
-            foreach ($mansion_updates as $oddId => $update) {
-                PromotedOddMansion::query()
-                    ->where('id', '=', $oddId)
-                    ->update($update);
-            }
-
-            //找到这些推荐的盘口中，那些是手动推荐的盘口而且是赢了的，反过来去找他们的手动推荐的其他场次，标记为不再推荐
-            $winOdds = array_filter($updates, fn(array $update) => $update['result'] === 1);
-            if (!empty($winOdds)) {
-                $winOddIds = array_keys($winOdds);
-                ManualPromoteOdd::query()
-                    ->whereIn(
-                        'record_id',
-                        ManualPromoteOdd::query()
-                            ->whereIn('promoted_odd_id', $winOddIds)
-                            ->select(['record_id'])
-                    )
-                    ->where('promoted_odd_id', '=', 0)
-                    ->update(['promoted_odd_id' => -1]);
             }
 
             Db::commit();
         } catch (Throwable $e) {
             Db::rollBack();
             throw $e;
-        }
-    }
-
-    /**
-     * 批量设置赛果
-     * @param array $list 赛果列表
-     * @return void
-     */
-    public function multiSetMatchScore(array $list): void
-    {
-        if (empty($list)) return;
-        Db::beginTransaction();
-        try {
-            foreach ($list as $data) {
-                $this->setMatchScore($data);
-            }
-            Db::commit();
-        } catch (Throwable $exception) {
-            Db::rollBack();
-            throw $exception;
         }
     }
 
@@ -403,6 +141,7 @@ class MatchService
                 'tournament.id',
                 'tournament.name',
                 'tournament.is_open',
+                'tournament.is_rockball_open',
                 'tournament.label_id',
                 'tournament_label.title AS label_title',
             ])

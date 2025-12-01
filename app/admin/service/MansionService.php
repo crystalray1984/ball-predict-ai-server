@@ -2,17 +2,13 @@
 
 namespace app\admin\service;
 
-use app\model\MatchView;
-use app\model\Odd;
 use app\model\OddMansion;
-use app\model\PromotedOdd;
-use app\model\PromotedOddMansion;
+use app\model\Promoted;
 use app\model\Team;
 use app\model\Tournament;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\JoinClause;
-use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
@@ -117,11 +113,12 @@ class MansionService
             $teams = array_column($teams, null, 'id');
 
             //查询推荐盘口
-            $promotes = PromotedOddMansion::query()
-                ->whereIn('odd_mansion_id', array_column($rows, 'id'))
+            $promotes = Promoted::query()
+                ->where('source_type', '=', 'mansion')
+                ->whereIn('source_id', array_column($rows, 'id'))
                 ->get([
                     'id',
-                    'odd_mansion_id',
+                    'source_id AS odd_mansion_id',
                     'result',
                     'variety',
                     'period',
@@ -135,8 +132,17 @@ class MansionService
                     'value',
                     'value0',
                     'value1',
+                    'extra',
                 ])
                 ->toArray();
+
+            array_walk($promotes, function (&$item) {
+                if (empty($item['extra'])) return;
+                $extra = json_decode($item['extra'], true);
+                $item['back'] = $extra['back'];
+                $item['value0'] = $extra['value0'];
+                $item['value1'] = $extra['value1'];
+            });
 
             $promotes = array_column($promotes, null, 'odd_mansion_id');
 
