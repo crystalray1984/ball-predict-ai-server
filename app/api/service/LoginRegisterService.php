@@ -33,10 +33,6 @@ class LoginRegisterService
             ->where('account', '=', $params['uid'])
             ->first(['user_id']);
 
-        //处理用户的头像
-        if (isset($params['avatar'])) {
-        }
-
         if ($connect) {
             //更新用户信息
 

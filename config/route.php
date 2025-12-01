@@ -52,15 +52,6 @@ Route::group('/api', function () {
 
     //订单接口
     Route::group('/order', function () {
-        //Luffa订单接口
-        Route::group('/luffa', function () {
-            //获取Luffa购买配置
-            Route::post('/config', [\app\api\controller\LuffaOrderController::class, 'config']);
-            //创建Luffa订单
-            Route::post('/create', [\app\api\controller\LuffaOrderController::class, 'create']);
-            //完成Luffa订单
-            Route::post('/complete', [\app\api\controller\LuffaOrderController::class, 'complete']);
-        });
         //获取VIP购买配置
         Route::post('/config', [\app\api\controller\OrderController::class, 'config']);
         //创建订单
@@ -76,62 +67,32 @@ Route::group('/api', function () {
         Route::any('/finish', [\app\api\controller\OrderController::class, 'finish']);
     });
 
-    //首页看板接口
-//    Route::group('/dashboard', function () {
-//        //统计数据
-//        Route::post('/summary', [\app\api\controller\DashboardController::class, 'summary']);
-//        //准备中的比赛
-//        Route::post('/preparing', [\app\api\controller\DashboardController::class, 'preparing']);
-//        //已推荐的比赛(带有效期判断)
-//        Route::post('/promoted_v2', [\app\api\controller\DashboardController::class, 'promotedV2']);
-//    });
-
-    //首页看板接口
-    Route::group('/dashboard', function () {
-        //统计数据
-        Route::post('/summary', [\app\api\controller\RockballDashboardController::class, 'summary']);
-        //准备中的比赛
-        Route::post('/preparing', [\app\api\controller\RockballDashboardController::class, 'preparing']);
-        //已推荐的比赛(带有效期判断)
-        Route::post('/promoted', [\app\api\controller\RockballDashboardController::class, 'promoted']);
-        //已推荐的比赛(带有效期判断)
-        Route::post('/promoted_v2', [\app\api\controller\RockballDashboardController::class, 'promoted']);
-        //桌面版使用的推荐数据
-        Route::post('/promoted_desktop', [\app\api\controller\RockballDashboardController::class, 'promotedDesktop']);
-    });
-
-    //滚球首页看板接口
-    Route::group('/rockball_dashboard', function () {
-        //统计数据
-        Route::post('/summary', [\app\api\controller\RockballDashboardController::class, 'summary']);
-        //准备中的比赛
-        Route::post('/preparing', [\app\api\controller\RockballDashboardController::class, 'preparing']);
-        //已推荐的比赛(带有效期判断)
-        Route::post('/promoted', [\app\api\controller\RockballDashboardController::class, 'promoted']);
-        //已推荐的比赛(带有效期判断)
-        Route::post('/promoted_v2', [\app\api\controller\RockballDashboardController::class, 'promoted']);
-        //桌面版使用的推荐数据
-        Route::post('/promoted_desktop', [\app\api\controller\RockballDashboardController::class, 'promotedDesktop']);
-        //基于ID获取最新的推荐数据
-        Route::post('/promoted_by_id', [\app\api\controller\RockballDashboardController::class, 'promotedById']);
+    //数据接口
+    Route::group('/data', function () {
+        //滚球数据
+        Route::post('/rockball', [\app\api\controller\DataController::class, 'rockball']);
+        //精选数据
+        Route::post('/featured', [\app\api\controller\DataController::class, 'featured']);
+        //综合数据
+        Route::post('/synthesis', [\app\api\controller\DataController::class, 'synthesis']);
     });
 
     //滚球接口
     Route::group('/rockball', function () {
         //获取最新推荐
-        Route::post('/promoted', [\app\api\controller\RockballDashboardController::class, 'promotedById']);
+        Route::post('/promoted', [\app\api\controller\DataController::class, 'rockball']);
     });
 
     //对比推荐接口
     Route::group('/compare', function () {
         //获取最新推荐
-        Route::post('/promoted', [\app\api\controller\CompareDashboardController::class, 'promotedById']);
+        Route::post('/promoted', [\app\api\controller\DataController::class, 'synthesis']);
     });
 
     //手动推荐接口
     Route::group('/manual', function () {
         //获取最新推荐
-        Route::post('/promoted', [\app\api\controller\ManualDashboardController::class, 'promotedById']);
+        Route::post('/promoted', [\app\api\controller\DataController::class, 'featured']);
     });
 });
 

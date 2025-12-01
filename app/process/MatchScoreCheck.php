@@ -5,6 +5,7 @@ namespace app\process;
 use app\model\NotificationLog;
 use app\model\PromotedOddMansionView;
 use app\model\PromotedOddView;
+use app\model\PromotedView;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use support\Log;
@@ -20,17 +21,16 @@ class MatchScoreCheck
     public function onWorkerStart(): void
     {
         Timer::add(60, function () {
-            $this->checkChannel1();
-            $this->checkMansion();
+            $this->check();
         });
     }
 
-    protected function check(Builder $query): void
+    protected function check(): void
     {
         //获取已经推荐的，且到了时间未能获取到结果的推荐盘口
         $period1Time = Carbon::now()->subMinutes(60)->toISOString();
         $regularTime = Carbon::now()->subHours(2)->toISOString();
-        $list = $query
+        $list = PromotedView::query()
             ->where('is_valid', '=', 1)
             ->whereNull('result')
             ->where(function ($query) use ($period1Time, $regularTime) {
@@ -83,19 +83,5 @@ EOF;
                 Log::error($e);
             }
         }
-    }
-
-    protected function checkChannel1(): void
-    {
-        $this->check(
-            PromotedOddView::query()
-        );
-    }
-
-    protected function checkMansion(): void
-    {
-        $this->check(
-            PromotedOddMansionView::query()
-        );
     }
 }

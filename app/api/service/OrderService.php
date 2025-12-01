@@ -18,31 +18,6 @@ use Throwable;
 class OrderService
 {
     /**
-     * 完成luffa订单
-     * @param int $order_id
-     * @param string $hash
-     * @return void
-     */
-    public function completeLuffaOrder(int $order_id, string $hash): void
-    {
-        /** @var Order $order */
-        $order = Order::query()
-            ->where('id', '=', $order_id)
-            ->first();
-
-        if (!$order) {
-            throw new BusinessError('订单不存在');
-        }
-        if ($order->status !== 'wait_pay') {
-            //订单已完成
-            return;
-        }
-
-        $order->channel_order_no = $hash;
-        $this->completeOrder($order);
-    }
-
-    /**
      * 查询订单
      * @param int $order_id
      * @param int|null $user_id

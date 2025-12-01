@@ -2,419 +2,185 @@
 
 namespace scripts;
 
+use app\model\LabelPromoted;
+use app\model\Odd;
+use app\model\Promoted;
+use app\model\PromotedOdd;
+use app\model\PromotedOddMansion;
+use app\model\RockBallPromoted;
+use app\model\SurebetV2Promoted;
 use Carbon\Carbon;
-use Illuminate\Database\Connection;
-use support\Db;
-
-require_once __DIR__ . "/../vendor/autoload.php";
-require_once __DIR__ . "/../support/bootstrap.php";
 
 /**
- * 执行从v1数据库迁移数据的任务
+ * 从v3到v4数据表迁移数据
  */
 class Migration
 {
-    protected Connection $to;
-
-    protected Connection $from;
-
-    /**
-     * @param bool $clean 是否清理原数据
-     */
-    public function __construct(protected bool $clean = true)
-    {
-        //打开数据连接
-        $this->to = Db::connection();
-        $this->from = Db::connection('org');
-    }
-
-    /**
-     * 迁移常规数据表（新旧表结构相同）
-     * @param string $to
-     * @param string|null $from
-     * @param string $incrementKey 自增字段
-     * @return void
-     */
-    protected function copyTable(string $to, ?string $from = null, string $incrementKey = 'id'): void
-    {
-        if (empty($from)) {
-            $from = $to;
-        }
-
-        if (!empty($incrementKey)) {
-            //以自增的方式迁移
-            $lastId = 0;
-            while (true) {
-                echo "迁移 $from -> $to last_id=$lastId\n";
-                $list = $this->from->table($from)
-                    ->where($incrementKey, '>', $lastId)
-                    ->orderBy($incrementKey)
-                    ->limit(500)
-                    ->get()
-                    ->map(fn($row) => (array)$row)
-                    ->toArray();
-                if (empty($list)) {
-                    break;
-                }
-                $this->to->table($to)->insert($list);
-                $lastId = last($list)[$incrementKey];
-            }
-            $lastId++;
-            $this->to->select("SELECT setval('public.{$to}_{$incrementKey}_seq', $lastId, false)");
-        } else {
-            //常规迁移
-            $list = $this->from->table($from)
-                ->get()
-                ->map(fn($row) => (array)$row)
-                ->toArray();
-            if (!empty($list)) {
-                $this->to->table($to)->insert($list);
-            }
-            echo "迁移 $from -> $to\n";
-        }
-    }
-
-    /**
-     * 截断数据表
-     * @param string $table
-     * @param bool $force
-     * @return void
-     */
-    protected function truncate(string $table, bool $force = false): void
-    {
-        if (!$this->clean && !$force) return;
-        $this->to->table($table)->truncate();
-        echo "清理数据 $table\n";
-    }
-
-    /**
-     * 开始迁移
-     * @return void
-     */
     public function run(): void
     {
-        //管理员表
-        $this->truncate('admin');
-        $this->copyTable('admin');
+        //读取基础数据
+        $promotes = PromotedOdd::query()
+            ->orderBy('created_at')
+            ->select([
+                '*'
+            ])
+            ->selectRaw("'generic' AS channel")
+            ->get()
+            ->toArray();
+        array_walk($promotes, function (array &$item) {
+            $item['_time'] = Carbon::parse($item['created_at'])->getTimestampMs();
+        });
 
-        //配置表
-//        $this->truncate('setting');
-//        $this->copyTable('setting', incrementKey: '');
+        $mansionPromotes = PromotedOddMansion::query()
+            ->orderBy('created_at')
+            ->select([
+                '*'
+            ])
+            ->selectRaw("'mansion' AS channel")
+            ->get()
+            ->toArray();
+        array_walk($mansionPromotes, function (array &$item) {
+            $item['_time'] = Carbon::parse($item['created_at'])->getTimestampMs();
+        });
 
-        //联赛表
-        $this->truncate('tournament');
-        $this->copyTable('tournament');
+        $rockballPromotes = RockBallPromoted::query()
+            ->orderBy('created_at')
+            ->select([
+                '*'
+            ])
+            ->selectRaw("'rockball' AS channel")
+            ->get()
+            ->toArray();
+        array_walk($rockballPromotes, function (array &$item) {
+            $item['_time'] = Carbon::parse($item['created_at'])->getTimestampMs();
+        });
 
-        //队伍表
-        $this->truncate('team');
-        $this->copyTeamTable();
+        $optimizedPromotes = SurebetV2Promoted::query()
+            ->orderBy('created_at')
+            ->select([
+                '*'
+            ])
+            ->selectRaw("'optimized' AS channel")
+            ->get()
+            ->toArray();
+        array_walk($optimizedPromotes, function (array &$item) {
+            $item['_time'] = Carbon::parse($item['created_at'])->getTimestampMs();
+        });
 
-        //比赛表
-        $this->truncate('match');
-        $this->copyMatchTable();
+        $merged = array_merge($promotes, $mansionPromotes, $rockballPromotes, $optimizedPromotes);
+        usort($merged, fn(array $a, array $b) => $a['_time'] - $b['_time']);
 
-        //盘口表
-        $this->truncate('odd');
-        $this->copyOddTable();
+        $updates = [];
 
-        //推荐盘口表
-        $this->truncate('promoted_odd');
-        $this->copyPromotedOddTable();
+        //生成数据
+        foreach ($merged as $origin) {
+            //新表的字段
+            $row = [
+                'match_id' => $origin['match_id'],
+                'source_type' => '',
+                'source_id' => 0,
+                'channel' => $origin['channel'],
+                'is_valid' => $origin['is_valid'],
+                'skip' => $origin['skip'] ?? '',
+                'week_day' => $origin['week_day'] ?? 0,
+                'week_id' => $origin['week_id'] ?? 0,
+                'variety' => $origin['variety'],
+                'period' => $origin['period'],
+                'type' => $origin['type'],
+                'odd_type' => $origin['odd_type'],
+                'condition' => $origin['condition'],
+                'value' => $origin['value'],
+                'result' => $origin['result'],
+                'score' => $origin['score'],
+                'score1' => $origin['score1'],
+                'score2' => $origin['score2'],
+                'extra' => null,
+                'created_at' => Carbon::parse($origin['created_at'])->toISOString(),
+            ];
 
-        //用户表
-        $this->truncate('user');
-        $this->truncate('user_connect');
-        $this->copyUserTable();
-        $this->copyLuffaUserTable();
+            if ($origin['channel'] === 'generic') {
+                //总台
+                $row['source_type'] = $origin['source'];
+                $row['source_id'] = $origin['source_id'];
+                if (!empty($origin['start_odd_data']) && !empty($origin['end_odd_data'])) {
+                    $row['extra'] = [
+                        'start_odd_data' => json_decode($origin['start_odd_data'], true),
+                        'end_odd_data' => json_decode($origin['end_odd_data'], true),
+                    ];
+                }
 
-        //订单表
-        $this->truncate('order');
-        $this->copyOrderTable();
-    }
+                $id = Promoted::insertGetId($row);
+                if ($row['source'] === 'manual_promote_odd') {
+                    $updates['manual_promote_odd'][] = [
+                        'where' => ['id' => $origin['source_id']],
+                        'update' => ['promoted_odd_id' => $id],
+                    ];
+                }
+            } else if ($origin['channel'] === 'mansion') {
+                //mansion对比
+                $row['source_type'] = 'mansion';
+                $row['source_id'] = $origin['odd_mansion_id'];
+                $row['extra'] = [
+                    'odd_id' => $origin['odd_id'],
+                    'mansion_id' => $origin['odd_mansion_id'],
+                    'value0' => $origin['value0'],
+                    'value1' => $origin['value1'],
+                    'back' => $origin['back'],
+                ];
+                Promoted::insert($row);
+            } else if ($origin['channel'] === 'rockball') {
+                //滚球
+                $row['source_type'] = 'rockball';
+                $row['source_id'] = $origin['odd_id'];
+                if (!$row['is_valid']) {
+                    $row['skip'] = 'manual_close';
+                }
+                Promoted::insert($row);
+            } else if ($origin['channel'] === 'optimized') {
+                //融合优化
+                $row['source_type'] = 'optimized';
 
-    /**
-     * 迁移队伍表数据
-     * @return void
-     */
-    protected function copyTeamTable(): void
-    {
-        $from = 'team';
-        $to = 'team';
-        $lastId = 0;
-        while (true) {
-            echo "迁移 $from -> $to last_id=$lastId\n";
-            $list = $this->from->table($from)
-                ->where('id', '>', $lastId)
-                ->orderBy('id')
-                ->limit(500)
-                ->get()
-                ->map(fn($row) => (array)$row)
-                ->toArray();
-            if (empty($list)) {
-                break;
-            }
+                //从原始盘口表中寻找surebet盘口
+                [$type, $condition] = get_reverse_odd($origin['type'], $origin['condition']);
+                $oddRow = Odd::query()
+                    ->where('match_id', '=', $origin['match_id'])
+                    ->where('variety', '=', $origin['variety'])
+                    ->where('period', '=', $origin['period'])
+                    ->where('type', '=', $type)
+                    ->where('condition', '=', $condition)
+                    ->first(['id']);
+                $row['source_id'] = $oddRow?->id ?? 0;
 
-            //数据处理
-            foreach ($list as $k => $row) {
-                unset($list[$k]['titan007_team_id'], $list[$k]['titan007_team_id']);
-            }
+                $promoted = Promoted::query()
+                    ->where('match_id', '=', $origin['match_id'])
+                    ->where('variety', '=', $origin['variety'])
+                    ->where('period', '=', $origin['period'])
+                    ->where('type', '=', $origin['type'])
+                    ->where('condition', '=', $origin['condition'])
+                    ->where('channel', '=', 'generic')
+                    ->first(['id']);
 
-            $this->to->table($to)->insert($list);
-            $lastId = last($list)['id'];
-        }
-        $lastId++;
-        $this->to->select("SELECT setval('public.team_id_seq', $lastId, false)");
-    }
+                $row['extra'] = [
+                    'back' => 1 - $origin['back'],
+                    'promoted_id' => $promoted?->id ?? 0,
+                ];
 
-    /**
-     * 迁移比赛表数据
-     * @return void
-     */
-    protected function copyMatchTable(): void
-    {
-        $from = 'match';
-        $to = 'match';
-        $lastId = 0;
-        while (true) {
-            echo "迁移 $from -> $to last_id=$lastId\n";
-            $list = $this->from->table($from)
-                ->where('id', '>', $lastId)
-                ->orderBy('id')
-                ->limit(500)
-                ->get()
-                ->map(fn($row) => (array)$row)
-                ->toArray();
-            if (empty($list)) {
-                break;
-            }
+                $id = Promoted::insertGetId($row);
 
-            //数据处理
-            foreach ($list as $k => $row) {
-                unset($list[$k]['titan007_match_id']);
-                $list[$k]['has_score'] = $row['has_score'] ? 1 : 0;
-                $list[$k]['has_period1_score'] = $row['has_period1_score'] ? 1 : 0;
-            }
-
-            $this->to->table($to)->insert($list);
-            $lastId = last($list)['id'];
-        }
-        $lastId++;
-        $this->to->select("SELECT setval('public.match_id_seq', $lastId, false)");
-    }
-
-    /**
-     * 迁移盘口表数据
-     * @return void
-     */
-    protected function copyOddTable(): void
-    {
-        $from = 'odd';
-        $to = 'odd';
-        $lastId = 0;
-        while (true) {
-            echo "迁移 $from -> $to last_id=$lastId\n";
-            $list = $this->from->table($from)
-                ->where('id', '>', $lastId)
-                ->orderBy('id')
-                ->limit(500)
-                ->get()
-                ->map(fn($row) => (array)$row)
-                ->toArray();
-            if (empty($list)) {
-                break;
-            }
-
-            //数据处理
-            foreach ($list as $k => $row) {
-                unset($list[$k]['surebet_updated_at'], $list[$k]['crown_updated_at']);
-                if ($row['status'] === 'ready') {
-                    $list[$k]['ready_at'] = $row['surebet_updated_at'];
-                    $list[$k]['final_at'] = null;
-                } else if (!empty($row['status'])) {
-                    $list[$k]['final_at'] = $list[$k]['ready_at'] = $row['surebet_updated_at'];
-                } else {
-                    $list[$k]['final_at'] = $list[$k]['ready_at'] = null;
+                //查询标签表中需要更新的记录
+                $labelPromoted = LabelPromoted::query()
+                    ->where('promote_id', '=', $origin['id'])
+                    ->pluck('id')
+                    ->toArray();
+                if (!empty($labelPromoted)) {
+                    $updates['label_promoted'][] = [
+                        'where' => [['id', 'in', $labelPromoted]],
+                        'update' => ['promote_id' => $id],
+                    ];
                 }
             }
-
-            $this->to->table($to)->insert($list);
-            $lastId = last($list)['id'];
         }
-        $lastId++;
-        $this->to->select("SELECT setval('public.odd_id_seq', $lastId, false)");
-    }
 
-    /**
-     * 迁移推荐盘口表数据
-     * @return void
-     */
-    protected function copyPromotedOddTable(): void
-    {
-        $from = 'promoted_odd';
-        $to = 'promoted_odd';
-        $lastId = 0;
-        while (true) {
-            echo "迁移 $from -> $to last_id=$lastId\n";
-            $list = $this->from->table($from)
-                ->where('id', '>', $lastId)
-                ->orderBy('id')
-                ->limit(500)
-                ->get()
-                ->map(fn($row) => (array)$row)
-                ->toArray();
-            if (empty($list)) {
-                break;
-            }
-
-            //数据处理
-            foreach ($list as $k => $row) {
-                unset($list[$k]['special'], $list[$k]['special_odd']);
-                $list[$k]['is_valid'] = $row['is_valid'] ? 1 : 0;
-                $list[$k]['back'] = $row['back'] ? 1 : 0;
-                $list[$k]['final_rule'] = $row['special'] ? 'crown_special' : 'crown';
-            }
-
-            $this->to->table($to)->insert($list);
-            $lastId = last($list)['id'];
-        }
-        $lastId++;
-        $this->to->select("SELECT setval('public.promoted_odd_id_seq', $lastId, false)");
-    }
-
-    /**
-     * 迁移用户表
-     * @return void
-     */
-    protected function copyUserTable(): void
-    {
-        $from = 'user';
-        $to = 'user';
-        $lastId = 0;
-        while (true) {
-            echo "迁移 $from -> $to last_id=$lastId\n";
-            $list = $this->from->table($from)
-                ->where('id', '>', $lastId)
-                ->orderBy('id')
-                ->limit(500)
-                ->get()
-                ->map(fn($row) => (array)$row)
-                ->toArray();
-            if (empty($list)) {
-                break;
-            }
-
-            //数据处理
-            foreach ($list as $k => $row) {
-                $list[$k]['reg_source'] =
-                    str_starts_with($row['username'], 'luffa:')
-                        ? 'luffa'
-                        : '';
-                unset(
-                    $list[$k]['username'],
-                    $list[$k]['password'],
-                    $list[$k]['note'],
-                    $list[$k]['agent1_id'],
-                    $list[$k]['agent2_id'],
-                    $list[$k]['email'],
-                );
-            }
-
-            $this->to->table($to)->insert($list);
-            $lastId = last($list)['id'];
-        }
-        $lastId++;
-        $this->to->select("SELECT setval('public.user_id_seq', $lastId, false)");
-    }
-
-    /**
-     * 迁移luffa用户
-     * @return void
-     */
-    protected function copyLuffaUserTable(): void
-    {
-        $from = 'luffa_user';
-        $to = 'user_connect';
-
-        echo "迁移 $from -> $to\n";
-        $list = $this->from->table($from)
-            ->get()
-            ->map(fn($row) => (array)$row)
-            ->toArray();
-
-        $list = array_map(function (array $row) {
-            return [
-                'user_id' => $row['user_id'],
-                'platform' => 'luffa',
-                'platform_id' => $row['network'],
-                'account' => $row['uid'],
-                'extra' => json_enc([
-                    'nickname' => $row['nickname'],
-                    'uid' => $row['uid'],
-                    'account' => $row['address'],
-                    'address' => $row['address'],
-                    'network' => $row['network'],
-                    'avatar' => $row['avatar'],
-                    'cid' => $row['cid'],
-                ]),
-            ];
-        }, $list);
-
-        $this->to->table($to)->insert($list);
-    }
-
-    /**
-     * 迁移订单表
-     * @return void
-     */
-    protected function copyOrderTable(): void
-    {
-        $from = 'order';
-        $to = 'order';
-        $lastId = 0;
-        while (true) {
-            echo "迁移 $from -> $to last_id=$lastId\n";
-            $list = $this->from->table($from)
-                ->where('id', '>', $lastId)
-                ->where('status', '=', 1)
-                ->orderBy('id')
-                ->limit(500)
-                ->get()
-                ->map(fn($row) => (array)$row)
-                ->toArray();
-            if (empty($list)) {
-                break;
-            }
-
-            //数据处理
-            $insert_list = array_map(function (array $row) {
-                $order_time = Carbon::parse($row['created_at']);
-                $order_date = (int)$order_time->format('Ymd');
-                $order_number = $order_date . str_pad((string)$row['id'], 6, '0', STR_PAD_LEFT);
-
-
-                return [
-                    'order_date' => $order_date,
-                    'order_number' => $order_number,
-                    'user_id' => $row['user_id'],
-                    'type' => 'vip',
-                    'amount' => $row['amount'],
-                    'currency' => $row['currency'],
-                    'status' => 'paid',
-                    'extra' => $row['extra'],
-                    'channel_type' => $row['channel'],
-                    'channel_id' => $row['channel_id'],
-                    'channel_order_no' => $row['channel_trade_no'],
-                    'channel_order_info' => $row['channel_order_info'],
-                    'paid_at' => $row['payment_at'],
-                    'created_at' => $row['created_at'],
-                    'updated_at' => $row['updated_at'],
-                ];
-            }, $list);
-
-            $this->to->table($to)->insert($insert_list);
-            $lastId = last($list)['id'];
-        }
+        var_export($updates);
     }
 }
-
-(new Migration())->run();
