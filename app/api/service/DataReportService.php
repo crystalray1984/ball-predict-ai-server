@@ -91,7 +91,11 @@ class DataReportService
         if (!$force) {
             $cache = Redis::get($key);
             if (!empty($cache)) {
-                return json_decode($cache, true);
+                return [
+                    'start' => $week_start,
+                    'end' => $week_end->subMillisecond(),
+                    'data' => json_decode($cache, true)
+                ];
             }
         }
 
