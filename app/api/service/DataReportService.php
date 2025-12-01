@@ -52,6 +52,8 @@ class DataReportService
                     'type' => $item['type'],
                     'condition' => $condition,
                     'win' => 0,
+                    'win_half' => 0,
+                    'win_all' => 0,
                     'loss' => 0,
                     'draw' => 0,
                     'profit' => '0'
@@ -70,9 +72,24 @@ class DataReportService
                     $output[$key]['draw']++;
                     break;
             }
-            $profit = get_odd_profit($item);
+            [$profit, $win_count] = get_odd_profit($item);
+            if ($win_count === 2) {
+                $output[$key]['win_all']++;
+            } else if ($win_count === 1) {
+                $output[$key]['win_half']++;
+            }
             $output[$key]['profit'] = bcadd($output[$key]['profit'], $profit, 6);
         }
+
+        //计算胜率
+        array_walk($output, function (&$item) {
+            $total = $item['win'] + $item['loss'];
+            if ($total > 0) {
+                $item['win_rate'] = round($item['win'] * 100 / $total, 1);
+            } else {
+                $item['win_rate'] = 0;
+            }
+        });
 
         return array_values($output);
     }

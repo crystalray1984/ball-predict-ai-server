@@ -553,15 +553,17 @@ if (!function_exists('get_odd_profit')) {
      *     score1: number,
      *     score2: number
      * } $data
-     * @return string
+     * @return array
      */
-    function get_odd_profit(array $data): string
+    function get_odd_profit(array $data): array
     {
         $condition = parse_condition($data['condition']);
         $win_profit = bcsub($data['value'], '1', 6);
         $profit = '0';
         $part_win_profit = bcdiv($win_profit, (string)count($condition['value']), 6);
         $part_loss_profit = bcdiv('1', (string)count($condition['value']), 6);
+        $win_base = 2 / count($condition['value']);
+        $win_count = 0;
         if ($data['type'] === 'ah1') {
             //主队
             foreach ($condition['value'] as $value) {
@@ -571,6 +573,7 @@ if (!function_exists('get_odd_profit')) {
                 switch (bccomp($part_score, (string)$data['score2'], 1)) {
                     case 1:
                         $profit = bcadd($profit, $part_win_profit, 6);
+                        $win_count += $win_base;
                         break;
                     case -1:
                         $profit = bcsub($profit, $part_loss_profit, 6);
@@ -586,6 +589,7 @@ if (!function_exists('get_odd_profit')) {
                 switch (bccomp($part_score, (string)$data['score1'], 1)) {
                     case 1:
                         $profit = bcadd($profit, $part_win_profit, 6);
+                        $win_count += $win_base;
                         break;
                     case -1:
                         $profit = bcsub($profit, $part_loss_profit, 6);
@@ -599,6 +603,7 @@ if (!function_exists('get_odd_profit')) {
                 switch (bccomp($total, $value, 1)) {
                     case 1:
                         $profit = bcadd($profit, $part_win_profit, 6);
+                        $win_count += $win_base;
                         break;
                     case -1:
                         $profit = bcsub($profit, $part_loss_profit, 6);
@@ -612,6 +617,7 @@ if (!function_exists('get_odd_profit')) {
                 switch (bccomp($value, $total, 1)) {
                     case 1:
                         $profit = bcadd($profit, $part_win_profit, 6);
+                        $win_count += $win_base;
                         break;
                     case -1:
                         $profit = bcsub($profit, $part_loss_profit, 6);
@@ -622,11 +628,12 @@ if (!function_exists('get_odd_profit')) {
             //平球
             if ($data['score1'] === $data['score2']) {
                 $profit = bcadd($profit, $part_win_profit, 6);
+                $win_count += $win_base;
             } else {
                 $profit = bcsub($profit, $part_loss_profit, 6);
             }
         }
 
-        return $profit;
+        return [$profit, $win_count];
     }
 }
