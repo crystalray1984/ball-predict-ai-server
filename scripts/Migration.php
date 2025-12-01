@@ -75,6 +75,7 @@ class Migration
         usort($merged, fn(array $a, array $b) => $a['_time'] - $b['_time']);
 
         $updates = [];
+        $labelPromotedUpdates = [];
 
         //生成数据
         foreach ($merged as $origin) {
@@ -180,10 +181,7 @@ class Migration
                     ->toArray();
                 if (!empty($labelPromoted)) {
                     foreach ($labelPromoted as $labelId) {
-                        $updates['label_promoted'][] = [
-                            'where' => ['id' => $labelId],
-                            'update' => ['promote_id' => $id],
-                        ];
+                        $labelPromotedUpdates[$labelId] = $id;
                     }
                 }
             }
@@ -198,6 +196,17 @@ class Migration
                     ->where($item['where'])
                     ->update($item['update']);
             }
+        }
+
+        //更新标签表
+        $allLabelPromoted = LabelPromoted::all()->toArray();
+        LabelPromoted::query()->delete();
+        foreach ($allLabelPromoted as $row) {
+            if (isset($labelPromotedUpdates[$row['id']])) {
+                $row['promote_id'] = $labelPromotedUpdates[$row['id']];
+            }
+            unset($row['id']);
+            LabelPromoted::insert($row);
         }
     }
 }
