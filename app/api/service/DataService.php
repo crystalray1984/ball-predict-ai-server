@@ -11,13 +11,46 @@ use Illuminate\Database\Eloquent\Builder;
 
 class DataService
 {
+    protected function formatPreparingList(array $list): array
+    {
+        $output = [];
+        foreach ($list as $row) {
+            $key = $row['tournament_id'] . ':' . Carbon::parse($row['match_time'])->getTimestamp();
+            if (!empty($output[$key])) {
+                $output[$key]['matches'][] = [
+                    'id' => $row['id'],
+                    'team1' => $row['team1_name'],
+                    'team2' => $row['team2_name'],
+                ];
+            } else {
+                $output[$key] = [
+                    'id' => $row['tournament_id'],
+                    'match_time' => $row['match_time'],
+                    'tournament' => [
+                        'id' => $row['tournament_id'],
+                        'name' => $row['tournament_name'],
+                    ],
+                    'matches' => [
+                        [
+                            'id' => $row['id'],
+                            'team1' => $row['team1_name'],
+                            'team2' => $row['team2_name'],
+                        ]
+                    ],
+                ];
+            }
+        }
+
+        return array_values($output);
+    }
+
     /**
      * 获取滚球准备中的数据
      * @return array
      */
     public function rockballPreparing(): array
     {
-        return RockBallOdd::query()
+        $list = RockBallOdd::query()
             ->join('v_match', "v_match.id", '=', "rockball_odd.match_id")
             ->where('rockball_odd.status', '=', 'ready')
             ->where('rockball_odd.is_open', '=', 1)
@@ -39,13 +72,19 @@ class DataService
             })
             ->orderBy('v_match.match_time')
             ->orderBy('v_match.tournament_id')
+            ->orderBy('v_match.id')
             ->distinct()
             ->get([
-                'v_match.tournament_id AS id',
-                'v_match.tournament_name AS name',
+                'v_match.id',
+                'v_match.team1_name',
+                'v_match.team2_name',
+                'v_match.tournament_id',
+                'v_match.tournament_name',
                 'v_match.match_time'
             ])
             ->toArray();
+
+        return $this->formatPreparingList($list);
     }
 
     /**
@@ -56,20 +95,25 @@ class DataService
     {
         ['final_check_time' => $finalCheckTime] = get_settings(['final_check_time']);
 
-        return OddMansion::query()
+        $list = OddMansion::query()
             ->join('v_match', "v_match.id", '=', "odd_mansion.match_id")
             ->where('odd_mansion.status', '=', 'ready')
-            ->where('v_match.match_time', '<', OddMansion::raw("CURRENT_TIMESTAMP - interval '$finalCheckTime minutes'"))
+            ->where('v_match.match_time', '>', OddMansion::raw("CURRENT_TIMESTAMP - interval '$finalCheckTime minutes'"))
             ->where('v_match.tournament_is_open', '=', 1)
             ->orderBy('v_match.match_time')
             ->orderBy('v_match.tournament_id')
             ->distinct()
             ->get([
-                'v_match.tournament_id AS id',
-                'v_match.tournament_name AS name',
+                'v_match.id',
+                'v_match.team1_name',
+                'v_match.team2_name',
+                'v_match.tournament_id',
+                'v_match.tournament_name',
                 'v_match.match_time'
             ])
             ->toArray();
+
+        return $this->formatPreparingList($list);
     }
 
     /**
