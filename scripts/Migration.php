@@ -179,10 +179,12 @@ class Migration
                     ->pluck('id')
                     ->toArray();
                 if (!empty($labelPromoted)) {
-                    $updates['label_promoted'][] = [
-                        'where' => [['id', 'in', $labelPromoted]],
-                        'update' => ['promote_id' => $id],
-                    ];
+                    foreach ($labelPromoted as $labelId) {
+                        $updates['label_promoted'][] = [
+                            'where' => ['id' => $labelId],
+                            'update' => ['promote_id' => $id],
+                        ];
+                    }
                 }
             }
         }
