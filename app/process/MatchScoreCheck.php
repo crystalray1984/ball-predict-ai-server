@@ -3,11 +3,8 @@
 namespace app\process;
 
 use app\model\NotificationLog;
-use app\model\PromotedOddMansionView;
-use app\model\PromotedOddView;
 use app\model\PromotedView;
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Builder;
 use support\Log;
 use support\Luffa;
 use Throwable;

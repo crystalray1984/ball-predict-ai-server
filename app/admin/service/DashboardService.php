@@ -186,13 +186,13 @@ class DashboardService
     {
         //总推荐数据
         $promoted = LabelPromoted::query()
-            ->join('surebet_v2_promoted', 'surebet_v2_promoted.id', '=', 'label_promoted.promote_id')
-            ->join('match', 'match.id', '=', 'surebet_v2_promoted.match_id')
-            ->when(isset($start), fn($query) => $query->where('match.match_time', '>=', $start->clone()->addHours(12)->toISOString()))
-            ->when(isset($end), fn($query) => $query->where('match.match_time', '<', $end->clone()->addHours(12)->toISOString()))
-            ->groupBy('label_promoted.label_id', 'surebet_v2_promoted.result')
+            ->join('promoted', 'promoted.id', '=', 'label_promoted.promote_id')
+            ->join('match', 'match.id', '=', 'promoted.match_id')
+            ->when(isset($start), fn($query) => $query->where('match.match_time', '>=', $start->toISOString()))
+            ->when(isset($end), fn($query) => $query->where('match.match_time', '<', $end->toISOString()))
+            ->groupBy('label_promoted.label_id', 'promoted.result')
             ->selectRaw('COUNT(1) AS total')
-            ->addSelect(['label_promoted.label_id', 'surebet_v2_promoted.result'])
+            ->addSelect(['label_promoted.label_id', 'promoted.result'])
             ->get()
             ->toArray();
 

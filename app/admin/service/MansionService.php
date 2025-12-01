@@ -57,18 +57,19 @@ class MansionService
         }
 
         if (isset($params['promoted']) && $params['promoted'] !== -1) {
-            $query->leftJoin('promoted_odd_mansion', function (JoinClause $join) use ($params) {
-                $join->on('promoted_odd_mansion.odd_mansion_id', '=', 'odd_mansion.id');
+            $query->leftJoin('promoted', function (JoinClause $join) use ($params) {
+                $join->on('promoted.source_id', '=', 'odd_mansion.id')
+                    ->where('promoted.source_type', '=', 'mansion');
                 if ($params['promoted'] === 1) {
-                    $join->where('promoted_odd_mansion.is_valid', '=', 1);
+                    $join->where('promoted.is_valid', '=', 1);
                 } else if ($params['promoted'] === 2) {
-                    $join->where('promoted_odd_mansion.is_valid', '=', 0);
+                    $join->where('promoted.is_valid', '=', 0);
                 }
             });
             if ($params['promoted']) {
-                $query->whereNotNull('promoted_odd_mansion.id');
+                $query->whereNotNull('promoted.id');
             } else {
-                $query->whereNull('promoted_odd_mansion.id');
+                $query->whereNull('promoted.id');
             }
         }
 

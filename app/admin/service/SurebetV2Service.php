@@ -2,7 +2,7 @@
 
 namespace app\admin\service;
 
-use app\model\SurebetV2Promoted;
+use app\model\Promoted;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -12,8 +12,9 @@ class SurebetV2Service
 {
     protected function createQuery(array $params): Builder
     {
-        $query = SurebetV2Promoted::query()
-            ->join('v_match', 'v_match.id', '=', 'surebet_v2_promoted.match_id');
+        $query = Promoted::query()
+            ->join('v_match', 'v_match.id', '=', 'promoted.match_id')
+            ->where('promoted.channel', '=', 'optimized');
 
         if (!empty($params['start_date'])) {
             $query->where(
@@ -39,11 +40,11 @@ class SurebetV2Service
         if ($params['order'] === 'match_time') {
             $query->orderBy('v_match.match_time', 'DESC');
         } else {
-            $query->orderBy('surebet_v2_promoted.id', 'DESC');
+            $query->orderBy('promoted.id', 'DESC');
         }
 
         $query->select([
-            'surebet_v2_promoted.*',
+            'promoted.*',
             'v_match.match_time',
             'v_match.tournament_id',
             'v_match.tournament_name',

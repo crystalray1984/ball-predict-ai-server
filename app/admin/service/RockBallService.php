@@ -5,6 +5,7 @@ namespace app\admin\service;
 use app\model\RockBallOdd;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\JoinClause;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
@@ -17,7 +18,10 @@ class RockBallService
     {
         $query = RockBallOdd::query()
             ->join('v_match', 'v_match.id', '=', 'rockball_odd.match_id')
-            ->leftJoin('rockball_promoted', 'rockball_promoted.odd_id', '=', 'rockball_odd.id');
+            ->leftJoin('promoted', function (JoinClause $join) {
+                $join->on('promoted.source_id', '=', 'rockball_odd.id')
+                    ->where('promoted.source_type', '=', 'rockball');
+            });
 
         if (!empty($params['start_date'])) {
             $query->where(
@@ -39,17 +43,17 @@ class RockBallService
         if (isset($params['promote'])) {
             switch ($params['promote']) {
                 case 0:
-                    $query->whereNull('rockball_promoted.id');
+                    $query->whereNull('promoted.id');
                     break;
                 case 1:
-                    $query->whereNotNull('rockball_promoted.id');
+                    $query->whereNotNull('promoted.id');
                     break;
             }
         }
 
         if (!empty($params['auto_hide'])) {
             $query->where(function ($query) {
-                $query->whereNotNull('rockball_promoted.id')
+                $query->whereNotNull('promoted.id')
                     ->orWhere('v_match.match_time', '>', Carbon::now()->subHours(2)->toISOString());
             });
         }
@@ -58,7 +62,7 @@ class RockBallService
             if ($params['order'] === 'match_time') {
                 $query->orderBy('v_match.match_time', 'DESC');
             } else if ($params['order'] === 'promote_time') {
-                $query->orderBy('rockball_promoted.id', 'DESC');
+                $query->orderBy('promoted.id', 'DESC');
             }
         }
         $query->orderBy('rockball_odd.id', 'DESC');
@@ -69,11 +73,11 @@ class RockBallService
             'v_match.team1_name',
             'v_match.team2_name',
             'v_match.tournament_name',
-            'rockball_promoted.is_valid',
-            'rockball_promoted.value AS promoted_value',
-            'rockball_promoted.result',
-            'rockball_promoted.score',
-            'rockball_promoted.created_at AS promoted_at',
+            'promoted.is_valid',
+            'promoted.value AS promoted_value',
+            'promoted.result',
+            'promoted.score',
+            'promoted.created_at AS promoted_at',
         ]);
 
         return $query;

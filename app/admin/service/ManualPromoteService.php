@@ -361,7 +361,7 @@ class ManualPromoteService
         $data = $query
             ->whereNotNull('promoted.result')
             ->groupBy('promoted.result')
-            ->selectRaw('COUNT(1) AS total')
+            ->selectRaw('COUNT(1) AS count')
             ->addSelect(['promoted.result'])
             ->get()
             ->toArray();

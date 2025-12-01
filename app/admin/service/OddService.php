@@ -5,7 +5,7 @@ namespace app\admin\service;
 use app\model\CrownOdd;
 use app\model\MatchView;
 use app\model\Odd;
-use app\model\PromotedOdd;
+use app\model\Promoted;
 use Carbon\Carbon;
 use Illuminate\Database\Query\JoinClause;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
@@ -54,16 +54,16 @@ class OddService
                     case 1:
                         $query->whereIn(
                             'v_match.id',
-                            PromotedOdd::query()
-                                ->where('source', '=', 'crown_odd')
+                            Promoted::query()
+                                ->where('source_type', '=', 'crown_odd')
                                 ->select('match_id')
                         );
                         break;
                     case 0:
                         $query->whereNotIn(
                             'v_match.id',
-                            PromotedOdd::query()
-                                ->where('source', '=', 'crown_odd')
+                            Promoted::query()
+                                ->where('source_type', '=', 'crown_odd')
                                 ->select('match_id')
                         );
                         break;
@@ -115,9 +115,9 @@ class OddService
         $odds = array_column($odds, null, 'match_id');
 
         //读取这些比赛的推荐数据
-        $_promoted = PromotedOdd::query()
+        $_promoted = Promoted::query()
             ->whereIn('match_id', $matchIds)
-            ->where('source', '=', 'crown_odd')
+            ->where('source_type', '=', 'crown_odd')
             ->orderBy('id', 'DESC')
             ->get()
             ->toArray();
@@ -125,12 +125,9 @@ class OddService
         //按比赛id组合数据
         $promoted = [];
         foreach ($_promoted as $row) {
-            if (!empty($row['start_odd_data'])) {
-                $row['start_odd_data'] = json_decode($row['start_odd_data'], true);
-            }
-            if (!empty($row['end_odd_data'])) {
-                $row['end_odd_data'] = json_decode($row['end_odd_data'], true);
-            }
+            $extra = json_decode($row['extra'], true);
+            $row['start_odd_data'] = $extra['start_odd_data'];
+            $row['end_odd_data'] = $extra['end_odd_data'];
             $promoted[$row['match_id']][] = $row;
         }
 
@@ -195,16 +192,16 @@ class OddService
                     case 1:
                         $query->whereIn(
                             'v_match.id',
-                            PromotedOdd::query()
-                                ->where('source', '=', 'crown_odd')
+                            Promoted::query()
+                                ->where('source_type', '=', 'crown_odd')
                                 ->select('match_id')
                         );
                         break;
                     case 0:
                         $query->whereNotIn(
                             'v_match.id',
-                            PromotedOdd::query()
-                                ->where('source', '=', 'crown_odd')
+                            Promoted::query()
+                                ->where('source_type', '=', 'crown_odd')
                                 ->select('match_id')
                         );
                         break;
@@ -275,9 +272,9 @@ class OddService
                 $odds = array_column($odds, null, 'match_id');
 
                 //读取这些比赛的推荐数据
-                $_promoted = PromotedOdd::query()
+                $_promoted = Promoted::query()
                     ->whereIn('match_id', $matchIds)
-                    ->where('source', '=', 'crown_odd')
+                    ->where('source_type', '=', 'crown_odd')
                     ->orderBy('id', 'DESC')
                     ->get()
                     ->toArray();
@@ -285,12 +282,9 @@ class OddService
                 //按比赛id组合数据
                 $promoted = [];
                 foreach ($_promoted as $row) {
-                    if (!empty($row['start_odd_data'])) {
-                        $row['start_odd_data'] = json_decode($row['start_odd_data'], true);
-                    }
-                    if (!empty($row['end_odd_data'])) {
-                        $row['end_odd_data'] = json_decode($row['end_odd_data'], true);
-                    }
+                    $extra = json_decode($row['extra'], true);
+                    $row['start_odd_data'] = $extra['start_odd_data'];
+                    $row['end_odd_data'] = $extra['end_odd_data'];
                     $promoted[$row['match_id']][] = $row;
                 }
 
