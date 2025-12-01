@@ -33,6 +33,8 @@ class DataReportService
                 'condition',
                 'value',
                 'result',
+                'score1',
+                'score2',
             ])
             ->toArray();
 
@@ -56,17 +58,17 @@ class DataReportService
                 case 1:
                     //赢
                     $output[$key]['win']++;
-                    $output[$key]['profit'] = bcadd($output[$key]['profit'], bcsub($item['value'], '1', 6), 6);
                     break;
                 case -1:
                     //输
                     $output[$key]['loss']++;
-                    $output[$key]['profit'] = bcsub($output[$key]['profit'], '1', 6);
                     break;
                 case 0:
                     $output[$key]['draw']++;
                     break;
             }
+
+            $output[$key]['profit'] = bcadd($output[$key]['profit'], get_odd_profit($item));
         }
 
         return array_values($output);

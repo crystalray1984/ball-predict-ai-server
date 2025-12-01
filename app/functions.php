@@ -542,3 +542,91 @@ if (!function_exists('get_summary_data')) {
         return $result;
     }
 }
+
+if (!function_exists('get_odd_profit')) {
+    /**
+     * 获取盘口收益
+     * @param array{
+     *     type: string,
+     *     condition: string,
+     *     value: string,
+     *     score1: number,
+     *     score2: number
+     * } $data
+     * @return string
+     */
+    function get_odd_profit(array $data): string
+    {
+        $condition = parse_condition($data['condition']);
+        $win_profit = bcsub($data['value'], '1', 6);
+        $profit = '0';
+        $part_win_profit = bcdiv($win_profit, (string)count($condition['value']), 6);
+        $part_loss_profit = bcdiv('1', (string)count($condition['value']), 6);
+        if ($data['type'] === 'ah1') {
+            //主队
+            foreach ($condition['value'] as $value) {
+                $part_score = $condition['symbol'] === '-' ?
+                    bcsub((string)$data['score1'], $value, 1) :
+                    bcadd((string)$data['score1'], $value, 1);
+                switch (bccomp($part_score, (string)$data['score2'], 1)) {
+                    case 1:
+                        $profit = bcadd($profit, $part_win_profit, 6);
+                        break;
+                    case -1:
+                        $profit = bcsub($profit, $part_loss_profit, 6);
+                        break;
+                }
+            }
+        } elseif ($data['type'] === 'ah2') {
+            //客队
+            foreach ($condition['value'] as $value) {
+                $part_score = $condition['symbol'] === '-' ?
+                    bcsub((string)$data['score2'], $value, 1) :
+                    bcadd((string)$data['score2'], $value, 1);
+                switch (bccomp($part_score, (string)$data['score1'], 1)) {
+                    case 1:
+                        $profit = bcadd($profit, $part_win_profit, 6);
+                        break;
+                    case -1:
+                        $profit = bcsub($profit, $part_loss_profit, 6);
+                        break;
+                }
+            }
+        } elseif ($data['type'] === 'over') {
+            //大球
+            $total = (string)($data['score1'] + $data['score2']);
+            foreach ($condition['value'] as $value) {
+                switch (bccomp($total, $value, 1)) {
+                    case 1:
+                        $profit = bcadd($profit, $part_win_profit, 6);
+                        break;
+                    case -1:
+                        $profit = bcsub($profit, $part_loss_profit, 6);
+                        break;
+                }
+            }
+        } elseif ($data['type'] === 'under') {
+            //小球
+            $total = (string)($data['score1'] + $data['score2']);
+            foreach ($condition['value'] as $value) {
+                switch (bccomp($value, $total, 1)) {
+                    case 1:
+                        $profit = bcadd($profit, $part_win_profit, 6);
+                        break;
+                    case -1:
+                        $profit = bcsub($profit, $part_loss_profit, 6);
+                        break;
+                }
+            }
+        } elseif ($data['type'] === 'draw') {
+            //平球
+            if ($data['score1'] === $data['score2']) {
+                $profit = bcadd($profit, $part_win_profit, 6);
+            } else {
+                $profit = bcsub($profit, $part_loss_profit, 6);
+            }
+        }
+
+        return $profit;
+    }
+}
