@@ -60,13 +60,13 @@ class DataService
             ->where(function (Builder $where) {
                 //上半场盘口判断条件
                 $where->where(function (Builder $subWhere) {
-                    $subWhere->where('rockball_odd.period', '', 'period1')
+                    $subWhere->where('rockball_odd.period', '=', 'period1')
                         ->where('v_match.has_period1_score', '=', 0)
                         ->where('v_match.match_time', '>', $subWhere->raw("CURRENT_TIMESTAMP - interval '60 minutes'"));
                 })
                     //全场盘口判断条件
                     ->orWhere(function (Builder $subWhere) {
-                        $subWhere->where('rockball_odd.period', '', 'regularTime')
+                        $subWhere->where('rockball_odd.period', '=', 'regularTime')
                             ->where('v_match.has_score', '=', 0)
                             ->where('v_match.match_time', '>', $subWhere->raw("CURRENT_TIMESTAMP - interval '2 hours'"));
                     });
