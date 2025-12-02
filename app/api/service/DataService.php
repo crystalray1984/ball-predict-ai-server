@@ -53,7 +53,7 @@ class DataService
     {
         $list = RockBallOdd::query()
             ->join('v_match', "v_match.id", '=', "rockball_odd.match_id")
-            ->where('rockball_odd.status', '=', 'ready')
+            ->where('rockball_odd.status', '=', '')
             ->where('rockball_odd.is_open', '=', 1)
             ->where('v_match.tournament_is_rockball_open', '=', 1)
             //比赛时间判断
