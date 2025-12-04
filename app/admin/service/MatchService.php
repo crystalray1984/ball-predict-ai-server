@@ -60,11 +60,11 @@ class MatchService
 
             //计算第一赛果
             $update = [];
-            $result1 = get_odd_score($data, $promoted);
-            $update['score'] = $result1['score'];
-            $update['score1'] = $result1['score1'];
-            $update['score2'] = $result1['score2'];
-            $update['result1'] = $result1['result'];
+            $result = get_odd_score($data, $promoted);
+            $update['score'] = $result['score'];
+            $update['score1'] = $result['score1'];
+            $update['score2'] = $result['score2'];
+            $update['result'] = $result['result'];
 
             $updates[$promoted['id']] = $update;
         }
