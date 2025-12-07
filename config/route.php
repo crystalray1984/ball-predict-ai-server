@@ -20,6 +20,8 @@ Route::group('/api', function () {
         Route::post('/send_socket_message', [\app\api\controller\CommonController::class, 'sendSocketMessage']);
         //获取Luffa小游戏列表
         Route::any('/luffa_games', [\app\api\controller\CommonController::class, 'luffaGameList']);
+        //获取滚球筛选器的可用配置项
+        Route::any('/rockball_filter_options', [\app\api\controller\CommonController::class, 'rockballFilterOptions']);
     });
 
     //用户接口

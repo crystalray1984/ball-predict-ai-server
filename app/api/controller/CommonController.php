@@ -216,4 +216,30 @@ class CommonController extends Controller
 
         return $this->success($list);
     }
+
+    /**
+     * 获取滚球筛选器可用的选项
+     * @return Response
+     */
+    public function rockballFilterOptions(): Response
+    {
+        ['rockball_config' => $config] = get_settings(['rockball_config']);
+
+        $options = [];
+        foreach ($config as $item) {
+            foreach ($item['odds'] as $odd) {
+                $key = implode(':', [$odd['period'], $odd['type'], (float)$odd['condition']]);
+                if (isset($options[$key])) continue;
+                $options[$key] = [
+                    'key' => $key,
+                    'period' => $odd['period'],
+                    'type' => $odd['type'],
+                    'condition' => $odd['condition'],
+                ];
+            }
+        }
+
+        ksort($options);
+        return $this->success(array_values($options));
+    }
 }
