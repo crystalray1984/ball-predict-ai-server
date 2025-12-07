@@ -101,10 +101,13 @@ class DataReportService
      * @param bool $force
      * @return array
      */
-    public function getReport(array $channels, int $week, bool $force = false): array
+    public function getReport(array $channels, int $week, bool $force = false, int $now = 0): array
     {
         //周起点
-        $week_start = crown_time(Carbon::now()->startOf('week')->subDays($week * 7));
+        $week_start = ($now ? Carbon::createFromTimestamp($now) : Carbon::now())
+            ->subHours(12)
+            ->startOf('week')
+            ->subDays($week * 7);
         $week_end = $week_start->clone()->addDays(7);
         $week_day = (int)$week_start->format('Ymd');
 

@@ -89,6 +89,8 @@ Route::group('/api', function () {
         Route::group('/report', function () {
             //滚球数据报告
             Route::post('/rockball', [\app\api\controller\DataReportController::class, 'rockball']);
+            //滚球数据列表
+            Route::post('/rockball_list', [\app\api\controller\DataReportController::class, 'rockballList']);
         });
     });
 
