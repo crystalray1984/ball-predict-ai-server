@@ -215,29 +215,6 @@ class DataService
                 ->toArray();
         }
 
-        //滚球过滤器
-        if ($userId && in_array('rockball', $channels)) {
-            $clientConfig = UserClientConfig::query()
-                ->where('user_id', '=', $userId)
-                ->first(['rockball_filter']);
-            if (!empty($clientConfig) && !empty($clientConfig->rockball_filter)) {
-                $filters = $clientConfig->rockball_filter;
-                //过滤用户不想要的盘口
-                $list = array_values(
-                    array_filter($list, function (array $promoted) use ($filters) {
-                        foreach ($filters as $filter) {
-                            if ($promoted['variety'] !== $filter['variety']) continue;
-                            if ($promoted['period'] !== $filter['period']) continue;
-                            if ($promoted['type'] !== $filter['type']) continue;
-                            if (bccomp((string)$promoted['condition'], (string)$filter['condition'], 2) !== 0) continue;
-                            return true;
-                        }
-                        return false;
-                    })
-                );
-            }
-        }
-
         return array_map(function (array $row) use ($marked) {
             return [
                 'id' => $row['id'],
