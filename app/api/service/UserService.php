@@ -4,6 +4,7 @@ namespace app\api\service;
 
 use app\model\Order;
 use app\model\User;
+use app\model\UserClientConfig;
 use app\model\UserConnect;
 use app\model\UserMarked;
 use Carbon\Carbon;
@@ -171,6 +172,10 @@ class UserService
             ])
             ->toArray();
 
+        $user['client_config'] = UserClientConfig::query()
+            ->where('user_id', '=', $user['id'])
+            ->first();
+
         return $user;
     }
 
@@ -235,5 +240,27 @@ class UserService
                 ->where('promote_id', '=', $promoteId)
                 ->delete();
         }
+    }
+
+    /**
+     * 设置用户的客户端自定义设置
+     * @param int $userId
+     * @param array $fields
+     * @return void
+     */
+    public function setClientConfig(int $userId, array $fields): void
+    {
+        $fields = array_filter($fields, function (mixed $value, int|string $key): bool {
+            return is_string($key) && !is_null($value);
+        }, ARRAY_FILTER_USE_BOTH);
+        if (empty($fields)) return;
+
+        $fields = array_map(fn($value) => json_enc($value), $fields);
+
+        UserClientConfig::query()
+            ->upsert([
+                'user_id' => $userId,
+                ...$fields,
+            ], ['user_id']);
     }
 }

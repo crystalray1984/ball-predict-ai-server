@@ -40,6 +40,8 @@ Route::group('/api', function () {
         Route::post('/reset_password', [\app\api\controller\UserController::class, 'resetPassword']);
         //标记或取消标记一个盘口
         Route::post('/mark', [\app\api\controller\UserController::class, 'mark']);
+        //保存客户端设置
+        Route::post('/set_client_config', [\app\api\controller\UserController::class, 'setClientConfig']);
     });
 
     //佣金接口

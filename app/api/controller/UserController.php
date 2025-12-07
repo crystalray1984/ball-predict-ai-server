@@ -4,6 +4,7 @@ namespace app\api\controller;
 
 use app\api\service\LoginRegisterService;
 use app\api\service\UserService;
+use app\model\UserClientConfig;
 use DI\Attribute\Inject;
 use Respect\Validation\Validator as v;
 use support\attribute\CheckUserToken;
@@ -196,6 +197,22 @@ class UserController extends Controller
         ]);
 
         $this->userService->mark($request->user->id, $id, $marked);
+        return $this->success();
+    }
+
+    /**
+     * 设置用户的客户端配置
+     * @param Request $request
+     * @return Response
+     */
+    #[CheckUserToken]
+    public function setClientConfig(Request $request): Response
+    {
+        $params = v::input($request->post(), [
+            'rockball_filter' => v::optional(v::arrayType()->notEmpty())->setName('rockball_filter'),
+        ]);
+
+        $this->userService->setClientConfig($request->user->id, $params);
         return $this->success();
     }
 }
