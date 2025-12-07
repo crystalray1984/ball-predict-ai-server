@@ -209,7 +209,7 @@ class UserController extends Controller
     public function setClientConfig(Request $request): Response
     {
         $params = v::input($request->post(), [
-            'rockball_filter' => v::optional(v::arrayType()->notEmpty())->setName('rockball_filter'),
+            'rockball_filter' => v::optional(v::arrayType())->setName('rockball_filter'),
         ]);
 
         $this->userService->setClientConfig($request->user->id, $params);
