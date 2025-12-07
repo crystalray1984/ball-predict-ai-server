@@ -51,7 +51,7 @@ class DataReportController extends Controller
         ['time' => $time] = Validator::input($request->post(), [
             'time' => Validator::intType()->notEmpty()->setName('time'),
         ]);
-        $maxWeeks = (int)floor(($time - $this->minWeek) / 7 * 86400);
+        $maxWeeks = (int)floor(($time - $this->minWeek) / (7 * 86400));
         $output = [];
 
         $week = 0;
