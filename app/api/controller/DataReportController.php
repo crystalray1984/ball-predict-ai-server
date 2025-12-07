@@ -22,7 +22,7 @@ class DataReportController extends Controller
 
     public function __construct()
     {
-        $this->minWeek = strtotime('2025/11/15 00:00:00');
+        $this->minWeek = strtotime('2025/11/24 12:00:00');
     }
 
     #[Inject]
