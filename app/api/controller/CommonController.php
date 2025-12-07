@@ -228,11 +228,12 @@ class CommonController extends Controller
         $options = [];
         foreach ($config as $item) {
             foreach ($item['odds'] as $odd) {
-                $key = implode(':', [$odd['period'], $odd['type'], (float)$odd['condition']]);
+                $key = implode(':', [$odd['period'], $odd['variety'], $odd['type'], (float)$odd['condition']]);
                 if (isset($options[$key])) continue;
                 $options[$key] = [
                     'key' => $key,
                     'period' => $odd['period'],
+                    'variety' => $odd['variety'],
                     'type' => $odd['type'],
                     'condition' => $odd['condition'],
                 ];
