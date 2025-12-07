@@ -117,8 +117,8 @@ class DataReportService
             $cache = Redis::get($key);
             if (!empty($cache)) {
                 return [
-                    'start' => $week_start,
-                    'end' => $week_end->subMillisecond(),
+                    'start' => $week_start->clone()->addHours(12),
+                    'end' => $week_end->clone()->addHours(12)->subMillisecond(),
                     'data' => json_decode($cache, true)
                 ];
             }
@@ -127,8 +127,8 @@ class DataReportService
         $data = $this->createReport($channels, $week_start, $week_end);
         Redis::setEx($key, 86400 * 14, json_enc($data));
         return [
-            'start' => $week_start,
-            'end' => $week_end->subMillisecond(),
+            'start' => $week_start->clone()->addHours(12),
+            'end' => $week_end->clone()->addHours(12)->subMillisecond(),
             'data' => $data
         ];
     }
