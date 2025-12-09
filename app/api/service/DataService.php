@@ -172,7 +172,7 @@ class DataService
             ->where('is_valid', '=', 1);
 
         if (!empty($matchTimeStart)) {
-            $query->where('match_time', '>=', crown_time($matchTimeStart)->toISOString());
+            $query->where('match_time', '>=', crown_time($matchTimeStart)->subDay()->toISOString());
         }
 
         if (empty($expireTime)) {
