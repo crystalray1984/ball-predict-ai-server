@@ -9,19 +9,19 @@ return [
         //价格配置
         'price' => [
             'endless' => [
-                'price' => 180,
+                'price' => 1800,
                 'currency' => 'EDS',
             ],
             'bsc' => [
-                'price' => 18,
+                'price' => 180,
                 'currency' => 'EDS',
             ],
             'tron' => [
-                'price' => 18,
+                'price' => 180,
                 'currency' => 'USDT',
             ],
             'ethereum' => [
-                'price' => 18,
+                'price' => 180,
                 'currency' => 'USDT',
             ],
         ],
@@ -33,19 +33,19 @@ return [
         //价格配置
         'price' => [
             'endless' => [
-                'price' => 1180,
+                'price' => 11800,
                 'currency' => 'EDS',
             ],
             'bsc' => [
-                'price' => 120,
+                'price' => 1200,
                 'currency' => 'EDS',
             ],
             'tron' => [
-                'price' => 120,
+                'price' => 1200,
                 'currency' => 'USDT',
             ],
             'ethereum' => [
-                'price' => 120,
+                'price' => 1200,
                 'currency' => 'USDT',
             ],
         ],
@@ -57,19 +57,19 @@ return [
         //价格配置
         'price' => [
             'endless' => [
-                'price' => 4200,
+                'price' => 42000,
                 'currency' => 'EDS',
             ],
             'bsc' => [
-                'price' => 420,
+                'price' => 4200,
                 'currency' => 'EDS',
             ],
             'tron' => [
-                'price' => 420,
+                'price' => 4200,
                 'currency' => 'USDT',
             ],
             'ethereum' => [
-                'price' => 420,
+                'price' => 4200,
                 'currency' => 'USDT',
             ],
         ],
