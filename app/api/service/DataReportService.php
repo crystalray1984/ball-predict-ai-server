@@ -24,6 +24,7 @@ class DataReportService
             ->whereIn('channel', $channels)
             ->where('match_time', '>=', crown_time($start)->toISOString())
             ->where('match_time', '<', crown_time($end)->toISOString())
+            ->where('is_valid', '=', 1)
             ->whereNotNull('result')
             ->whereNotNull('value')
             ->orderBy('variety')
