@@ -14,3 +14,13 @@ const CACHE_ADMIN_KEY = 'admin:';
  * 应用程序配置的Redis缓存键名
  */
 const CACHE_SETTING_KEY = 'settings';
+
+/**
+ * UI时区
+ */
+const UI_TIMEZONE = 'Asia/Shanghai';
+
+/**
+ * 皇冠所在的时区
+ */
+const CROWN_TIMEZONE = 'America/Martinique';

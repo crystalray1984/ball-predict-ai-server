@@ -244,4 +244,98 @@ class DataService
             ];
         }, $list);
     }
+
+    /**
+     * 基于皇冠的日期划分，返回推荐数据
+     * @param array $channels
+     * @param int $userId
+     * @param Carbon|string|null $expireTime
+     * @return array
+     */
+    public function promotedByCrownDate(array $channels, int $userId = 0, Carbon|string|null $expireTime = null): array
+    {
+        $maxDate = PromotedView::query()
+            ->whereIn('channel', $channels)
+            ->where('is_valid', '=', 1)
+            ->orderBy('match_time', 'DESC')
+            ->value('match_time');
+        $minDate = crown_date($maxDate)->subDays(6)->toISOString();
+
+        $query = PromotedView::query()
+            ->whereIn('channel', $channels)
+            ->where('is_valid', '=', 1)
+            ->where('match_time', '>=', $minDate);
+
+        if (empty($expireTime)) {
+            //未登录，只能查看已经有赛果的推荐
+            $query->whereNotNull('result');
+        } else {
+            //根据用户的VIP过期时间，筛选过期之前产生的推荐
+            $query->where(function ($where) use ($expireTime) {
+                $where->whereNotNull('result')
+                    ->orWhere('created_at', '<', Carbon::parse($expireTime)->toISOString());
+            });
+        }
+
+        $list = $query
+            ->orderBy('id', 'DESC')
+            ->orderBy('match_time', 'DESC')
+            ->orderBy('match_id')
+            ->get([
+                'id',
+                'variety',
+                'period',
+                'type',
+                'condition',
+                'value',
+                'result',
+                'score',
+                'match_time',
+                'tournament_id',
+                'tournament_name',
+                'team1_id',
+                'team1_name',
+                'team2_id',
+                'team2_name',
+            ])
+            ->toArray();
+
+        $marked = [];
+        if (!empty($userId) && !empty($list)) {
+            $marked = UserMarked::query()
+                ->where('user_id', '=', $userId)
+                ->whereIn('promote_id', array_column($list, 'id'))
+                ->pluck('promote_id')
+                ->toArray();
+        }
+
+        return array_map(function (array $row) use ($marked) {
+            return [
+                'id' => $row['id'],
+                'variety' => $row['variety'],
+                'period' => $row['period'],
+                'type' => $row['type'],
+                'condition' => $row['condition'],
+                'value' => $row['value'],
+                'match_time' => $row['match_time'],
+                'tournament' => [
+                    'id' => $row['tournament_id'],
+                    'name' => $row['tournament_name'],
+                ],
+                'team1' => [
+                    'id' => $row['team1_id'],
+                    'name' => $row['team1_name'],
+                ],
+                'team2' => [
+                    'id' => $row['team2_id'],
+                    'name' => $row['team2_name'],
+                ],
+                'result' => isset($row['result']) ? [
+                    'result' => $row['result'],
+                    'score' => $row['score'],
+                ] : null,
+                'marked' => in_array($row['id'], $marked),
+            ];
+        }, $list);
+    }
 }

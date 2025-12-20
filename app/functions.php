@@ -655,3 +655,20 @@ if (!function_exists('crown_time')) {
         }
     }
 }
+
+if (!function_exists('crown_date')) {
+    /**
+     * 返回以皇冠结算日期划定的日期
+     * @param Carbon|string|null $input
+     * @return Carbon
+     */
+    function crown_date(Carbon|string|null $input = null): Carbon
+    {
+        if (is_null($input)) {
+            $date = Carbon::now()->tz(CROWN_TIMEZONE);
+        } else {
+            $date = Carbon::parse($input)->tz(CROWN_TIMEZONE);
+        }
+        return $date->startOfDay();
+    }
+}
