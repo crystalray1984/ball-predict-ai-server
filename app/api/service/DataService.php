@@ -27,7 +27,7 @@ class DataService
             } else {
                 $output[$key] = [
                     'id' => $row['tournament_id'],
-                    'match_time' => $row['match_time'],
+                    'match_time'  => Carbon::parse($row['match_time'])->toISOString(),
                     'tournament' => [
                         'id' => $row['tournament_id'],
                         'name' => $row['tournament_name'],
@@ -317,7 +317,7 @@ class DataService
                 'type' => $row['type'],
                 'condition' => $row['condition'],
                 'value' => $row['value'],
-                'match_time' => $row['match_time'],
+                'match_time' => Carbon::parse($row['match_time'])->toISOString(),
                 'tournament' => [
                     'id' => $row['tournament_id'],
                     'name' => $row['tournament_name'],
