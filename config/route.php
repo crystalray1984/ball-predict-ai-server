@@ -268,6 +268,12 @@ Route::group('/admin', function () {
         Route::post('/save_desktop', [\app\admin\controller\VersionController::class, 'saveDesktopVersion']);
         Route::post('/delete', [\app\admin\controller\VersionController::class, 'deleteVersion']);
     });
+
+    //数据接口
+    Route::group('/data', function () {
+        //滚球统计
+        Route::post('/rockball_summary', [\app\admin\controller\DataController::class, 'rockballSummary']);
+    });
 });
 
 Route::disableDefaultRoute();
