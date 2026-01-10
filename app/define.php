@@ -24,3 +24,15 @@ const UI_TIMEZONE = 'Asia/Shanghai';
  * 皇冠所在的时区
  */
 const CROWN_TIMEZONE = 'America/Martinique';
+
+const CHANNELS = [
+    'rockball' => [
+        'title' => '滚球',
+    ],
+    'direct' => [
+        'title' => '初盘',
+    ],
+    'mansion' => [
+        'title' => '内测',
+    ],
+];

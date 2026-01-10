@@ -123,7 +123,8 @@ class RockBallService
             '推荐水位',
             '推荐时间',
             '赛果',
-            '输赢'
+            '输赢',
+            '来源',
         ]);
 
         $rowIndex = 2;
@@ -193,6 +194,8 @@ class RockBallService
                         $score,
                         //输赢
                         $result,
+                        //来源
+                        $match['source_channel'],
                     ];
 
                     //写入数据
