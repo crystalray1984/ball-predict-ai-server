@@ -169,6 +169,8 @@ class SurebetRecordService
                 '模拟盘口(反推)',
                 '模拟盘口结果',
                 '模拟盘口赛果',
+                '半场进球',
+                '全场进球',
             ]
         ];
 
@@ -236,6 +238,9 @@ class SurebetRecordService
                         $virtual_score = $virtual_odd['score'];
                     }
 
+                    $period1_goal = $row['has_period1_score'] ? $row['score1_period1'] + $row['score2_period'] : '';
+                    $goal = $row['has_score'] ? $row['score1'] + $row['score2'] : '';
+
                     //写入数据
                     $rows[] = [
                         $row['id'],
@@ -255,6 +260,8 @@ class SurebetRecordService
                         $virtual_text,
                         $virtual_result,
                         $virtual_score,
+                        $period1_goal,
+                        $goal,
                     ];
                 }
             });
