@@ -238,7 +238,7 @@ class SurebetRecordService
                         $virtual_score = $virtual_odd['score'];
                     }
 
-                    $period1_goal = $row['has_period1_score'] ? $row['score1_period1'] + $row['score2_period'] : '';
+                    $period1_goal = $row['has_period1_score'] ? $row['score1_period1'] + $row['score2_period1'] : '';
                     $goal = $row['has_score'] ? $row['score1'] + $row['score2'] : '';
 
                     //写入数据
