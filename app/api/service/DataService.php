@@ -27,7 +27,7 @@ class DataService
             } else {
                 $output[$key] = [
                     'id' => $row['tournament_id'],
-                    'match_time'  => Carbon::parse($row['match_time'])->toISOString(),
+                    'match_time' => Carbon::parse($row['match_time'])->toISOString(),
                     'tournament' => [
                         'id' => $row['tournament_id'],
                         'name' => $row['tournament_name'],
@@ -56,7 +56,6 @@ class DataService
             ->join('v_match', "v_match.id", '=', "rockball_odd.match_id")
             ->where('rockball_odd.status', '=', '')
             ->where('rockball_odd.is_open', '=', 1)
-            ->where('v_match.tournament_is_rockball_open', '=', 1)
             //比赛时间判断
             ->where(function (Builder $where) {
                 //上半场盘口判断条件
