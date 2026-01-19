@@ -118,7 +118,7 @@ class Rockball2Service
             '追踪盘口-方向',
             '追踪盘口-盘口',
             '追踪盘口-水位条件',
-            '推荐开启',
+            '是否推荐',
             '推荐水位',
             '推荐时间',
             '赛果',
@@ -179,8 +179,8 @@ class Rockball2Service
                         //追踪盘口-水位
                         (float)$match['value'],
 
-                        //是否开启推荐
-                        $match['is_open'] ? '开启' : '关闭',
+                        //是否已推荐
+                        !empty($match['is_valid']) ? '已推荐' : '未推荐',
 
                         //推荐水位
                         isset($match['promoted_value']) ? (float)$match['promoted_value'] : '',
