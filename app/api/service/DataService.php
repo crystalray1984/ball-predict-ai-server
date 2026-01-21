@@ -89,6 +89,48 @@ class DataService
     }
 
     /**
+     * 获取滚球2准备中的数据
+     * @return array
+     */
+    public function rockball2Preparing(): array
+    {
+        $list = RockBallOdd::query()
+            ->join('v_match', "v_match.id", '=', "rockball_odd2.match_id")
+            ->where('rockball_odd2.status', '=', '')
+            ->where('rockball_odd2.is_open', '=', 1)
+            //比赛时间判断
+            ->where(function (Builder $where) {
+                //上半场盘口判断条件
+                $where->where(function (Builder $subWhere) {
+                    $subWhere->where('rockball_odd2.period', '=', 'period1')
+                        ->where('v_match.has_period1_score', '=', 0)
+                        ->where('v_match.match_time', '>', $subWhere->raw("CURRENT_TIMESTAMP - interval '60 minutes'"));
+                })
+                    //全场盘口判断条件
+                    ->orWhere(function (Builder $subWhere) {
+                        $subWhere->where('rockball_odd2.period', '=', 'regularTime')
+                            ->where('v_match.has_score', '=', 0)
+                            ->where('v_match.match_time', '>', $subWhere->raw("CURRENT_TIMESTAMP - interval '2 hours'"));
+                    });
+            })
+            ->orderBy('v_match.match_time')
+            ->orderBy('v_match.tournament_id')
+            ->orderBy('v_match.id')
+            ->distinct()
+            ->get([
+                'v_match.id',
+                'v_match.team1_name',
+                'v_match.team2_name',
+                'v_match.tournament_id',
+                'v_match.tournament_name',
+                'v_match.match_time'
+            ])
+            ->toArray();
+
+        return $this->formatPreparingList($list);
+    }
+
+    /**
      * 获取mansion准备中的数据
      * @return array
      */

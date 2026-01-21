@@ -115,6 +115,15 @@ Route::group('/api', function () {
         //获取最新推荐
         Route::post('/promoted', [\app\api\controller\DataController::class, 'featured']);
     });
+
+    Route::group('/channel', function () {
+        //获取频道列表
+        Route::any('/list', [\app\api\controller\ChannelController::class, 'list']);
+        //获取频道数据
+        Route::post('/data/{channel}', [\app\api\controller\ChannelController::class, 'data']);
+        //获取频道数据
+        Route::post('/report/{channel}', [\app\api\controller\ChannelController::class, 'report']);
+    });
 });
 
 //管理端接口

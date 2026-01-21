@@ -133,4 +133,15 @@ class DataReportService
             'data' => $data
         ];
     }
+
+    /**
+     * 按周获取统计报告
+     * @param string $channel
+     * @param int $week
+     * @return array
+     */
+    public function getDataReport(string $channel, int $week): array
+    {
+
+    }
 }
