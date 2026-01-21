@@ -20,6 +20,8 @@ class CheckVipSocket
 
     public function check(): void
     {
+        $sessions = Gateway::getAllClientSessions('vip');
+
         //获取所有已经连接到vip组的ws连接
         $uids = Gateway::getUidListByGroup('vip');
         if (empty($uids)) return;
@@ -38,6 +40,10 @@ class CheckVipSocket
         $clientList = Gateway::getClientIdByUids($kickUids);
         if (empty($clientList)) return;
         foreach ($clientList as $clientId) {
+            //不踢ios和安卓客户端
+            if (!empty($sessions[$clientId]['platform']) && in_array($sessions[$clientId]['platform'], ['ios', 'android'])) {
+                continue;
+            }
             Gateway::sendToClient($clientId, json_enc([
                 'type' => 'expired'
             ]));

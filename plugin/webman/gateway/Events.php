@@ -76,11 +76,18 @@ class Events
 
         //设置连接的组
         Gateway::bindUid($client_id, $user->id);
+
         //设置连接的类型标识
-        Gateway::updateSession($client_id, ['type' => 'user']);
+        $platform = $get['platform'] ?? '';
+        $session = [
+            'type' => 'user',
+            'user_id' => $user->id,
+            'platform' => $platform,
+        ];
+        Gateway::updateSession($client_id, $session);
 
         //加入vip组
-        if ($user->expire_time->unix() > time()) {
+        if (in_array($platform, ['ios', 'android']) || $user->expire_time->unix() > time()) {
             Gateway::joinGroup($client_id, 'vip');
         }
 
