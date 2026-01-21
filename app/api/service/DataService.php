@@ -6,6 +6,7 @@ use app\model\OddMansion;
 use app\model\Promoted;
 use app\model\PromotedView;
 use app\model\RockBallOdd;
+use app\model\RockballOdd2;
 use app\model\UserClientConfig;
 use app\model\UserMarked;
 use Carbon\Carbon;
@@ -94,7 +95,7 @@ class DataService
      */
     public function rockball2Preparing(): array
     {
-        $list = RockBallOdd::query()
+        $list = RockballOdd2::query()
             ->join('v_match', "v_match.id", '=', "rockball_odd2.match_id")
             ->where('rockball_odd2.status', '=', '')
             ->where('rockball_odd2.is_open', '=', 1)
