@@ -8,6 +8,7 @@ return [
         'key' => 'rockball',
         'name' => '滚球',
         'report' => true,
+        'filter' => 'rockball_filter',
     ],
     [
         'key' => 'rockball2',
