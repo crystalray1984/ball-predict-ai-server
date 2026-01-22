@@ -51,7 +51,7 @@ class UserController extends Controller
 
         return $this->success([
             'token' => $token,
-            'user' => $this->userService->getUserInfo($user),
+            'user' => $this->userService->getUserInfo($user, $request->header('platform')),
         ]);
     }
 
@@ -75,7 +75,7 @@ class UserController extends Controller
 
         return $this->success([
             'token' => $token,
-            'user' => $this->userService->getUserInfo($user),
+            'user' => $this->userService->getUserInfo($user, $request->header('platform')),
         ]);
     }
 
@@ -101,7 +101,7 @@ class UserController extends Controller
 
         return $this->success([
             'token' => $token,
-            'user' => $this->userService->getUserInfo($user),
+            'user' => $this->userService->getUserInfo($user, $request->header('platform')),
         ]);
     }
 
@@ -114,7 +114,7 @@ class UserController extends Controller
     public function info(Request $request): Response
     {
         return $this->success(
-            $this->userService->getUserInfo($request->user)
+            $this->userService->getUserInfo($request->user, $request->header('platform'))
         );
     }
 
@@ -176,7 +176,7 @@ class UserController extends Controller
 
         return $this->success([
             'token' => $token,
-            'user' => $this->userService->getUserInfo($user),
+            'user' => $this->userService->getUserInfo($user, $request->header('platform')),
         ]);
     }
 

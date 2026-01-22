@@ -156,13 +156,17 @@ class UserService
      * @param int|User $user
      * @return array
      */
-    public function getUserInfo(int|User $user): array
+    public function getUserInfo(int|User $user, ?string $platform = null): array
     {
         if (is_int($user)) {
             $user = get_user($user);
         }
 
         $user = $user->toArray();
+        if (in_array($platform, ['ios', 'android'])) {
+            $user['is_expired'] = 0;
+        }
+
         $user['connect'] = UserConnect::query()
             ->where('user_id', '=', $user['id'])
             ->get([
