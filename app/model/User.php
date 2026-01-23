@@ -22,6 +22,7 @@ use support\BaseModel;
  * @property int invite_user_id 邀请人id
  * @property Carbon|null $invited_at 绑定邀请关系的时间
  * @property string $commission 佣金
+ * @property Carbon|null $cancellation_at 账号注销完成时间
  */
 class User extends BaseModel
 {
@@ -32,6 +33,7 @@ class User extends BaseModel
     protected $casts = [
         'expire_time' => 'datetime',
         'invited_at' => 'datetime',
+        'cancellation_at' => 'datetime',
     ];
 
     protected function isExpired(): Attribute

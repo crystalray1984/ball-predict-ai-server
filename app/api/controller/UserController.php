@@ -215,4 +215,28 @@ class UserController extends Controller
         $this->userService->setClientConfig($request->user->id, $params);
         return $this->success();
     }
+
+    /**
+     * 注销账号
+     * @param Request $request
+     * @return Response
+     */
+    #[CheckUserToken]
+    public function cancellation(Request $request): Response
+    {
+        $this->userService->cancellation($request->user);
+        return $this->success();
+    }
+
+    /**
+     * 中止注销账号
+     * @param Request $request
+     * @return Response
+     */
+    #[CheckUserToken]
+    public function stopCancellation(Request $request): Response
+    {
+        $this->userService->stopCancellation($request->user->id);
+        return $this->success();
+    }
 }

@@ -44,6 +44,10 @@ Route::group('/api', function () {
         Route::post('/mark', [\app\api\controller\UserController::class, 'mark']);
         //保存客户端设置
         Route::post('/set_client_config', [\app\api\controller\UserController::class, 'setClientConfig']);
+        //注销账号
+        Route::post('/cancellation', [\app\api\controller\UserController::class, 'cancellation']);
+        //中止注销账号
+        Route::post('/stop_cancellation', [\app\api\controller\UserController::class, 'stopCancellation']);
     });
 
     //佣金接口

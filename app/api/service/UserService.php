@@ -267,4 +267,38 @@ class UserService
                 ...$fields,
             ], ['user_id']);
     }
+
+    /**
+     * 注销账号
+     * @param User $user
+     * @return void
+     */
+    public function cancellation(User $user): void
+    {
+        if ($user->cancellation_at) {
+            return;
+        }
+
+        User::query()
+            ->where('id', '=', $user->id)
+            ->update(['cancellation_at' => User::raw("CURRENT_TIMESTAMP + interval '168 hours'")]);
+
+        //清空用户的缓存
+        Redis::del(CACHE_USER_KEY . $user->id);
+    }
+
+    /**
+     * 取消账号注销
+     * @param int $user_id
+     * @return void
+     */
+    public function stopCancellation(int $user_id): void
+    {
+        User::query()
+            ->where('id', '=', $user_id)
+            ->update(['cancellation_at' => null]);
+
+        //清空用户的缓存
+        Redis::del(CACHE_USER_KEY . $user_id);
+    }
 }
