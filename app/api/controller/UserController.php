@@ -106,29 +106,6 @@ class UserController extends Controller
     }
 
     /**
-     * Bmiss小程序登录
-     * @param Request $request
-     * @return Response
-     */
-    public function bmissLogin(Request $request): Response
-    {
-        $params = v::input($request->post(), [
-            'appid' => v::stringType()->notEmpty()->setName('appid'),
-            'openid' => v::stringType()->notEmpty()->setName('openid'),
-        ]);
-
-        //获取登录的用户
-        $user = $this->loginRegisterService->bmissLogin($params);
-        //生成token
-        $token = Token::create(['id' => $user->id, 'type' => 'user']);
-
-        return $this->success([
-            'token' => $token,
-            'user' => $this->userService->getUserInfo($user, $request->header('platform')),
-        ]);
-    }
-
-    /**
      * 获取当前用户的信息
      * @param Request $request
      * @return Response

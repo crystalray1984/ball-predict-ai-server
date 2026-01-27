@@ -74,61 +74,6 @@ class LoginRegisterService
     }
 
     /**
-     * Bmiss小程序登录
-     * @param array{
-     *     appid: string,
-     *     openid: string
-     * } $params
-     * @return User
-     */
-    public function bmissLogin(array $params): User
-    {
-        //首先看看用户是否存在
-        /** @var UserConnect $connect */
-        $connect = UserConnect::query()
-            ->where('platform', '=', 'bmiss')
-            ->where('platform_id', '=', $params['appid'])
-            ->where('account', '=', $params['openid'])
-            ->first(['user_id']);
-
-        if ($connect) {
-            //已经找到用户就直接返回
-            $user = get_user($connect->user_id);
-            if (!$user) {
-                throw new BusinessError('用户不存在');
-            }
-            if (!$user->status) {
-                throw new BusinessError('用户已被禁用');
-            }
-            return $user;
-        }
-
-        //尝试创建用户
-        $connect = new UserConnect();
-        $connect->platform = 'bmiss';
-        $connect->platform_id = $params['appid'];
-        $connect->account = $params['openid'];
-
-        Db::beginTransaction();
-        try {
-            //创建用户
-            $user = $this->createUser([
-                'reg_source' => 'bmiss',
-            ]);
-
-            //写入用户连接表里的用户id并保存
-            $connect->user_id = $user->id;
-            $connect->save();
-            Db::commit();
-
-            return $user;
-        } catch (Throwable $exception) {
-            Db::rollBack();
-            throw $exception;
-        }
-    }
-
-    /**
      * 邮箱+密码登录
      * @param array $params
      * @return User
