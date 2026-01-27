@@ -14,7 +14,7 @@ return [
             ],
             'bsc' => [
                 'price' => 180,
-                'currency' => 'EDS',
+                'currency' => 'USDT',
             ],
             'tron' => [
                 'price' => 180,
@@ -23,6 +23,10 @@ return [
             'ethereum' => [
                 'price' => 180,
                 'currency' => 'USDT',
+            ],
+            'bmiss' => [
+                'price' => 5000,
+                'currency' => '钻石',
             ],
         ],
     ],
@@ -38,7 +42,7 @@ return [
             ],
             'bsc' => [
                 'price' => 1200,
-                'currency' => 'EDS',
+                'currency' => 'USDT',
             ],
             'tron' => [
                 'price' => 1200,
@@ -47,6 +51,10 @@ return [
             'ethereum' => [
                 'price' => 1200,
                 'currency' => 'USDT',
+            ],
+            'bmiss' => [
+                'price' => 30000,
+                'currency' => '钻石',
             ],
         ],
     ],
@@ -62,7 +70,7 @@ return [
             ],
             'bsc' => [
                 'price' => 4200,
-                'currency' => 'EDS',
+                'currency' => 'USDT',
             ],
             'tron' => [
                 'price' => 4200,
@@ -71,6 +79,10 @@ return [
             'ethereum' => [
                 'price' => 4200,
                 'currency' => 'USDT',
+            ],
+            'bmiss' => [
+                'price' => 100000,
+                'currency' => '钻石',
             ],
         ],
     ],

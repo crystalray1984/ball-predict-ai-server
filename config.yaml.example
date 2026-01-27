@@ -83,3 +83,9 @@ storage:
     key: ''
     secret: ''
     url_prefix: 'https://188zq-files.s3.ap-southeast-1.amazonaws.com/'
+
+#Bmiss小程序信息
+bmiss:
+  appid: ''
+  app_secret: ''
+  api_url: ''

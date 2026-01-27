@@ -144,7 +144,7 @@ class Endless extends Engine
      * @param array $post
      * @return bool
      */
-    public function verifyCallback(array $post): bool
+    public function verifyCallback(array $post, array $get = []): bool
     {
         return !empty($post['hash']) && is_string($post['hash']);
     }

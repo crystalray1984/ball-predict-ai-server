@@ -17,6 +17,7 @@ abstract class Engine
         'tron' => Tron::class,
         'ethereum' => Ethereum::class,
         'bsc' => Bsc::class,
+        'bmiss' => Bmiss::class,
     ];
 
     /**
@@ -50,7 +51,8 @@ abstract class Engine
     /**
      * 校验交易回调数据
      * @param array $post
+     * @param array $get
      * @return bool
      */
-    public abstract function verifyCallback(array $post): bool;
+    public abstract function verifyCallback(array $post, array $get): bool;
 }

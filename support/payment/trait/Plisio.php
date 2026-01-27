@@ -84,7 +84,7 @@ trait Plisio
      * @param array $data
      * @return bool
      */
-    public function verifyCallback(array $data): bool
+    public function verifyCallback(array $data, array $get = []): bool
     {
         return (new ClientAPI($this->secret))->verifyCallbackData($data, $this->secret);
     }

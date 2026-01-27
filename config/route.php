@@ -130,6 +130,14 @@ Route::group('/api', function () {
         //获取频道数据
         Route::post('/report/{channel}', [\app\api\controller\ChannelController::class, 'report']);
     });
+
+    //Bmiss接口
+    Route::group('/bmiss', function () {
+        //用户登录
+        Route::post('/login', [\app\api\controller\BmissController::class, 'login']);
+        //Bmiss回调接口
+        Route::post('/callback', [\app\api\controller\BmissController::class, 'callback']);
+    });
 });
 
 //管理端接口
