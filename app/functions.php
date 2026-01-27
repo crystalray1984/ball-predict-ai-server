@@ -232,6 +232,7 @@ if (!function_exists('get_users')) {
                 array_filter($result, fn($item) => empty($item))
             );
             $result = array_filter($result, fn($item) => !empty($item));
+            $result = array_map(fn(string $json) => User::make(json_decode($json, true)), $result);
         }
 
         if (empty($idList)) {
