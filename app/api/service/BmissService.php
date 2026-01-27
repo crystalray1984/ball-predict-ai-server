@@ -67,7 +67,7 @@ class BmissService
     {
         //通过Bmiss接口获取用户信息
         $retUser = $this->api('/mini/user_info', ['openid' => $params['openid']]);
-        if ($retUser['code'] !== 0) {
+        if ($retUser['code'] !== 200) {
             throw new BusinessError('登录失败');
         }
 

@@ -75,7 +75,7 @@ class Bmiss extends Engine
         $ret = G(BmissService::class)->api('/mini/query_consume', [
             'out_order_no' => $order->order_number,
         ]);
-        if ($ret['code'] !== 0) return [];
+        if ($ret['code'] !== 200) return [];
         return $ret['data'];
     }
 
