@@ -30,6 +30,8 @@ Route::group('/api', function () {
         Route::post('/login', [\app\api\controller\UserController::class, 'login']);
         //Luffa小程序授权登录
         Route::post('/luffa_login', [\app\api\controller\UserController::class, 'luffaLogin']);
+        //Bmiss小程序授权登录
+        Route::post('/bmiss_login', [\app\api\controller\UserController::class, 'bmissLogin']);
         //获取当前登录用户的信息
         Route::post('/info', [\app\api\controller\UserController::class, 'info']);
         //获取VIP购买记录
