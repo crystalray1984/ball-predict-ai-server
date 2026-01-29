@@ -137,6 +137,8 @@ class BmissBetService
             ->distinct()
             ->select(['match_time']);
 
+        dump($query->toRawSql());
+
         $matches = $query->get()->toArray();
 
         $time = $start->unix();
