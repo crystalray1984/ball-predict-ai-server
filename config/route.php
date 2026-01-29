@@ -318,6 +318,8 @@ Route::group('/admin', function () {
         Route::post('/bet_records', [\app\admin\controller\BmissBetController::class, 'getBetRecords']);
         //获取没有比赛的赛程列表
         Route::post('/empty_time_range', [\app\admin\controller\BmissBetController::class, 'getEmptyTimeRange']);
+        //统计数据
+        Route::post('/summary', [\app\admin\controller\BmissBetController::class, 'summary']);
     });
 });
 
