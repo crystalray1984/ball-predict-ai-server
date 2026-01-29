@@ -331,6 +331,9 @@ class MatchService
         $label->luffa_uid = $data['luffa_uid'];
         $label->luffa_type = $data['luffa_type'];
         $label->title = $data['title'];
+        if (isset($data['bmiss_bet_enable'])) {
+            $label->bmiss_bet_enable = $data['bmiss_bet_enable'];
+        }
         $label->save();
 
         //清空标签缓存

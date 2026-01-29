@@ -254,6 +254,7 @@ class MatchController extends Controller
             'luffa_uid' => v::stringType()->notEmpty()->setName('luffa_uid'),
             'luffa_type' => v::in([0, 1])->setName('luffa_type'),
             'title' => v::stringType()->notEmpty()->setName('title'),
+            'bmiss_bet_enable' => v::optional(v::in([0, 1]))->setName('bmiss_bet_enable'),
         ]);
 
         $this->matchService->saveTournamentLabel($data);
