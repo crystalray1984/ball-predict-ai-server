@@ -134,8 +134,6 @@ class BmissBetService
             ->distinct()
             ->select(['match_time']);
 
-        dump($query->toRawSql());
-
         $matches = $query->get()->toArray();
 
         $time = $start->unix();
@@ -145,7 +143,6 @@ class BmissBetService
 
         while ($time < $end_time && !empty($matches)) {
             $match = array_shift($matches);
-            dump($match['match_time']);
             $match_time = Carbon::parse($match['match_time'])->unix();
             $bet_start = $match_time - 86400;
             if ($bet_start > $time) {
