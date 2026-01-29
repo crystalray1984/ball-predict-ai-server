@@ -159,4 +159,84 @@ class BmissBetService
 
         return $result;
     }
+
+    /**
+     * 查询统计
+     * @return array
+     */
+    public function summary(): array
+    {
+        $today_start = Carbon::today();
+        $yesterday_start = Carbon::today()->subDay();
+        $days_7_start = Carbon::today()->subDays(6);
+        $days_30_start = Carbon::today()->subDays(29);
+
+        return [
+            'today' => [
+                'users' => $this->getUserCountSummary($today_start),
+                ...$this->getBetSummary($today_start),
+            ],
+            'yesterday' => [
+                'users' => $this->getUserCountSummary($yesterday_start, $today_start),
+                ...$this->getBetSummary($yesterday_start, $today_start),
+            ],
+            'days_7' => [
+                'users' => $this->getUserCountSummary($days_7_start),
+                ...$this->getBetSummary($days_7_start),
+            ],
+            'days_30' => [
+                'users' => $this->getUserCountSummary($days_30_start),
+                ...$this->getBetSummary($days_30_start),
+            ],
+            'all' => [
+                'users' => $this->getUserCountSummary(),
+                ...$this->getBetSummary(),
+            ],
+        ];
+    }
+
+    /**
+     * 用户数统计
+     * @param Carbon|null $start
+     * @param Carbon|null $end
+     * @return int
+     */
+    protected function getUserCountSummary(?Carbon $start = null, ?Carbon $end = null): int
+    {
+        $query = BmissUser::query();
+        if (!empty($start)) {
+            $query->where('last_login_at', '>=', $start->toISOString());
+        }
+        if (!empty($end)) {
+            $query->where('last_login_at', '<', $end->toISOString());
+        }
+        return $query->count();
+    }
+
+    /**
+     * 投注统计
+     * @param Carbon|null $start
+     * @param Carbon|null $end
+     * @return array
+     */
+    protected function getBetSummary(?Carbon $start = null, ?Carbon $end = null): array
+    {
+        $query = BmissUserBet::query()
+            ->where('paid', '=', 1);
+        if (!empty($start)) {
+            $query->where('created_at', '>=', $start->toISOString());
+        }
+        if (!empty($end)) {
+            $query->where('created_at', '<', $end->toISOString());
+        }
+        $query->selectRaw('count(*) as count');
+        $query->selectRaw('SUM(amount) as amount');
+        $query->selectRaw('SUM(CASE WHEN result IS NULL THEN 0 ELSE result_amount - amount END) as profit');
+        $row = $query->first();
+        return [
+            'bets' => $row?->count ?? 0,
+            'amount' => $row?->amount ?? 0,
+            'profit' => $row?->profit ?? 0,
+        ];
+    }
 }

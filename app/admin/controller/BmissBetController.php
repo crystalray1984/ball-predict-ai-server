@@ -80,4 +80,16 @@ class BmissBetController extends Controller
 
         return $this->success($this->service->getEmptyRange($params['start_date'], $params['end_date']));
     }
+
+    /**
+     * 统计数据
+     * @return Response
+     */
+    #[CheckAdminToken]
+    public function summary(): Response
+    {
+        return $this->success(
+            $this->service->summary()
+        );
+    }
 }
