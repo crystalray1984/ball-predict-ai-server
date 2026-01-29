@@ -231,7 +231,7 @@ class BmissBetService
         }
         $query->selectRaw('count(*) as count');
         $query->selectRaw('SUM(amount) as amount');
-        $query->selectRaw('SUM(CASE WHEN result IS NULL THEN 0 ELSE result_amount - amount END) as profit');
+        $query->selectRaw('SUM(CASE WHEN result IS NULL THEN 0 ELSE amount - result_amount END) as profit');
         $row = $query->first();
         return [
             'bets' => $row?->count ?? 0,
