@@ -130,13 +130,14 @@ class BmissBetService
         $range_start = $start->clone()->addDay()->toISOString();
         $range_end = $end->clone()->addDay()->toISOString();
 
-        $matches = Match1::query()
+        $query = Match1::query()
             ->where('bmiss_bet_enable', '=', 1)
             ->whereBetween('match_time', [$range_start, $range_end])
             ->orderBy('match_time')
             ->distinct()
-            ->pluck('match_time')
-            ->toArray();
+            ->select(['match_time']);
+
+        $matches = $query->get()->toArray();
 
         $time = $start->unix();
         $end_time = $end->unix();
@@ -145,8 +146,8 @@ class BmissBetService
 
         while ($time < $end_time && !empty($matches)) {
             $match = array_shift($matches);
-            dump($match);
-            $match_time = Carbon::parse($match)->unix();
+            dump($match['match_time']->toString());
+            $match_time = $match['match_time']->unix();
             $bet_start = $match_time - 86400;
             if ($bet_start > $time) {
                 $result[] = [$time, $bet_start];
