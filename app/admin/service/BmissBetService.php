@@ -129,7 +129,7 @@ class BmissBetService
 
         $query = Match1::query()
             ->where('bmiss_bet_enable', '=', 1)
-            ->whereBetween('match_time', [$start->toISOString(), $end->toISOString()])
+            ->whereBetween('match_time', [$start->toISOString(), $end->clone()->addDay()->toISOString()])
             ->orderBy('match_time')
             ->distinct()
             ->select(['match_time']);
