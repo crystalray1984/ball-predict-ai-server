@@ -127,12 +127,9 @@ class BmissBetService
         $start = Carbon::parse($start_date);
         $end = Carbon::parse($end_date)->addDays();
 
-        $range_start = $start->clone()->addDay()->toISOString();
-        $range_end = $end->clone()->addDay()->toISOString();
-
         $query = Match1::query()
             ->where('bmiss_bet_enable', '=', 1)
-            ->whereBetween('match_time', [$range_start, $range_end])
+            ->whereBetween('match_time', [$start->toISOString(), $end->toISOString()])
             ->orderBy('match_time')
             ->distinct()
             ->select(['match_time']);
