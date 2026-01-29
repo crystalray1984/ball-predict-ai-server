@@ -163,6 +163,12 @@ class MatchService
                 '>=',
                 crown_time($params['start_date'])->toISOString(),
             );
+        } else if (!empty($params['start_time'])) {
+            $query->where(
+                'v_match.match_time',
+                '>=',
+                Carbon::parse($params['start_time'])->toISOString(),
+            );
         }
         if (!empty($params['end_date'])) {
             $query->where(
@@ -172,7 +178,14 @@ class MatchService
                     ->addDays()
                     ->toISOString(),
             );
+        } else if (!empty($params['end_time'])) {
+            $query->where(
+                'v_match.match_time',
+                '<',
+                Carbon::parse($params['end_time'])->toISOString(),
+            );
         }
+
         if (!empty($params['tournament_id'])) {
             $query->where('v_match.tournament_id', '=', $params['tournament_id']);
         }
@@ -190,6 +203,10 @@ class MatchService
 
         if (!empty($params['status'])) {
             $query->whereIn('v_match.status', $params['status']);
+        }
+
+        if (!empty($params['bmiss_bet_enable'])) {
+            $query->where('v_match.bmiss_bet_enable', '=', 1);
         }
 
         $count = $query->count();

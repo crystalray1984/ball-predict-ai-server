@@ -127,6 +127,9 @@ class MatchController extends Controller
             'page' => v::optional(v::intType()->min(1))->setName('page'),
             'page_size' => v::optional(v::intType()->min(1))->setName('page_size'),
             'status' => v::optional(v::arrayType()->each(v::in(['', 'final'])))->setName('status'),
+            'bmiss_bet_enable' => v::optional(v::intType())->setName('bmiss_bet_enable'),
+            'start_time' => v::optional(v::stringType())->setName('start_time'),
+            'end_time' => v::optional(v::stringType())->setName('end_time'),
         ]);
 
         return $this->success(
