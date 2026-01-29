@@ -5,6 +5,7 @@ namespace app\admin\controller;
 use app\admin\service\MatchService;
 use app\model\Match1;
 use app\model\Tournament;
+use app\model\TournamentLabel;
 use Carbon\Carbon;
 use DI\Attribute\Inject;
 use Respect\Validation\Validator as v;
@@ -65,6 +66,46 @@ class MatchController extends Controller
                 ->where('id', '=', $params['id'])
                 ->update(['is_rockball_open' => $params['is_rockball_open']]);
         }
+
+        return $this->success();
+    }
+
+    /**
+     * 切换赛事标签是否可以用于Bmiss投注
+     * @param Request $request
+     * @return Response
+     */
+    #[CheckAdminToken]
+    public function toggleLabelBmissBetEnable(Request $request): Response
+    {
+        $params = v::input($request->post(), [
+            'id' => v::intType()->min(1)->setName('id'),
+            'enable' => v::in([0, 1])->setName('enable'),
+        ]);
+
+        TournamentLabel::query()
+            ->where('id', '=', $params['id'])
+            ->update(['bmiss_bet_enable' => $params['enable']]);
+
+        return $this->success();
+    }
+
+    /**
+     * 切换比赛是否可以用于Bmiss投注
+     * @param Request $request
+     * @return Response
+     */
+    #[CheckAdminToken]
+    public function toggleMatchBmissBetEnable(Request $request): Response
+    {
+        $params = v::input($request->post(), [
+            'id' => v::intType()->min(1)->setName('id'),
+            'enable' => v::in([0, 1])->setName('enable'),
+        ]);
+
+        Match1::query()
+            ->where('id', '=', $params['id'])
+            ->update(['bmiss_bet_enable' => $params['enable']]);
 
         return $this->success();
     }

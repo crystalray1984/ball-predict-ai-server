@@ -15,9 +15,12 @@ class SettingService
     /**
      * 读取当前的配置项
      */
-    public function getSettings(): array
+    public function getSettings(array $keys = []): array
     {
-        $data = Setting::all()->toArray();
+        $data = Setting::query()
+            ->when(!empty($keys), fn($query) => $query->whereIn('name', $keys))
+            ->get()
+            ->toArray();
         $data = array_column($data, 'value', 'name');
         return array_map(function (string|null $value) {
             if (!isset($value) || $value === '') {

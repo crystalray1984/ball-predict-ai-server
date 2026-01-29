@@ -181,6 +181,8 @@ Route::group('/admin', function () {
         Route::post('/set_error_status', [\app\admin\controller\MatchController::class, 'setMatchErrorStatus']);
         //修改比赛时间
         Route::post('/set_time', [\app\admin\controller\MatchController::class, 'setMatchTime']);
+        //切换比赛是否可用于Bmiss投注
+        Route::post('/toggle_bmiss_bet_enable', [\app\admin\controller\MatchController::class, 'toggleMatchBmissBetEnable']);
 
         //联赛标签接口
         Route::group('/label', function () {
@@ -192,6 +194,8 @@ Route::group('/admin', function () {
             Route::post('/delete', [\app\admin\controller\MatchController::class, 'deleteTournamentLabel']);
             //设置联赛标签
             Route::post('/set', [\app\admin\controller\MatchController::class, 'setTournamentLabel']);
+            //切换联赛标签是否可用于Bmiss投注
+            Route::post('/toggle_bmiss_bet_enable', [\app\admin\controller\MatchController::class, 'toggleLabelBmissBetEnable']);
         });
     });
 
@@ -304,6 +308,16 @@ Route::group('/admin', function () {
     Route::group('/data', function () {
         //滚球统计
         Route::post('/rockball_summary', [\app\admin\controller\DataController::class, 'rockballSummary']);
+    });
+
+    //Bmiss投注管理接口
+    Route::group('/bmiss_bet', function () {
+        //用户列表
+        Route::post('/users', [\app\admin\controller\BmissBetController::class, 'getUsers']);
+        //用户投注列表
+        Route::post('/bet_records', [\app\admin\controller\BmissBetController::class, 'getBetRecords']);
+        //获取没有比赛的赛程列表
+        Route::post('/empty_time_range', [\app\admin\controller\BmissBetController::class, 'getEmptyTimeRange']);
     });
 });
 

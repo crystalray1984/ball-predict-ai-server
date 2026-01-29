@@ -20,10 +20,14 @@ class SettingController extends Controller
      * @return Response
      */
     #[CheckAdminToken]
-    public function get(): Response
+    public function get(Request $request): Response
     {
+        ['keys' => $keys] = v::input($request->post(), [
+            'keys' => v::optional(v::arrayType())->setName('keys'),
+        ]);
+
         return $this->success(
-            $this->service->getSettings()
+            $this->service->getSettings($keys ?? [])
         );
     }
 
