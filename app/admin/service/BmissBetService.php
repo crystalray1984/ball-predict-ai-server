@@ -111,6 +111,8 @@ class BmissBetService
                 'v_match.match_time',
                 'bmiss_user.nickname',
                 'bmiss_user.avatar',
+                'bmiss_user.openid',
+                'bmiss_user.appid',
             ])
             ->toArray();
 
