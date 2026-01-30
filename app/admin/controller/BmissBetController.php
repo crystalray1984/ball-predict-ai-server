@@ -30,7 +30,7 @@ class BmissBetController extends Controller
             'appid' => v::optional(v::stringType())->setName('appid'),
             'openid' => v::optional(v::stringType())->setName('openid'),
             'nickname' => v::optional(v::stringType())->setName('nickname'),
-            'order_field' => v::optional(v::in(['id', 'last_login_at', 'profit']))->setName('order_field'),
+            'order_field' => v::optional(v::in(['id', 'last_login_at', 'profit', 'balance']))->setName('order_field'),
             'order_sort' => v::optional(v::in(['asc', 'desc']))->setName('order_sort'),
             'page' => v::optional(v::intType()->greaterThan(0))->setName('page'),
             'page_size' => v::optional(v::intType()->greaterThan(0))->setName('page_size'),
