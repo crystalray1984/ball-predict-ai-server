@@ -2,8 +2,11 @@
 
 namespace app\admin\service;
 
+use app\model\BmissRecharge;
 use app\model\BmissUser;
+use app\model\BmissUserBalanceLog;
 use app\model\BmissUserBet;
+use app\model\BmissWithdrawal;
 use app\model\Match1;
 use Carbon\Carbon;
 
@@ -57,6 +60,7 @@ class BmissBetService
     public function getBetRecords(array $params): array
     {
         $query = BmissUserBet::query()
+            ->join('bmiss_user', 'bmiss_user.user_id', '=', 'bmiss_user_bet.user_id')
             ->join('v_match', 'bmiss_user_bet.match_id', '=', 'v_match.id');
 
         if (!empty($params['match_id'])) {
@@ -75,6 +79,14 @@ class BmissBetService
             $query->where('bmiss_user_bet.openid', '=', $params['openid']);
         }
 
+        if (!empty($params['start_date'])) {
+            $query->where('bmiss_user_bet.created_at', '>=', Carbon::parse($params['start_date'])->toISOString());
+        }
+
+        if (!empty($params['end_date'])) {
+            $query->where('bmiss_user_bet.created_at', '<', Carbon::parse($params['end_date'])->addDay()->toISOString());
+        }
+
         if (isset($params['result'])) {
             switch ($params['result']) {
                 case '':
@@ -89,7 +101,7 @@ class BmissBetService
         $count = $query->count();
 
         $list = $query
-            ->orderBy('bmiss_user_bet.created_at', 'DESC')
+            ->orderBy('bmiss_user_bet.id', 'DESC')
             ->forPage($params['page'] ?? DEFAULT_PAGE, $params['page_size'] ?? DEFAULT_PAGE_SIZE)
             ->get([
                 'bmiss_user_bet.*',
@@ -97,6 +109,8 @@ class BmissBetService
                 'v_match.team2_name',
                 'v_match.tournament_name',
                 'v_match.match_time',
+                'bmiss_user.nickname',
+                'bmiss_user.avatar',
             ])
             ->toArray();
 
@@ -224,6 +238,147 @@ class BmissBetService
             'bets' => $row?->count ?? 0,
             'amount' => $row?->amount ?? 0,
             'profit' => $row?->profit ?? 0,
+        ];
+    }
+
+    /**
+     * 查询充值记录
+     * @param array $params
+     * @return array
+     */
+    public function getRechargeRecords(array $params): array
+    {
+        $query = BmissRecharge::query()
+            ->join('bmiss_user', 'bmiss_user.id', '=', 'bmiss_recharge.user_id')
+            ->where('status', '=', 1);
+
+        if (!empty($params['user_id'])) {
+            $query->where('bmiss_recharge.user_id', '=', $params['user_id']);
+        }
+
+        if (!empty($params['appid'])) {
+            $query->where('bmiss_recharge.appid', '=', $params['appid']);
+        }
+
+        if (!empty($params['openid'])) {
+            $query->where('bmiss_recharge.openid', '=', $params['openid']);
+        }
+
+        if (!empty($params['start_date'])) {
+            $query->where('bmiss_recharge.completed_at', '>=', Carbon::parse($params['start_date'])->toISOString());
+        }
+
+        if (!empty($params['end_date'])) {
+            $query->where('bmiss_recharge.completed_at', '<', Carbon::parse($params['end_date'])->addDay()->toISOString());
+        }
+
+        $count = $query->count();
+        $list = $query->orderBy('completed_at', 'DESC')
+            ->forPage($params['page'] ?? DEFAULT_PAGE, $params['page_size'] ?? DEFAULT_PAGE_SIZE)
+            ->get([
+                'bmiss_recharge.*',
+                'bmiss_user.nickname',
+                'bmiss_user.avatar',
+            ])
+            ->toArray();
+
+        $list = array_map(function (array $row) {
+            if (!empty($row['bmiss_order_info'])) {
+                $row['bmiss_order_info'] = json_decode($row['bmiss_order_info'], true);
+            }
+            return $row;
+        }, $list);
+
+        return [
+            'count' => $count,
+            'list' => $list,
+        ];
+    }
+
+    /**
+     * 查询提现记录
+     * @param array $params
+     * @return array
+     */
+    public function getWithdrawalRecords(array $params): array
+    {
+        $query = BmissWithdrawal::query()
+            ->join('bmiss_user', 'bmiss_user.id', '=', 'bmiss_withdrawal.user_id');
+
+        if (!empty($params['user_id'])) {
+            $query->where('bmiss_withdrawal.user_id', '=', $params['user_id']);
+        }
+
+        if (!empty($params['appid'])) {
+            $query->where('bmiss_withdrawal.appid', '=', $params['appid']);
+        }
+
+        if (!empty($params['openid'])) {
+            $query->where('bmiss_withdrawal.openid', '=', $params['openid']);
+        }
+
+        if (!empty($params['start_date'])) {
+            $query->where('bmiss_withdrawal.created_at', '>=', Carbon::parse($params['start_date'])->toISOString());
+        }
+
+        if (!empty($params['end_date'])) {
+            $query->where('bmiss_withdrawal.created_at', '<', Carbon::parse($params['end_date'])->addDay()->toISOString());
+        }
+
+        $count = $query->count();
+        $list = $query->orderBy('id', 'DESC')
+            ->forPage($params['page'] ?? DEFAULT_PAGE, $params['page_size'] ?? DEFAULT_PAGE_SIZE)
+            ->get([
+                'bmiss_withdrawal.*',
+                'bmiss_user.nickname',
+                'bmiss_user.avatar',
+            ])
+            ->toArray();
+
+        $list = array_map(function (array $row) {
+            if (!empty($row['bmiss_order_info'])) {
+                $row['bmiss_order_info'] = json_decode($row['bmiss_order_info'], true);
+            }
+            return $row;
+        }, $list);
+
+        return [
+            'count' => $count,
+            'list' => $list,
+        ];
+    }
+
+    /**
+     * 查询余额变动记录
+     * @param array $params
+     * @return array
+     */
+    public function getBalanceLog(array $params): array
+    {
+        $query = BmissUserBalanceLog::query()
+            ->where('user_id', '=', $params['user_id']);;
+
+        if (!empty($params['type'])) {
+            $query->where('type', '=', $params['type']);
+        }
+
+        if (!empty($params['start_date'])) {
+            $query->where('created_at', '>=', Carbon::parse($params['start_date'])->toISOString());
+        }
+
+        if (!empty($params['end_date'])) {
+            $query->where('created_at', '<', Carbon::parse($params['end_date'])->addDay()->toISOString());
+        }
+
+        $count = $query->count();
+        $list = $query->orderBy('id', 'DESC')
+            ->forPage($params['page'] ?? DEFAULT_PAGE, $params['page_size'] ?? DEFAULT_PAGE_SIZE)
+            ->get()
+            ->toArray();
+
+        return [
+            'count' => $count,
+            'list' => $list,
         ];
     }
 }

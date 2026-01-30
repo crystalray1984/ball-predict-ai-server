@@ -54,8 +54,9 @@ class BmissBetController extends Controller
             'user_id' => v::optional(v::intType())->setName('user_id'),
             'appid' => v::optional(v::stringType())->setName('appid'),
             'openid' => v::optional(v::stringType())->setName('openid'),
-            'paid' => v::optional(v::boolType())->setName('paid'),
             'result' => v::optional(v::in([-1, 0, 1, '']))->setName('result'),
+            'start_date' => v::optional(v::stringType()->date())->setName('start_date'),
+            'end_date' => v::optional(v::stringType()->date())->setName('end_date'),
             'page' => v::optional(v::intType()->greaterThan(0))->setName('page'),
             'page_size' => v::optional(v::intType()->greaterThan(0))->setName('page_size'),
         ]);
@@ -90,6 +91,74 @@ class BmissBetController extends Controller
     {
         return $this->success(
             $this->service->summary()
+        );
+    }
+
+    /**
+     * 获取充值记录列表
+     * @param Request $request
+     * @return Response
+     */
+    #[CheckAdminToken]
+    public function getRechargeRecords(Request $request): Response
+    {
+        $params = v::input($request->post(), [
+            'user_id' => v::optional(v::intType())->setName('user_id'),
+            'appid' => v::optional(v::stringType())->setName('appid'),
+            'openid' => v::optional(v::stringType())->setName('openid'),
+            'start_date' => v::optional(v::stringType()->date())->setName('start_date'),
+            'end_date' => v::optional(v::stringType()->date())->setName('end_date'),
+            'page' => v::optional(v::intType()->greaterThan(0))->setName('page'),
+            'page_size' => v::optional(v::intType()->greaterThan(0))->setName('page_size'),
+        ]);
+
+        return $this->success(
+            $this->service->getRechargeRecords($params)
+        );
+    }
+
+    /**
+     * 获取提现记录列表
+     * @param Request $request
+     * @return Response
+     */
+    #[CheckAdminToken]
+    public function getWithdrawalRecords(Request $request): Response
+    {
+        $params = v::input($request->post(), [
+            'user_id' => v::optional(v::intType())->setName('user_id'),
+            'appid' => v::optional(v::stringType())->setName('appid'),
+            'openid' => v::optional(v::stringType())->setName('openid'),
+            'start_date' => v::optional(v::stringType()->date())->setName('start_date'),
+            'end_date' => v::optional(v::stringType()->date())->setName('end_date'),
+            'page' => v::optional(v::intType()->greaterThan(0))->setName('page'),
+            'page_size' => v::optional(v::intType()->greaterThan(0))->setName('page_size'),
+        ]);
+
+        return $this->success(
+            $this->service->getWithdrawalRecords($params)
+        );
+    }
+
+    /**
+     * 获取余额变动记录列表
+     * @param Request $request
+     * @return Response
+     */
+    #[CheckAdminToken]
+    public function getBalanceLog(Request $request): Response
+    {
+        $params = v::input($request->post(), [
+            'user_id' => v::intType()->greaterThan(0)->setName('user_id'),
+            'type' => v::optional(v::stringType())->setName('type'),
+            'start_date' => v::optional(v::stringType()->date())->setName('start_date'),
+            'end_date' => v::optional(v::stringType()->date())->setName('end_date'),
+            'page' => v::optional(v::intType()->greaterThan(0))->setName('page'),
+            'page_size' => v::optional(v::intType()->greaterThan(0))->setName('page_size'),
+        ]);
+
+        return $this->success(
+            $this->service->getBalanceLog($params)
         );
     }
 }

@@ -22,7 +22,6 @@ use support\BaseModel;
  * @property int $result_amount
  * @property string|null $result_status
  * @property Carbon|null $settlement_at
- * @property int $paid
  * @property string $result_text
  */
 class BmissUserBet extends BaseModel

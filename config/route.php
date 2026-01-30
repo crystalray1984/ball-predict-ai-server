@@ -320,6 +320,12 @@ Route::group('/admin', function () {
         Route::post('/empty_time_range', [\app\admin\controller\BmissBetController::class, 'getEmptyTimeRange']);
         //统计数据
         Route::post('/summary', [\app\admin\controller\BmissBetController::class, 'summary']);
+        //充值记录
+        Route::post('/recharge_records', [\app\admin\controller\BmissBetController::class, 'getRechargeRecords']);
+        //提现记录
+        Route::post('/withdrawal_records', [\app\admin\controller\BmissBetController::class, 'getWithdrawalRecords']);
+        //余额变动记录
+        Route::post('/balance_log', [\app\admin\controller\BmissBetController::class, 'getBalanceLog']);
     });
 });
 

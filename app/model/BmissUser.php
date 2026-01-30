@@ -15,7 +15,8 @@ use support\BaseModel;
  * @property Carbon $created_at
  * @property Carbon $last_login_at
  * @property Carbon $updated_at
- * @property int $profit
+ * @property string $profit
+ * @property string $balance
  */
 class BmissUser extends BaseModel
 {
