@@ -72,11 +72,11 @@ class BmissBetService
         }
 
         if (!empty($params['appid'])) {
-            $query->where('bmiss_user_bet.appid', '=', $params['appid']);
+            $query->where('bmiss_user.appid', '=', $params['appid']);
         }
 
         if (!empty($params['openid'])) {
-            $query->where('bmiss_user_bet.openid', '=', $params['openid']);
+            $query->where('bmiss_user.openid', '=', $params['openid']);
         }
 
         if (!empty($params['start_date'])) {
