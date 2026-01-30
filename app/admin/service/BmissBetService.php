@@ -60,7 +60,7 @@ class BmissBetService
     public function getBetRecords(array $params): array
     {
         $query = BmissUserBet::query()
-            ->join('bmiss_user', 'bmiss_user.user_id', '=', 'bmiss_user_bet.user_id')
+            ->join('bmiss_user', 'bmiss_user.id', '=', 'bmiss_user_bet.user_id')
             ->join('v_match', 'bmiss_user_bet.match_id', '=', 'v_match.id');
 
         if (!empty($params['match_id'])) {
