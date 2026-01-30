@@ -2,6 +2,7 @@
 
 namespace app\process;
 
+use app\model\MatchView;
 use app\model\NotificationLog;
 use app\model\PromotedView;
 use Carbon\Carbon;
@@ -49,6 +50,25 @@ class MatchScoreCheck
                 'team2_name',
             ])
             ->toArray();
+
+        //获取Bmiss投注的比赛
+        $betList = MatchView::query()
+            ->where('bmiss_bet_enable', '=', 1)
+            ->where('match_time', '<', $regularTime)
+            ->where('has_score', '=', 0)
+            ->get([
+                'id AS match_id',
+                'match_time',
+                'tournament_name',
+                'team1_name',
+                'team2_name',
+            ])
+            ->toArray();
+        foreach ($betList as $k => $item) {
+            $betList[$k]['period'] = 'regularTime';
+        }
+
+        $list = array_merge($list, $betList);
 
         foreach ($list as $row) {
             //检查通知是否已经发送
