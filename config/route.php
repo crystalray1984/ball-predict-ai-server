@@ -144,6 +144,8 @@ Route::group('/admin', function () {
     Route::group('/common', function () {
         //获取上传表单接口
         Route::post('/create_upload_form', [\app\admin\controller\CommonController::class, 'createUploadForm']);
+        //获取验证码图片
+        Route::any('/captcha', [\app\api\controller\CommonController::class, 'captcha']);
     });
 
     //管理用户接口
