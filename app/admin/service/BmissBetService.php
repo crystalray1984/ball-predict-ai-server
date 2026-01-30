@@ -75,16 +75,6 @@ class BmissBetService
             $query->where('bmiss_user_bet.openid', '=', $params['openid']);
         }
 
-        if (isset($params['paid'])) {
-            if ($params['paid']) {
-                $query->where('bmiss_user_bet.paid', '=', 1);
-            } else {
-                $query->where('bmiss_user_bet.paid', '>', 1);
-            }
-        } else {
-            $query->where('bmiss_user_bet.paid', '!=', 0);
-        }
-
         if (isset($params['result'])) {
             switch ($params['result']) {
                 case '':
@@ -219,8 +209,7 @@ class BmissBetService
      */
     protected function getBetSummary(?Carbon $start = null, ?Carbon $end = null): array
     {
-        $query = BmissUserBet::query()
-            ->where('paid', '=', 1);
+        $query = BmissUserBet::query();
         if (!empty($start)) {
             $query->where('created_at', '>=', $start->toISOString());
         }

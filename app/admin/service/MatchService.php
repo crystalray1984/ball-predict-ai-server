@@ -111,6 +111,11 @@ class MatchService
             Db::rollBack();
             throw $e;
         }
+
+        if (!$data['period1']) {
+            //抛到队列让Bmiss投注结算
+            rabbitmq_publish('bmiss-bet-settlement', json_enc(['match_id' => $data['match_id']]));
+        }
     }
 
     /**
