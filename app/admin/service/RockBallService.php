@@ -97,6 +97,20 @@ class RockBallService
             ->update(['is_open' => $is_open]);
     }
 
+    /**
+     * 手动调整数据
+     * @param int $id
+     * @param array $data
+     * @return void
+     */
+    public function adjust(int $id, array $data): void
+    {
+        if (empty($data)) return;
+        RockBallOdd::query()
+            ->where('id', '=', $id)
+            ->update($data);
+    }
+
     public function exportList(array $params): string
     {
         $excel = new Spreadsheet();
@@ -117,6 +131,7 @@ class RockBallService
             '追踪盘口-时段',
             '追踪盘口-玩法',
             '追踪盘口-方向',
+            '追踪盘口-方向(手动调整)',
             '追踪盘口-盘口',
             '追踪盘口-水位条件',
             '是否推荐',
@@ -125,6 +140,7 @@ class RockBallService
             '赛果',
             '输赢',
             '来源',
+            'AI备注',
         ]);
 
         $rowIndex = 2;
@@ -178,6 +194,7 @@ class RockBallService
                         get_variety_text($match['variety']),
                         //追踪盘口-方向
                         get_odd_type_text($match['type']),
+                        !empty($match['manual_type']) ? get_odd_type_text($match['manual_type']) : '',
                         //追踪盘口-盘口
                         get_condition_text($match['condition'], $match['type']),
                         //追踪盘口-水位
@@ -196,6 +213,7 @@ class RockBallService
                         $result,
                         //来源
                         $match['source_channel'],
+                        $match['note'],
                     ];
 
                     //写入数据

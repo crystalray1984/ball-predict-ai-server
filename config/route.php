@@ -279,6 +279,8 @@ Route::group('/admin', function () {
         Route::post('/export', [\app\admin\controller\RockBallController::class, 'exportList']);
         //设置推送接口
         Route::post('/set_is_open', [\app\admin\controller\RockBallController::class, 'setIsOpen']);
+        //手动盘口调整
+        Route::post('/adjust', [\app\admin\controller\RockBallController::class, 'adjust']);
     });
 
     //滚球2接口

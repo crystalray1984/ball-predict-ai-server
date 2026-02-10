@@ -85,4 +85,25 @@ class RockBallController extends Controller
         $this->rockBallService->setIsOpen($id, $is_open);
         return $this->success();
     }
+
+    /**
+     * 手动盘口调整
+     * @param Request $request
+     * @return Response
+     */
+    #[CheckAdminToken]
+    public function adjust(Request $request): Response
+    {
+        $params = v::input($request->post(), [
+            'id' => v::intType()->notEmpty()->setName('id'),
+            'manual_type' => v::optional(v::stringType()->notEmpty())->setName('manual_type'),
+            'note' => v::optional(v::stringType()->notEmpty())->setName('note'),
+        ]);
+
+        $id = $params['id'];
+        unset($params['id']);
+
+        $this->rockBallService->adjust($id, $params);
+        return $this->success();
+    }
 }
