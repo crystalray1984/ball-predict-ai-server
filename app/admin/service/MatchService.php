@@ -298,16 +298,21 @@ class MatchService
     /**
      * 设置比赛的异常状态
      * @param int $match_id
-     * @param int $error_status
+     * @param string $error_status
      * @return void
      */
-    public function setMatchErrorStatus(int $match_id, int $error_status): void
+    public function setMatchErrorStatus(int $match_id, string $error_status): void
     {
         Match1::query()
             ->where('id', '=', $match_id)
             ->update([
                 'error_status' => $error_status,
             ]);
+
+        if ($error_status === 'cancelled' || $error_status === 'interrupted') {
+            //抛到队列告诉Bmiss游戏那边，赛事停止结算
+            rabbitmq_publish('bmiss-bet-settlement', json_enc(['match_id' => $match_id]));
+        }
     }
 
     /**
