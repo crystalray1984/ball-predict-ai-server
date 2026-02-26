@@ -70,6 +70,7 @@ class ChannelController extends Controller
         $preparing = match ($channel) {
             'rockball' => $this->dataService->rockballPreparing('rockball'),
             'rockball2' => $this->dataService->rockballPreparing('rockball2'),
+            'rockball3' => $this->dataService->rockballPreparing('rockball3'),
             'mansion' => $this->dataService->mansionPreparing(),
             default => [],
         };

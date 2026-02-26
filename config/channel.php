@@ -16,6 +16,10 @@ return [
         'report' => true,
     ],
     [
+        'key' => 'rockball3',
+        'name' => '滚球3',
+    ],
+    [
         'key' => 'direct',
         'name' => '模型1',
     ],
