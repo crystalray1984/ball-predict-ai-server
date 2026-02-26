@@ -24,6 +24,7 @@ class RockBallController extends Controller
     public function getList(Request $request): Response
     {
         $params = v::input($request->post(), [
+            'channel' => v::stringType()->setName('channel'),
             'start_date' => v::optional(v::stringType()->date())->setName('start_date'),
             'end_date' => v::optional(v::stringType()->date())->setName('end_date'),
             'period' => v::optional(v::stringType()->in(['regularTime', 'period1']))->setName('period'),
@@ -47,6 +48,7 @@ class RockBallController extends Controller
     public function exportList(Request $request): Response
     {
         $params = v::input($request->post(), [
+            'channel' => v::stringType()->setName('channel'),
             'start_date' => v::optional(v::stringType()->date())->setName('start_date'),
             'end_date' => v::optional(v::stringType()->date())->setName('end_date'),
             'period' => v::optional(v::stringType()->in(['regularTime', 'period1']))->setName('period'),

@@ -68,8 +68,8 @@ class ChannelController extends Controller
         $summary = $this->dataService->summary([$channel]);
         //测算中数据
         $preparing = match ($channel) {
-            'rockball' => $this->dataService->rockballPreparing(),
-            'rockball2' => $this->dataService->rockball2Preparing(),
+            'rockball' => $this->dataService->rockballPreparing('rockball'),
+            'rockball2' => $this->dataService->rockballPreparing('rockball2'),
             'mansion' => $this->dataService->mansionPreparing(),
             default => [],
         };

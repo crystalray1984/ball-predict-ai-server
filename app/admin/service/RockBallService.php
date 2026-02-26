@@ -23,6 +23,10 @@ class RockBallService
                     ->where('promoted.source_type', '=', 'rockball');
             });
 
+        if (!empty($params['channel'])) {
+            $query->where('rockball_odd.channel', '=', $params['channel']);
+        }
+
         if (!empty($params['start_date'])) {
             $query->where(
                 'v_match.match_time',

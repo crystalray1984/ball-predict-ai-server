@@ -3,9 +3,7 @@
 namespace app\api\controller;
 
 use app\api\service\DataService;
-use Carbon\Carbon;
 use DI\Attribute\Inject;
-use Respect\Validation\Validator as v;
 use support\attribute\CheckUserToken;
 use support\Controller;
 use support\Request;
@@ -31,7 +29,7 @@ class DataController extends Controller
             'is_expired' => $request->user?->is_expired ?? 0,
             'list' => $this->dataService->promotedByCrownDate(['rockball'], $request->user?->id ?? 0, $request->user?->expire_time),
             'summary' => $this->dataService->summary(['rockball']),
-            'preparing' => $this->dataService->rockballPreparing(),
+            'preparing' => $this->dataService->rockballPreparing('rockball'),
         ]);
     }
 

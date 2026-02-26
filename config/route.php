@@ -283,16 +283,6 @@ Route::group('/admin', function () {
         Route::post('/adjust', [\app\admin\controller\RockBallController::class, 'adjust']);
     });
 
-    //滚球2接口
-    Route::group('/rockball2', function () {
-        //列表接口
-        Route::post('/list', [\app\admin\controller\Rockball2Controller::class, 'getList']);
-        //导出接口
-        Route::post('/export', [\app\admin\controller\Rockball2Controller::class, 'exportList']);
-        //设置推送接口
-        Route::post('/set_is_open', [\app\admin\controller\Rockball2Controller::class, 'setIsOpen']);
-    });
-
     //Mansion接口
     Route::group('/mansion', function () {
         //列表接口
