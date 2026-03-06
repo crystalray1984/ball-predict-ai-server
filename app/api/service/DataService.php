@@ -153,7 +153,8 @@ class DataService
             ->toArray();
 
         $profit = $query->whereNotNull('promoted.result_profit')
-            ->sum('promoted.result_profit') ?? 0;
+            ->selectRaw('SUM(promoted.result_profit) AS profit')
+            ->value('profit') ?? 0;
 
         return [
             ...get_summary_data($data),
