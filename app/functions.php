@@ -165,7 +165,7 @@ if (!function_exists('get_odd_score')) {
         $result['result'] = bccomp((string)$result['result_value'], '0', 2);
         if (isset($odd['value']) && is_numeric($odd['value'])) {
             $result['result_profit'] = match ($result['result_value']) {
-                '0.5', '1' => bcmul($odd['value'], $result['result_value'], 3),
+                '0.5', '1' => bcmul(bcsub((string)$odd['value'], '1', 3), $result['result_value'], 3),
                 default => $result['result_value'],
             };
         }
