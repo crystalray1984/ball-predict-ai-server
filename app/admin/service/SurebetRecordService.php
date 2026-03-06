@@ -171,6 +171,7 @@ class SurebetRecordService
                 '模拟盘口赛果',
                 '半场进球',
                 '全场进球',
+                '数据来源',
             ]
         ];
 
@@ -262,6 +263,7 @@ class SurebetRecordService
                         $virtual_score,
                         $period1_goal,
                         $goal,
+                        $row['source'],
                     ];
                 }
             });
