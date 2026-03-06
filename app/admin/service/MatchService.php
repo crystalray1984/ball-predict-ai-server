@@ -5,6 +5,7 @@ namespace app\admin\service;
 use app\model\Match1;
 use app\model\MatchView;
 use app\model\Promoted;
+use app\model\PromotedView;
 use app\model\Tournament;
 use app\model\TournamentLabel;
 use Carbon\Carbon;
@@ -422,5 +423,76 @@ class MatchService
         }
 
         $query->update(['label_id' => $label_id]);
+    }
+
+    /**
+     * 查询需要设置赛果的比赛
+     * @param array $params
+     * @return array
+     */
+    public function getScoreMissList(array $params): array
+    {
+        $sub = PromotedView::query()
+            ->whereNull('result')
+            ->where(function ($query) {
+                $query->where(function ($period1Query) {
+                    $period1Query->where('period', '=', 'period1')
+                        ->where('match_time', '<', PromotedView::raw("CURRENT_TIMESTAMP - interval '1 hours'"));
+                })
+                    ->orWhere(function ($regularQuery) {
+                        $regularQuery->where('period', '=', 'regularTime')
+                            ->where('match_time', '<', PromotedView::raw("CURRENT_TIMESTAMP - interval '2 hours'"));
+                    });
+            })
+            ->groupBy('match_id')
+            ->select('match_id')
+            ->selectRaw('array_agg("period") AS periods');
+
+        $query = MatchView::query()
+            ->joinSub($sub, 'a', 'a.match_id', '=', 'v_match.id')
+            ->where('v_match.error_status', '=', '');
+
+        $count = $query->count();
+
+        $list = $query->orderBy('v_match.match_time', 'DESC')
+            ->orderBy('v_match.match_id', 'DESC')
+            ->forPage($params['page'] ?? DEFAULT_PAGE, $params['page_size'] ?? DEFAULT_PAGE_SIZE)
+            ->get([
+                'v_match.*',
+                'a.periods'
+            ])
+            ->toArray();
+
+        $list = array_map(function (array $row) {
+            $row['team1'] = [
+                'id' => $row['team1_id'],
+                'name' => $row['team1_name'],
+            ];
+            $row['team2'] = [
+                'id' => $row['team2_id'],
+                'name' => $row['team2_name'],
+            ];
+            $row['tournament'] = [
+                'id' => $row['tournament_id'],
+                'name' => $row['tournament_name'],
+            ];
+            unset(
+                $row['status'],
+                $row['team1_id'],
+                $row['team1_name'],
+                $row['team2_id'],
+                $row['team2_name'],
+                $row['tournament_id'],
+                $row['tournament_name'],
+                $row['created_at'],
+                $row['updated_at'],
+            );
+            return $row;
+        }, $list);
+
+        return [
+            'count' => $count,
+            'list' => $list,
+        ];
     }
 }

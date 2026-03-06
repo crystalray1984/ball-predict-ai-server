@@ -185,6 +185,8 @@ Route::group('/admin', function () {
         Route::post('/set_time', [\app\admin\controller\MatchController::class, 'setMatchTime']);
         //切换比赛是否可用于Bmiss投注
         Route::post('/toggle_bmiss_bet_enable', [\app\admin\controller\MatchController::class, 'toggleMatchBmissBetEnable']);
+        //获取缺失赛果的比赛
+        Route::post('/score_miss_list', [\app\admin\controller\MatchController::class, 'getScoreMissList']);
 
         //联赛标签接口
         Route::group('/label', function () {

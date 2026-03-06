@@ -324,4 +324,22 @@ class MatchController extends Controller
 
         return $this->success();
     }
+
+    /**
+     * 获取缺失赛果的比赛
+     * @param Request $request
+     * @return Response
+     */
+    #[CheckAdminToken]
+    public function getScoreMissList(Request $request): Response
+    {
+        $params = v::input($request->post(), [
+            'page' => v::optional(v::intType()->min(1))->setName('page'),
+            'page_size' => v::optional(v::intType()->min(1))->setName('page_size'),
+        ]);
+
+        return $this->success(
+            $this->matchService->getScoreMissList($params)
+        );
+    }
 }
