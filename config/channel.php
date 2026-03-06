@@ -18,6 +18,7 @@ return [
     [
         'key' => 'rockball3',
         'name' => '滚球3',
+        'use_profit' => true,
     ],
     [
         'key' => 'direct',
