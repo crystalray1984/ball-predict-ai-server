@@ -38,6 +38,7 @@ class MatchService
                 'period',
                 'type',
                 'condition',
+                'value',
             ])
             ->toArray();
 
@@ -65,6 +66,10 @@ class MatchService
             $update['score1'] = $result['score1'];
             $update['score2'] = $result['score2'];
             $update['result'] = $result['result'];
+            $update['result_value'] = $result['result_value'];
+            if (isset($result['result_profit']) && is_numeric($result['result_profit'])) {
+                $update['result_profit'] = $result['result_profit'];
+            }
 
             $updates[$promoted['id']] = $update;
         }

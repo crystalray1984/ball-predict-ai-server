@@ -88,7 +88,11 @@ if (!function_exists('get_odd_score')) {
      * @param array $odd 盘口数据
      * @return array{
      *     score: string,
-     *     result: int
+     *     result: int,
+     *     score1: int,
+     *     score2: int,
+     *     result_value: string,
+     *     result_profit: string|null,
      * }
      */
     function get_odd_score(array $match_score, array $odd): array
@@ -132,52 +136,38 @@ if (!function_exists('get_odd_score')) {
         }
 
         //计算赛果
-        $condition = parse_condition($odd['condition']);
         $result = [
-            'result' => 0,
             'score1' => $score['score1'],
             'score2' => $score['score2'],
         ];
         if ($odd['type'] === 'ah1') {
             //主队
             $result['score'] = $score['score1'] . ':' . $score['score2'];
-            foreach ($condition['value'] as $value) {
-                $part_score = $condition['symbol'] === '-' ?
-                    bcsub((string)$score['score1'], $value, 1) :
-                    bcadd((string)$score['score1'], $value, 1);
-                $result['result'] += bccomp($part_score, (string)$score['score2'], 1);
-            }
+            $result['result_value'] = compare_score(bcadd((string)$score['score1'], $odd['condition'], 2), $score['score2']);
         } elseif ($odd['type'] === 'ah2') {
             //客队
             $result['score'] = $score['score1'] . ':' . $score['score2'];
-            foreach ($condition['value'] as $value) {
-                $part_score = $condition['symbol'] === '-' ?
-                    bcsub((string)$score['score2'], $value, 1) :
-                    bcadd((string)$score['score2'], $value, 1);
-                $result['result'] += bccomp($part_score, (string)$score['score1'], 1);
-            }
+            $result['result_value'] = compare_score(bcadd((string)$score['score2'], $odd['condition'], 2), $score['score1']);
         } elseif ($odd['type'] === 'over') {
             //大球
             $result['score'] = (string)$score['total'];
-            foreach ($condition['value'] as $value) {
-                $result['result'] += bccomp((string)$score['total'], $value, 1);
-            }
+            $result['result_value'] = compare_score($score['score1'] + $score['score2'], $odd['condition']);
         } elseif ($odd['type'] === 'under') {
             //小球
             $result['score'] = (string)$score['total'];
-            foreach ($condition['value'] as $value) {
-                $result['result'] += bccomp($value, (string)$score['total'], 1);
-            }
+            $result['result_value'] = compare_score($odd['condition'], $score['score1'] + $score['score2']);
         } elseif ($odd['type'] === 'draw') {
             //平球
             $result['score'] = $score['score1'] . ':' . $score['score2'];
-            $result['result'] += $score['score1'] === $score['score2'] ? 1 : -1;
+            $result['result_value'] = $score['score1'] === $score['score2'] ? '1' : '-1';
         }
 
-        if ($result['result'] > 0) {
-            $result['result'] = 1;
-        } elseif ($result['result'] < 0) {
-            $result['result'] = -1;
+        $result['result'] = bccomp((string)$result['result_value'], '0', 2);
+        if (isset($odd['value']) && is_numeric($odd['value'])) {
+            $result['result_profit'] = match ($result['result_value']) {
+                '0.5', '1' => bcmul($odd['value'], $result['result_value'], 3),
+                default => $result['result_value'],
+            };
         }
 
         return $result;
@@ -543,6 +533,25 @@ if (!function_exists('get_summary_data')) {
         }
 
         return $result;
+    }
+}
+
+if (!function_exists('compare_score')) {
+    /**
+     * 计算投注结果
+     * @param int|float|string $score
+     * @param int|float|string $condition
+     * @return string
+     */
+    function compare_score(int|float|string $score, int|float|string $condition): string
+    {
+        $delta = bcsub((string)$score, (string)$condition, 2);
+        if (bccomp($delta, '0', 2) === 0) return '0';
+        if (bccomp($delta, '0.5', 2) >= 0) return '1';
+        if (bccomp($delta, '0.25', 2) >= 0) return '0.5';
+        if (bccomp($delta, '-0.5', 2) <= 0) return '-1';
+        if (bccomp($delta, '-0.25', 2) <= 0) return '-0.5';
+        return '0';
     }
 }
 
