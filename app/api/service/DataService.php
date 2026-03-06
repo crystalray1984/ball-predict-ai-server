@@ -143,7 +143,7 @@ class DataService
 
         $total = $query->count();
 
-        $data = $query->whereNotNull('promoted.result')
+        $data = $query->clone()->whereNotNull('promoted.result')
             ->groupBy('promoted.result')
             ->select([
                 'promoted.result',
@@ -152,7 +152,7 @@ class DataService
             ->get()
             ->toArray();
 
-        $profit = $query->whereNotNull('promoted.result_profit')
+        $profit = $query->clone()->whereNotNull('promoted.result_profit')
             ->selectRaw('SUM(promoted.result_profit) AS profit')
             ->value('profit') ?? 0;
 
