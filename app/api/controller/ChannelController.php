@@ -66,6 +66,12 @@ class ChannelController extends Controller
         $list = $this->dataService->promotedByCrownDate([$channel], $userId, $expireTime);
         //统计数据
         $summary = $this->dataService->summary([$channel]);
+
+        if ($channel === 'rockball3') {
+            //滚球3收益
+            $summary['win_rate'] = round($summary['profit'] * 100, 1);
+        }
+
         //测算中数据
         $preparing = match ($channel) {
             'rockball' => $this->dataService->rockballPreparing('rockball'),
