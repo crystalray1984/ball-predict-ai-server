@@ -455,7 +455,7 @@ class MatchService
         $count = $query->count();
 
         $list = $query->orderBy('v_match.match_time', 'DESC')
-            ->orderBy('v_match.match_id', 'DESC')
+            ->orderBy('v_match.id', 'DESC')
             ->forPage($params['page'] ?? DEFAULT_PAGE, $params['page_size'] ?? DEFAULT_PAGE_SIZE)
             ->get([
                 'v_match.*',
