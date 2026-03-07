@@ -20,7 +20,7 @@ class RockBallService
             ->join('v_match', 'v_match.id', '=', 'rockball_odd.match_id')
             ->leftJoin('promoted', function (JoinClause $join) {
                 $join->on('promoted.source_id', '=', 'rockball_odd.id')
-                    ->where('promoted.source_type', '=', 'rockball');
+                    ->whereIn('promoted.source_type', ['rockball', 'rockball2', 'rockball3']);
             });
 
         if (!empty($params['channel'])) {
