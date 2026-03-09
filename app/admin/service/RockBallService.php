@@ -139,6 +139,7 @@ class RockBallService
             '追踪盘口-盘口',
             '追踪盘口-水位条件',
             '是否推荐',
+            '推荐方向',
             '推荐水位',
             '推荐时间',
             '赛果',
@@ -206,6 +207,13 @@ class RockBallService
 
                         //是否已推荐
                         !empty($match['is_valid']) ? '已推荐' : '未推荐',
+
+                        //推荐方向
+                        !empty($match['back']) ?
+                            get_odd_type_text(
+                                get_reverse_odd($match['type'], $match['condition'])[0]
+                            ) :
+                            get_odd_type_text($match['type']),
 
                         //推荐水位
                         isset($match['promoted_value']) ? (float)$match['promoted_value'] : '',
