@@ -323,6 +323,12 @@ Route::group('/admin', function () {
         //余额变动记录
         Route::post('/balance_log', [\app\admin\controller\BmissBetController::class, 'getBalanceLog']);
     });
+
+    //模型3数据
+    Route::group('/model3', function () {
+        //获取推荐列表
+        Route::post('/list', [\app\admin\controller\Model3Controller::class, 'getList']);
+    });
 });
 
 Route::disableDefaultRoute();
