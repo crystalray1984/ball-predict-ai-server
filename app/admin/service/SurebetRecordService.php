@@ -247,7 +247,7 @@ class SurebetRecordService
                     $diff = Carbon::parse($row['match_time'])->diffInMinutes(
                         Carbon::parse($row['created_at'])
                     );
-                    $diff = floor($diff / 6) / 10;
+                    $diff = floor($diff / 0.6) / 100;
 
                     //写入数据
                     $rows[] = [
