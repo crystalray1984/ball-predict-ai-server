@@ -172,6 +172,8 @@ class SurebetRecordService
                 '半场进球',
                 '全场进球',
                 '数据来源',
+                '收益率',
+                '距离开赛（小时）',
             ]
         ];
 
@@ -242,6 +244,11 @@ class SurebetRecordService
                     $period1_goal = $row['has_period1_score'] ? $row['score1_period1'] + $row['score2_period1'] : '';
                     $goal = $row['has_score'] ? $row['score1'] + $row['score2'] : '';
 
+                    $diff = Carbon::parse($row['match_time'])->diffInMinutes(
+                        Carbon::parse($row['created_at'])
+                    );
+                    $diff = floor($diff / 6) / 10;
+
                     //写入数据
                     $rows[] = [
                         $row['id'],
@@ -264,6 +271,8 @@ class SurebetRecordService
                         $period1_goal,
                         $goal,
                         $row['source'],
+                        $row['profit'] ?? '',
+                        $diff,
                     ];
                 }
             });
