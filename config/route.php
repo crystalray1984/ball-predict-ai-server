@@ -129,6 +129,14 @@ Route::group('/api', function () {
         Route::post('/report/{channel}', [\app\api\controller\ChannelController::class, 'report']);
     });
 
+    //自动投注接口
+    Route::group('/auto_bet', function () {
+        //用户登录
+        Route::post('/list', [\app\api\controller\AutoBetController::class, 'list']);
+        //Bmiss回调接口
+        Route::post('/add', [\app\api\controller\AutoBetController::class, 'add']);
+    });
+
     //Bmiss接口
     Route::group('/bmiss', function () {
         //用户登录
