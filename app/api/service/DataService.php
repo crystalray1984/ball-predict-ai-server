@@ -303,6 +303,7 @@ class DataService
                 'team2_id',
                 'team2_name',
                 'crown_match_id',
+                'channel',
             ])
             ->toArray();
 
@@ -342,6 +343,7 @@ class DataService
                 ] : null,
                 'marked' => in_array($row['id'], $marked),
                 'crown_match_id' => $row['crown_match_id'],
+                'channel' => $row['channel'],
             ];
         }, $list);
     }
