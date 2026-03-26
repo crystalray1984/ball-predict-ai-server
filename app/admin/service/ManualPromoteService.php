@@ -163,6 +163,7 @@ class ManualPromoteService
                     'team2_name',
                     'tournament_id',
                     'tournament_name',
+                    'crown_match_id',
                 ])
                 ->toArray();
             foreach ($promotes as $row) {
@@ -186,6 +187,7 @@ class ManualPromoteService
                         'id' => $row['team2_id'],
                         'name' => $row['team2_name'],
                     ],
+                    'crown_match_id' => $row['crown_match_id'],
                 ];
                 if (isset($row['result'])) {
                     $output['result'] = [
