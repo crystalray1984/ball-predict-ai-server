@@ -302,6 +302,7 @@ class DataService
                 'team1_name',
                 'team2_id',
                 'team2_name',
+                'crown_match_id',
             ])
             ->toArray();
 
