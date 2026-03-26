@@ -4,6 +4,7 @@ namespace app\api\service;
 
 use app\model\AutoBetRecord;
 use app\model\Promoted;
+use Carbon\Carbon;
 use support\exception\BusinessError;
 
 /**
@@ -70,13 +71,15 @@ class AutoBetService
             throw new BusinessError('推荐数据不存在');
         }
 
+        $created_at = Carbon::createFromTimestampMsUTC($params['extra']['timestamp']);
+
         $id = AutoBetRecord::insertGetId([
             'user_id' => $userId,
             'crown_uid' => $params['crown_uid'],
             'promote_id' => $params['promote_id'],
             'bet_value' => $params['bet_value'],
             'bet_amount' => $params['bet_amount'],
-            'created_at' => $params['created_at'],
+            'created_at' => $created_at->toISOString(),
             'extra' => json_enc($params['extra']),
         ]);
 
