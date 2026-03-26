@@ -341,6 +341,7 @@ class DataService
                     'score' => $row['score'],
                 ] : null,
                 'marked' => in_array($row['id'], $marked),
+                'crown_match_id' => $row['crown_match_id'],
             ];
         }, $list);
     }
