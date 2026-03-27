@@ -30,6 +30,24 @@ class AutoBetService
             $query->where('auto_bet_record.crown_uid', '=', $params['crown_uid']);
         }
 
+        if (!empty($params['start_date'])) {
+            $query->where(
+                'auto_bet_record.created_at',
+                '>=',
+                crown_time($params['start_date'])->toISOString(),
+            );
+        }
+
+        if (!empty($params['end_date'])) {
+            $query->where(
+                'auto_bet_record.created_at',
+                '<',
+                crown_time($params['end_date'])
+                    ->addDays()
+                    ->toISOString(),
+            );
+        }
+
         $count = $query->count();
         $list = $query->orderBy('auto_bet_record.created_at', 'desc')
             ->orderBy('auto_bet_record.id', 'desc')

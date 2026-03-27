@@ -29,6 +29,8 @@ class AutoBetController extends Controller
         $params = v::input($request->post(), [
             'channel' => v::optional(v::stringType())->setName('channel'),
             'crown_uid' => v::optional(v::stringType())->setName('crown_uid'),
+            'start_date' => v::optional(v::stringType()->date())->setName('start_date'),
+            'end_date' => v::optional(v::stringType()->date())->setName('end_date'),
             'page' => v::optional(v::intType()->min(1))->setName('page'),
             'page_size' => v::optional(v::intType()->min(1))->setName('page_size'),
         ]);
