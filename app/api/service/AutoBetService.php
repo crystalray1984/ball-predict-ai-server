@@ -65,6 +65,7 @@ class AutoBetService
                 'v_promoted.result',
             ])
             ->toArray();
+        $list = array_map(fn(array $record) => $this->formatRecord($record), $list);
 
         return [
             'count' => $count,
@@ -101,7 +102,7 @@ class AutoBetService
             'extra' => json_enc($params['extra']),
         ]);
 
-        return AutoBetRecord::query()
+        return $this->formatRecord(AutoBetRecord::query()
             ->join('v_promoted', 'v_promoted.id', '=', 'auto_bet_record.promote_id')
             ->where('auto_bet_record.id', '=', $id)
             ->first([
@@ -116,6 +117,14 @@ class AutoBetService
                 'v_promoted.period',
                 'v_promoted.result',
             ])
-            ->toArray();
+            ->toArray());
+    }
+
+    protected function formatRecord(array $record): array
+    {
+        $channel = array_find(config('channel', []), fn($c) => $c['key'] === $record['channel']);
+        $channel_name = !empty($channel) ? $channel['name'] : '';
+        $record['channel_name'] = $channel_name;
+        return $record;
     }
 }
