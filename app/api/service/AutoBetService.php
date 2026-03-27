@@ -63,6 +63,7 @@ class AutoBetService
                 'v_promoted.condition',
                 'v_promoted.period',
                 'v_promoted.result',
+                'v_promoted.score',
             ])
             ->toArray();
         $list = array_map(fn(array $record) => $this->formatRecord($record), $list);
@@ -116,6 +117,7 @@ class AutoBetService
                 'v_promoted.condition',
                 'v_promoted.period',
                 'v_promoted.result',
+                'v_promoted.score',
             ])
             ->toArray());
     }
