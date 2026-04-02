@@ -10,6 +10,7 @@ use DI\Attribute\Inject;
 use Respect\Validation\Validator as v;
 use support\attribute\CheckUserToken;
 use support\Controller;
+use support\Redis;
 use support\Request;
 use support\Response;
 
@@ -65,16 +66,37 @@ class ChannelController extends Controller
         //推荐数据
         $list = $this->dataService->promotedByCrownDate([$channel], $userId, $expireTime);
         //统计数据
-        $summary = $this->dataService->summary([$channel]);
+        $cache = Redis::get("summary:$channel");
+        if (!empty($cache)) {
+            $summary = json_decode($cache, true);
+        } else {
+            $summary = $this->dataService->summary([$channel]);
+            Redis::setEx("summary:$channel", 300, json_enc($summary));
+        }
 
         //测算中数据
-        $preparing = match ($channel) {
-            'rockball' => $this->dataService->rockballPreparing('rockball'),
-            'rockball2' => $this->dataService->rockballPreparing('rockball2'),
-            'rockball3' => $this->dataService->rockballPreparing('rockball3'),
-            'mansion' => $this->dataService->mansionPreparing(),
-            default => [],
-        };
+        $preparing = [];
+        switch ($channel) {
+            case 'rockball':
+            case 'rockball2':
+            case 'rockball3':
+            case 'mansion':
+                $cache = Redis::get("preparing:$channel");
+                if (!empty($cache)) {
+                    $preparing = json_decode($cache, true);
+                } else {
+                    $preparing = match ($channel) {
+                        'rockball' => $this->dataService->rockballPreparing('rockball'),
+                        'rockball2' => $this->dataService->rockballPreparing('rockball2'),
+                        'rockball3' => $this->dataService->rockballPreparing('rockball3'),
+                        'mansion' => $this->dataService->mansionPreparing(),
+                    };
+                    Redis::setEx("preparing:$channel", 300, json_enc($preparing));
+                }
+                break;
+            default:
+                break;
+        }
 
         //返回数据
         return $this->success([
