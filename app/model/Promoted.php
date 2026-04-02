@@ -29,12 +29,11 @@ use support\BaseModel;
  * @property int|null $score2
  * @property array|null $extra
  * @property Carbon $created_at
+ * @property Carbon $updated_at
  */
 class Promoted extends BaseModel
 {
     protected $table = 'promoted';
-
-    const UPDATED_AT = null;
 
     protected $casts = [
         'extra' => 'array',

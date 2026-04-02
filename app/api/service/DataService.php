@@ -286,25 +286,7 @@ class DataService
             ->orderBy('id', 'DESC')
             ->orderBy('match_time', 'DESC')
             ->orderBy('match_id')
-            ->get([
-                'id',
-                'variety',
-                'period',
-                'type',
-                'condition',
-                'value',
-                'result',
-                'score',
-                'match_time',
-                'tournament_id',
-                'tournament_name',
-                'team1_id',
-                'team1_name',
-                'team2_id',
-                'team2_name',
-                'crown_match_id',
-                'channel',
-            ])
+            ->get()
             ->toArray();
 
         $marked = [];
@@ -340,10 +322,15 @@ class DataService
                 'result' => isset($row['result']) ? [
                     'result' => $row['result'],
                     'score' => $row['score'],
+                    'score1' => $row['score1'],
+                    'score2' => $row['score2'],
+                    'result_value' => $row['result_value'],
+                    'result_profit' => $row['result_profit'],
                 ] : null,
                 'marked' => in_array($row['id'], $marked),
                 'crown_match_id' => $row['crown_match_id'],
                 'channel' => $row['channel'],
+                'updated_at' => Carbon::parse($row['updated_at'])->toISOString(),
             ];
         }, $list);
     }

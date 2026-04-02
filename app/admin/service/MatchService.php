@@ -109,7 +109,10 @@ class MatchService
             foreach ($updates as $id => $update) {
                 Promoted::query()
                     ->where('id', '=', $id)
-                    ->update($update);
+                    ->update([
+                        ...$update,
+                        'updated_at' => Promoted::raw('CURRENT_TIMESTAMP'),
+                    ]);
             }
 
             Db::commit();
@@ -118,10 +121,10 @@ class MatchService
             throw $e;
         }
 
-        if (!$data['period1']) {
-            //抛到队列让Bmiss投注结算
-            rabbitmq_publish('bmiss-bet-settlement', json_enc(['match_id' => $data['match_id']]));
-        }
+//        if (!$data['period1']) {
+//            //抛到队列让Bmiss投注结算
+//            rabbitmq_publish('bmiss-bet-settlement', json_enc(['match_id' => $data['match_id']]));
+//        }
     }
 
     /**
