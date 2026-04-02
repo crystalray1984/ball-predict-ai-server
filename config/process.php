@@ -92,4 +92,20 @@ if (yaml('app.update_report', false) === true) {
     ];
 }
 
+//更新缓存
+if (yaml('app.update_cache', false) === true) {
+    $processes['UpdateChannelSummary'] = [
+        'handler' => app\process\UpdateChannelSummary::class,
+        'count' => 1,
+        'reloadable' => true,
+        'constructor' => [],
+    ];
+    $processes['UpdateChannelPreparing'] = [
+        'handler' => app\process\UpdateChannelPreparing::class,
+        'count' => 1,
+        'reloadable' => true,
+        'constructor' => [],
+    ];
+}
+
 return $processes;

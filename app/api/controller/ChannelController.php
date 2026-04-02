@@ -130,4 +130,19 @@ class ChannelController extends Controller
             'next' => $next,
         ]);
     }
+
+    /**
+     * 查询完整的数据
+     * @param Request $request
+     * @return Response
+     */
+    public function fullData(Request $request): Response
+    {
+        ['channels' => $channels] = v::input($request->post(), [
+            'channels' => v::optional(v::arrayType())->setName('channels'),
+        ]);
+        if (empty($channels)) {
+            $channels = array_column(config('channel'), 'key');
+        }
+    }
 }
