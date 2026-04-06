@@ -135,8 +135,10 @@ Route::group('/api', function () {
     Route::group('/auto_bet', function () {
         //用户登录
         Route::post('/list', [\app\api\controller\AutoBetController::class, 'list']);
-        //Bmiss回调接口
+        //添加自动投注记录
         Route::post('/add', [\app\api\controller\AutoBetController::class, 'add']);
+        //自动投注前的自动判定
+        Route::post('/before', [\app\api\controller\AutoBetController::class, 'before']);
     });
 
     //Bmiss接口

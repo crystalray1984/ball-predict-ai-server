@@ -60,4 +60,22 @@ class AutoBetController extends Controller
             $this->service->addRecord($request->user->id, $params)
         );
     }
+
+    /**
+     * 在自动下注之前，做一些逻辑判断，确定要不要买
+     * @param Request $request
+     * @return Response
+     */
+    public function before(Request $request): Response
+    {
+        $params = v::input($request->post(), [
+            'channel' => v::stringType()->notEmpty()->setName('promote_id'),
+            'match_time' => v::stringType()->notEmpty()->setName('match_time'),
+        ]);
+
+//        $params['user_id'] = $request->user?->id ?? 0;
+        return $this->success(
+            $this->service->beforeBet($params)
+        );
+    }
 }

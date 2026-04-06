@@ -4,6 +4,7 @@ namespace app\api\service;
 
 use app\model\AutoBetRecord;
 use app\model\Promoted;
+use app\model\PromotedView;
 use Carbon\Carbon;
 use support\exception\BusinessError;
 
@@ -132,5 +133,78 @@ class AutoBetService
         $channel_name = !empty($channel) ? $channel['name'] : '';
         $record['channel_name'] = $channel_name;
         return $record;
+    }
+
+    /**
+     * 自动投注之前的自动判断
+     * @param array{
+     *     match_time: string,
+     *     channel: string,
+     *     user_id: int
+     * } $params
+     * @return array
+     */
+    public function beforeBet(array $params): array
+    {
+        //基于传入的时间，计算皇冠比赛日
+        $dateStart = crown_date($params['match_time']);
+        $dateEnd = $dateStart->clone()->addDay();
+
+        //首先读取频道今日的数据
+        $rows = Promoted::query()
+            ->join('match', 'match.id', '=', 'promoted.match_id')
+            ->where('promoted.channel', '=', $params['channel'])
+            ->where('promoted.is_valid', '=', 1)
+            ->whereNotNull('promoted.result')
+            ->where('promoted.result', '!=', 0)
+            ->where('match.match_time', '>=', $dateStart->toISOString())
+            ->where('match.match_time', '<', $dateEnd->toISOString())
+            ->groupBy('promoted.result')
+            ->select(['promoted.result'])
+            ->selectRaw('count(*) as count')
+            ->get()
+            ->toArray();
+
+        if (empty($rows)) {
+            //今天尚未有任何有结果的数据，判定为可以下注
+            return [
+                'matches' => 0,
+                'sub' => 0,
+                'bet' => 1,
+            ];
+        }
+
+        $win = 0;
+        $loss = 0;
+        foreach ($rows as $row) {
+            switch ($row['result']) {
+                case 1:
+                    //胜场
+                    $win = $row['count'];
+                    break;
+                case -1:
+                    //负场
+                    $loss = $row['count'];
+                    break;
+            }
+        }
+
+        $total = $win + $loss;
+
+        if ($total < 3) {
+            //今天的总场次小于3场，判定为不下注
+            return [
+                'matches' => $total,
+                'sub' => $win - $loss,
+                'bet' => 0,
+            ];
+        }
+
+        //达到3场之后，根据如果输的场次多（或者持平）就买
+        return [
+            'matches' => $total,
+            'sub' => $win - $loss,
+            'bet' => $loss >= $win ? 1 : 0,
+        ];
     }
 }
