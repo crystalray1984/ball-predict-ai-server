@@ -114,7 +114,7 @@ class Events
     {
         //解析消息
         $data = json_decode($message, true);
-        if (empty($data) || !empty($data['type'])) return;
+        if (empty($data) || empty($data['type'])) return;
 
         //检查消息连接上的
         $checkClientType = fn(string $type) => !empty($_SESSION['type']) && $_SESSION['type'] === $type;
