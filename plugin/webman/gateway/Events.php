@@ -127,6 +127,10 @@ class Events
                     self::doSendTo($client_id, $data);
                 }
                 break;
+            case 'ping':
+                //ping消息就回复pong
+                Gateway::sendToClient($client_id, json_enc(['type' => 'pong']));
+                break;
             default:
                 break;
         }
