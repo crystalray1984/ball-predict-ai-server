@@ -154,6 +154,7 @@ class UserService
     /**
      * 获取完整的用户信息
      * @param int|User $user
+     * @param string|null $platform
      * @return array
      */
     public function getUserInfo(int|User $user, ?string $platform = null): array
@@ -179,6 +180,8 @@ class UserService
         $user['client_config'] = UserClientConfig::query()
             ->where('user_id', '=', $user['id'])
             ->first();
+
+        $user['allow_protect'] = in_array($user['id'], config('user.allow_protect_bet', []));
 
         return $user;
     }

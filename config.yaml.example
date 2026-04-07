@@ -89,3 +89,7 @@ bmiss:
   appid: ''
   app_secret: ''
   api_url: ''
+
+#允许使用保护投注的用户
+allow_protect_users:
+  - 0
