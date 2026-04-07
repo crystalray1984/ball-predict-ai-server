@@ -181,7 +181,7 @@ class UserService
             ->where('user_id', '=', $user['id'])
             ->first();
 
-        $user['allow_protect'] = in_array($user['id'], config('user.allow_protect_bet', []));
+        $user['allow_protect'] = in_array($user['id'], config('user.allow_protect_users', []));
 
         return $user;
     }
