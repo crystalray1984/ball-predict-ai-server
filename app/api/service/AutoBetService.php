@@ -170,7 +170,7 @@ class AutoBetService
             return [
                 'matches' => 0,
                 'sub' => 0,
-                'bet' => 1,
+                'bet' => 0,
             ];
         }
 
