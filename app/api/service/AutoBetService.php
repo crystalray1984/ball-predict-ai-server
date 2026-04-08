@@ -147,12 +147,10 @@ class AutoBetService
     public function beforeBet(array $params): array
     {
         //基于传入的时间，计算皇冠比赛日
-        $dateStart = Carbon::now()
-            ->subHours(12)
-            ->startOf('week');
+        $dateStart = crown_date($params['match_time']);
         $dateEnd = $dateStart->clone()->addDay();
 
-        //首先读取频道本周的数据
+        //首先读取频道今日的数据
         $rows = Promoted::query()
             ->join('match', 'match.id', '=', 'promoted.match_id')
             ->where('promoted.channel', '=', $params['channel'])
