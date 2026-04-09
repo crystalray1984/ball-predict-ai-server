@@ -21,6 +21,11 @@ return [
         'use_profit' => true,
     ],
     [
+        'key' => 'rockball4',
+        'name' => '滚球4',
+        'use_profit' => true,
+    ],
+    [
         'key' => 'direct',
         'name' => '模型1',
     ],
