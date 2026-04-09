@@ -348,7 +348,7 @@ class DataService
 
         //首先获取一下每个频道的最后一场推荐场次的时间
         $maxChannelTimes = Promoted::query()
-            ->join('match', 'match.id', '=', 'promote.match_id')
+            ->join('match', 'match.id', '=', 'promoted.match_id')
             ->where('promoted.is_valid', '=', 1)
             ->where('match.match_time', '>=', $startDate->toISOString())
             ->whereIn('promoted.channel', $channels)
