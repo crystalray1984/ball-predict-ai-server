@@ -179,6 +179,7 @@ class ChannelController extends Controller
         foreach ($channels as $channel) {
             //推荐数据
             $list = array_filter($allPromoted, fn($item) => $item['channel'] === $channel);
+            $list = array_values($list);
 
             //统计数据
             $cache = Redis::get("summary:$channel");
@@ -253,6 +254,8 @@ class ChannelController extends Controller
         foreach ($channels as $channel) {
             //推荐数据
             $list = array_filter($allPromoted, fn($item) => $item['channel'] === $channel);
+            $list = array_values($list);
+
             //统计数据
             $cache = Redis::get("summary:$channel");
             if (!empty($cache)) {
