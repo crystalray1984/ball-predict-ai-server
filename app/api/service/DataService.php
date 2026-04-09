@@ -334,4 +334,162 @@ class DataService
             ];
         }, $list);
     }
+
+    /**
+     * 获取全部的推荐数据
+     * @param array $channels 频道列表
+     * @param int $userId 用户id
+     * @return array
+     */
+    public function allData(array $channels, int $userId = 0): array
+    {
+        //查询起点
+        $startDate = crown_date()->subDays(6);
+
+        //首先获取一下每个频道的最后一场推荐场次的时间
+        $maxChannelTimes = Promoted::query()
+            ->join('match', 'match.id', '=', 'promote.match_id')
+            ->where('promoted.is_valid', '=', 1)
+            ->where('match.match_time', '>=', $startDate->toISOString())
+            ->whereIn('promoted.channel', $channels)
+            ->groupBy('promoted.channel')
+            ->select('promoted.channel')
+            ->selectRaw('MAX(match.match_time) as match_time')
+            ->get()
+            ->toArray();
+
+        $maxChannelTimes = array_column($maxChannelTimes, 'match_time', 'channel');
+        /** @var array<string, Carbon> $minChannelTimes */
+        $minChannelTimes = array_map(fn($time) => crown_date($time)->subDays(6), $maxChannelTimes);
+
+        //然后查询所有推荐场次数据
+        $list = PromotedView::query()
+            ->whereIn('channel', $channels)
+            ->where('is_valid', '=', 1)
+            ->where('match_time', '>=', $startDate->toISOString())
+            ->orderBy('id', 'DESC')
+            ->get()
+            ->toArray();
+
+        //整理数据
+        $list = array_filter($list, function (array $row) use (&$minChannelTimes, &$startDate) {
+            $channel = $row['channel'];
+            if (!empty($minChannelTimes[$channel])) {
+                return crown_date($row['match_time'])->unix() >= $minChannelTimes[$channel]->unix();
+            } else {
+                return crown_date($row['match_time'])->unix() >= $startDate->unix();
+            }
+        });
+
+        $marked = [];
+        if (!empty($userId) && !empty($list)) {
+            $marked = UserMarked::query()
+                ->where('user_id', '=', $userId)
+                ->whereIn('promote_id', array_column($list, 'id'))
+                ->pluck('promote_id')
+                ->toArray();
+        }
+
+        //返回数据
+        return array_map(function (array $row) use ($marked) {
+            return [
+                'id' => $row['id'],
+                'variety' => $row['variety'],
+                'period' => $row['period'],
+                'type' => $row['type'],
+                'condition' => $row['condition'],
+                'value' => $row['value'],
+                'match_time' => Carbon::parse($row['match_time'])->toISOString(),
+                'tournament' => [
+                    'id' => $row['tournament_id'],
+                    'name' => $row['tournament_name'],
+                ],
+                'team1' => [
+                    'id' => $row['team1_id'],
+                    'name' => $row['team1_name'],
+                ],
+                'team2' => [
+                    'id' => $row['team2_id'],
+                    'name' => $row['team2_name'],
+                ],
+                'result' => isset($row['result']) ? [
+                    'result' => $row['result'],
+                    'score' => $row['score'],
+                    'score1' => $row['score1'],
+                    'score2' => $row['score2'],
+                    'result_value' => $row['result_value'],
+                    'result_profit' => $row['result_profit'],
+                ] : null,
+                'marked' => in_array($row['id'], $marked),
+                'crown_match_id' => $row['crown_match_id'],
+                'channel' => $row['channel'],
+                'updated_at' => Carbon::parse($row['updated_at'])->toISOString(),
+            ];
+        }, $list);
+    }
+
+    /**
+     * 获取增量推荐数据
+     * @param array $channels 频道列表
+     * @param string $lastUpdated 上次的数据更新时间
+     * @param int $userId 用户id
+     * @return array
+     */
+    public function incrementData(array $channels, string $lastUpdated, int $userId = 0): array
+    {
+        //查询增量更新数据
+        $list = PromotedView::query()
+            ->whereIn('channel', $channels)
+            ->where('is_valid', '=', 1)
+            ->where('updated_at', '>=', $lastUpdated)
+            ->orderBy('id', 'DESC')
+            ->get()
+            ->toArray();
+
+        $marked = [];
+        if (!empty($userId) && !empty($list)) {
+            $marked = UserMarked::query()
+                ->where('user_id', '=', $userId)
+                ->whereIn('promote_id', array_column($list, 'id'))
+                ->pluck('promote_id')
+                ->toArray();
+        }
+
+        //返回数据
+        return array_map(function (array $row) use ($marked) {
+            return [
+                'id' => $row['id'],
+                'variety' => $row['variety'],
+                'period' => $row['period'],
+                'type' => $row['type'],
+                'condition' => $row['condition'],
+                'value' => $row['value'],
+                'match_time' => Carbon::parse($row['match_time'])->toISOString(),
+                'tournament' => [
+                    'id' => $row['tournament_id'],
+                    'name' => $row['tournament_name'],
+                ],
+                'team1' => [
+                    'id' => $row['team1_id'],
+                    'name' => $row['team1_name'],
+                ],
+                'team2' => [
+                    'id' => $row['team2_id'],
+                    'name' => $row['team2_name'],
+                ],
+                'result' => isset($row['result']) ? [
+                    'result' => $row['result'],
+                    'score' => $row['score'],
+                    'score1' => $row['score1'],
+                    'score2' => $row['score2'],
+                    'result_value' => $row['result_value'],
+                    'result_profit' => $row['result_profit'],
+                ] : null,
+                'marked' => in_array($row['id'], $marked),
+                'crown_match_id' => $row['crown_match_id'],
+                'channel' => $row['channel'],
+                'updated_at' => Carbon::parse($row['updated_at'])->toISOString(),
+            ];
+        }, $list);
+    }
 }

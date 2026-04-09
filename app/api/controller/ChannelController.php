@@ -158,6 +158,7 @@ class ChannelController extends Controller
      * @param Request $request
      * @return Response
      */
+    #[CheckUserToken(true)]
     public function fullData(Request $request): Response
     {
         ['channels' => $channels] = v::input($request->post(), [
@@ -172,9 +173,86 @@ class ChannelController extends Controller
             'channels' => [],
         ];
 
+        //读取全数据
+        $allPromoted = $this->dataService->allData($channels, $request->user?->id ?? 0);
+
         foreach ($channels as $channel) {
             //推荐数据
-            $list = $this->dataService->promotedByCrownDate([$channel]);
+            $list = array_filter($allPromoted, fn($item) => $item['channel'] === $channel);
+
+            //统计数据
+            $cache = Redis::get("summary:$channel");
+            if (!empty($cache)) {
+                $summary = json_decode($cache, true);
+            } else {
+                $summary = $this->dataService->summary([$channel]);
+                Redis::setEx("summary:$channel", 300, json_enc($summary));
+            }
+
+            //测算中数据
+            $preparing = [];
+            switch ($channel) {
+                case 'rockball':
+                case 'rockball2':
+                case 'rockball3':
+                case 'mansion':
+                    $cache = Redis::get("preparing:$channel");
+                    if (!empty($cache)) {
+                        $preparing = json_decode($cache, true);
+                    } else {
+                        $preparing = match ($channel) {
+                            'rockball' => $this->dataService->rockballPreparing('rockball'),
+                            'rockball2' => $this->dataService->rockballPreparing('rockball2'),
+                            'rockball3' => $this->dataService->rockballPreparing('rockball3'),
+                            'mansion' => $this->dataService->mansionPreparing(),
+                        };
+                        Redis::setEx("preparing:$channel", 300, json_enc($preparing));
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+            $result['channels'][$channel] = [
+                'summary' => $summary,
+                'list' => $list,
+                'preparing' => $preparing,
+            ];
+        }
+
+        return $this->success($result);
+    }
+
+    /**
+     * 查询增量数据
+     * @param Request $request
+     * @return Response
+     */
+    #[CheckUserToken(true)]
+    public function incrementing(Request $request): Response
+    {
+        [
+            'channels' => $channels,
+            'last_updated' => $lastUpdated,
+        ] = v::input($request->post(), [
+            'channels' => v::optional(v::arrayType())->setName('channels'),
+            'last_updated' => v::stringType()->dateTime()->setName('last_updated'),
+        ]);
+        if (empty($channels)) {
+            $channels = array_column(config('channel'), 'key');
+        }
+
+        $result = [
+            'last_updated' => Carbon::now()->toISOString(),
+            'channels' => [],
+        ];
+
+        //读取全数据
+        $allPromoted = $this->dataService->incrementData($channels, $lastUpdated, $request->user?->id ?? 0);
+
+        foreach ($channels as $channel) {
+            //推荐数据
+            $list = array_filter($allPromoted, fn($item) => $item['channel'] === $channel);
             //统计数据
             $cache = Redis::get("summary:$channel");
             if (!empty($cache)) {

@@ -129,6 +129,8 @@ Route::group('/api', function () {
         Route::post('/report/{channel}', [\app\api\controller\ChannelController::class, 'report']);
         //获取全量频道数据
         Route::post('/all', [\app\api\controller\ChannelController::class, 'fullData']);
+        //获取增量频道数据
+        Route::post('/incremeting', [\app\api\controller\ChannelController::class, 'incrementing']);
     });
 
     //自动投注接口
