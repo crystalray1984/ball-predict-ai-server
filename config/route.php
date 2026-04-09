@@ -130,7 +130,7 @@ Route::group('/api', function () {
         //获取全量频道数据
         Route::post('/all', [\app\api\controller\ChannelController::class, 'fullData']);
         //获取增量频道数据
-        Route::post('/incremeting', [\app\api\controller\ChannelController::class, 'incrementing']);
+        Route::post('/incrementing', [\app\api\controller\ChannelController::class, 'incrementing']);
     });
 
     //自动投注接口
