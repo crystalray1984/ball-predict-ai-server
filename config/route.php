@@ -22,6 +22,8 @@ Route::group('/api', function () {
         Route::any('/luffa_games', [\app\api\controller\CommonController::class, 'luffaGameList']);
         //获取滚球筛选器的可用配置项
         Route::any('/rockball_filter_options', [\app\api\controller\CommonController::class, 'rockballFilterOptions']);
+        //获取需要预测的比赛列表
+        Route::any('/preparing_matches', [\app\api\controller\CommonController::class, 'getPreparingMatches']);
     });
 
     //用户接口

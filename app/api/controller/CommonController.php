@@ -5,6 +5,7 @@ namespace app\api\controller;
 use app\model\ClientVersion;
 use app\model\ClientVersionBuild;
 use app\model\LuffaGame;
+use app\model\MatchView;
 use app\model\UserConnect;
 use Carbon\Carbon;
 use GatewayWorker\Lib\Gateway;
@@ -242,5 +243,35 @@ class CommonController extends Controller
 
         ksort($options);
         return $this->success(array_values($options));
+    }
+
+    /**
+     * 获取需要预测的比赛列表
+     * @param Request $request
+     * @return Response
+     */
+    public function getPreparingMatches(Request $request): Response
+    {
+        $next = $request->get('next');
+        if (empty($next) || !is_numeric($next)) {
+            $next = 0;
+        }
+
+        $matches = MatchView::query()
+            ->whereNotNull('crown_hot_at')
+            ->when(!empty($next), fn($query) => $query->where('crown_hot_at', '>', Carbon::createFromTimestampMs($next)->toISOString()))
+            ->orderBy('crown_hot_at', 'ASC')
+            ->get([
+                'id',
+                'tournament_id',
+                'tournament_name',
+                'match_time',
+                'team1_id',
+                'team2_name',
+                'team2_id',
+                'team2_name',
+            ])
+            ->toArray();
+        return $this->success($matches);
     }
 }
