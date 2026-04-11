@@ -267,7 +267,7 @@ class CommonController extends Controller
                 'tournament_name',
                 'match_time',
                 'team1_id',
-                'team2_name',
+                'team1_name',
                 'team2_id',
                 'team2_name',
             ])
