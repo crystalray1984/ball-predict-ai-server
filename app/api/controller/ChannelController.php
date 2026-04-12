@@ -47,6 +47,7 @@ class ChannelController extends Controller
             case 'rockball2':
             case 'rockball3':
             case 'rockball4':
+            case 'rockball5':
             case 'mansion':
                 $cache = Redis::get("preparing:$channel");
                 if (!empty($cache)) {
@@ -57,6 +58,7 @@ class ChannelController extends Controller
                         'rockball2' => $this->dataService->rockballPreparing('rockball2'),
                         'rockball3' => $this->dataService->rockballPreparing('rockball3'),
                         'rockball4' => $this->dataService->rockballPreparing('rockball4'),
+                        'rockball5' => $this->dataService->rockballPreparing('rockball5'),
                         'mansion' => $this->dataService->mansionPreparing(),
                     };
                     Redis::setEx("preparing:$channel", 300, json_enc($preparing));
