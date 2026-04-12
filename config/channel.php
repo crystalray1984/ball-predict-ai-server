@@ -26,9 +26,14 @@ return [
         'use_profit' => true,
     ],
     [
-        'key' => 'direct',
-        'name' => '模型1',
+        'key' => 'rockball5',
+        'name' => '滚球5',
+//        'use_profit' => true,
     ],
+//    [
+//        'key' => 'direct',
+//        'name' => '模型1',
+//    ],
     [
         'key' => 'mansion',
         'name' => '模型2',

@@ -35,6 +35,40 @@ class ChannelController extends Controller
     }
 
     /**
+     * 准备中的赛事
+     * @param string $channel
+     * @return array
+     */
+    protected function getPreparing(string $channel): array
+    {
+        $preparing = [];
+        switch ($channel) {
+            case 'rockball':
+            case 'rockball2':
+            case 'rockball3':
+            case 'rockball4':
+            case 'mansion':
+                $cache = Redis::get("preparing:$channel");
+                if (!empty($cache)) {
+                    $preparing = json_decode($cache, true);
+                } else {
+                    $preparing = match ($channel) {
+                        'rockball' => $this->dataService->rockballPreparing('rockball'),
+                        'rockball2' => $this->dataService->rockballPreparing('rockball2'),
+                        'rockball3' => $this->dataService->rockballPreparing('rockball3'),
+                        'rockball4' => $this->dataService->rockballPreparing('rockball4'),
+                        'mansion' => $this->dataService->mansionPreparing(),
+                    };
+                    Redis::setEx("preparing:$channel", 300, json_enc($preparing));
+                }
+                break;
+            default:
+                break;
+        }
+        return $preparing;
+    }
+
+    /**
      * 获取频道数据
      * @param Request $request
      * @param string $channel
@@ -75,30 +109,7 @@ class ChannelController extends Controller
         }
 
         //测算中数据
-        $preparing = [];
-        switch ($channel) {
-            case 'rockball':
-            case 'rockball2':
-            case 'rockball3':
-            case 'rockball4':
-            case 'mansion':
-                $cache = Redis::get("preparing:$channel");
-                if (!empty($cache)) {
-                    $preparing = json_decode($cache, true);
-                } else {
-                    $preparing = match ($channel) {
-                        'rockball' => $this->dataService->rockballPreparing('rockball'),
-                        'rockball2' => $this->dataService->rockballPreparing('rockball2'),
-                        'rockball3' => $this->dataService->rockballPreparing('rockball3'),
-                        'rockball4' => $this->dataService->rockballPreparing('rockball4'),
-                        'mansion' => $this->dataService->mansionPreparing(),
-                    };
-                    Redis::setEx("preparing:$channel", 300, json_enc($preparing));
-                }
-                break;
-            default:
-                break;
-        }
+        $preparing = $this->getPreparing($channel);
 
         //返回数据
         return $this->success([
@@ -193,30 +204,7 @@ class ChannelController extends Controller
             }
 
             //测算中数据
-            $preparing = [];
-            switch ($channel) {
-                case 'rockball':
-                case 'rockball2':
-                case 'rockball3':
-                case 'rockball4':
-                case 'mansion':
-                    $cache = Redis::get("preparing:$channel");
-                    if (!empty($cache)) {
-                        $preparing = json_decode($cache, true);
-                    } else {
-                        $preparing = match ($channel) {
-                            'rockball' => $this->dataService->rockballPreparing('rockball'),
-                            'rockball2' => $this->dataService->rockballPreparing('rockball2'),
-                            'rockball3' => $this->dataService->rockballPreparing('rockball3'),
-                            'rockball4' => $this->dataService->rockballPreparing('rockball4'),
-                            'mansion' => $this->dataService->mansionPreparing(),
-                        };
-                        Redis::setEx("preparing:$channel", 300, json_enc($preparing));
-                    }
-                    break;
-                default:
-                    break;
-            }
+            $preparing = $this->getPreparing($channel);
 
             $result['channels'][$channel] = [
                 'summary' => $summary,
@@ -270,30 +258,7 @@ class ChannelController extends Controller
             }
 
             //测算中数据
-            $preparing = [];
-            switch ($channel) {
-                case 'rockball':
-                case 'rockball2':
-                case 'rockball3':
-                case 'rockball4':
-                case 'mansion':
-                    $cache = Redis::get("preparing:$channel");
-                    if (!empty($cache)) {
-                        $preparing = json_decode($cache, true);
-                    } else {
-                        $preparing = match ($channel) {
-                            'rockball' => $this->dataService->rockballPreparing('rockball'),
-                            'rockball2' => $this->dataService->rockballPreparing('rockball2'),
-                            'rockball3' => $this->dataService->rockballPreparing('rockball3'),
-                            'rockball4' => $this->dataService->rockballPreparing('rockball4'),
-                            'mansion' => $this->dataService->mansionPreparing(),
-                        };
-                        Redis::setEx("preparing:$channel", 300, json_enc($preparing));
-                    }
-                    break;
-                default:
-                    break;
-            }
+            $preparing = $this->getPreparing($channel);
 
             $result['channels'][$channel] = [
                 'summary' => $summary,
