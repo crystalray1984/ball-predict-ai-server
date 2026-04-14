@@ -44,7 +44,7 @@ class AiService
      *     match_id: int,
      *     type: string,
      *     condition: string,
-     *     value: string|null,
+     *     period: string
      * }
      * @throws \AMQPException
      */
@@ -64,6 +64,7 @@ class AiService
         //检查是否存在相同的推荐
         $exists = AiPromoted::query()
             ->where('match_id', '=', $data['match_id'])
+            ->where('period', '=', $data['period'])
             ->where('odd_type', '=', $oddType)
             ->exists();
         if ($exists) {
@@ -75,6 +76,7 @@ class AiService
 
         $exists = AiPromoted::query()
             ->where('match_id', '=', $data['match_id'])
+            ->where('period', '=', $data['period'])
             ->where('channel', '=', $channel)
             ->exists();
         if ($exists) {
