@@ -88,6 +88,7 @@ class AiService
             'type' => $data['type'],
             'condition' => $data['condition'],
             'crown_match_id' => $match->crown_match_id,
+            'period' => $data['period'],
         ]);
 
         //抛到皇冠盘口检测队列

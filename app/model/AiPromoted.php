@@ -12,6 +12,7 @@ use support\BaseModel;
  * @property int $id
  * @property int $match_id
  * @property string $crown_match_id
+ * @property string $period
  * @property string $odd_type
  * @property string $type
  * @property string $condition
