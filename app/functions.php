@@ -160,6 +160,14 @@ if (!function_exists('get_odd_score')) {
             //平球
             $result['score'] = $score['score1'] . ':' . $score['score2'];
             $result['result_value'] = $score['score1'] === $score['score2'] ? '1' : '-1';
+        } elseif ($odd['type'] === 'win1') {
+            //主队独赢
+            $result['score'] = $score['score1'] . ':' . $score['score2'];
+            $result['result_value'] = $score['score1'] > $score['score2'] ? '1' : '-1';
+        } elseif ($odd['type'] === 'win2') {
+            //客队独赢
+            $result['score'] = $score['score1'] . ':' . $score['score2'];
+            $result['result_value'] = $score['score1'] < $score['score2'] ? '1' : '-1';
         }
 
         $result['result'] = bccomp((string)$result['result_value'], '0', 2);

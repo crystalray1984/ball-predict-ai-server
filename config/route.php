@@ -23,7 +23,15 @@ Route::group('/api', function () {
         //获取滚球筛选器的可用配置项
         Route::any('/rockball_filter_options', [\app\api\controller\CommonController::class, 'rockballFilterOptions']);
         //获取需要预测的比赛列表
-        Route::any('/preparing_matches', [\app\api\controller\CommonController::class, 'getPreparingMatches']);
+        Route::any('/preparing_matches', [\app\api\controller\AiController::class, 'getPreparingMatches']);
+    });
+
+    //AI预测相关接口
+    Route::group('/ai', function () {
+        //获取需要预测的比赛列表
+        Route::any('/preparing_matches', [\app\api\controller\AiController::class, 'getPreparingMatches']);
+        //创建推荐
+        Route::post('/create_promotion', [\app\api\controller\AiController::class, 'createPromotion']);
     });
 
     //用户接口
