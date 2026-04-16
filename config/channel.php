@@ -50,9 +50,9 @@ return [
 //        'key' => 'mansion',
 //        'name' => '模型2',
 //    ],
-//    [
-//        'key' => 'model3',
-//        'name' => '模型3',
-//        'use_profit' => true,
-//    ],
+    [
+        'key' => 'model3',
+        'name' => '模型3',
+        'use_profit' => true,
+    ],
 ];
