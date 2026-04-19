@@ -318,10 +318,10 @@ class MatchService
                 'error_status' => $error_status,
             ]);
 
-        if ($error_status === 'cancelled' || $error_status === 'interrupted') {
-            //抛到队列告诉Bmiss游戏那边，赛事停止结算
-            rabbitmq_publish('bmiss-bet-settlement', json_enc(['match_id' => $match_id]));
-        }
+//        if ($error_status === 'cancelled' || $error_status === 'interrupted') {
+//            //抛到队列告诉Bmiss游戏那边，赛事停止结算
+//            rabbitmq_publish('bmiss-bet-settlement', json_enc(['match_id' => $match_id]));
+//        }
     }
 
     /**
