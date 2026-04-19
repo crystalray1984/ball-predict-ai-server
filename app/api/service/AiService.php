@@ -5,6 +5,7 @@ namespace app\api\service;
 use app\model\AiPromoted;
 use app\model\Match1;
 use app\model\MatchView;
+use app\model\Promoted;
 use Carbon\Carbon;
 use support\exception\BusinessError;
 
@@ -74,7 +75,7 @@ class AiService
         //检查频道是否已有相同类型的推荐
         $channel = "ai_$oddType";
 
-        $exists = AiPromoted::query()
+        $exists = Promoted::query()
             ->where('match_id', '=', $data['match_id'])
             ->where('period', '=', $data['period'])
             ->where('channel', '=', $channel)
