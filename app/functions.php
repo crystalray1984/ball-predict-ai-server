@@ -427,9 +427,10 @@ if (!function_exists('get_odd_identification')) {
     function get_odd_identification(string $type): string
     {
         return match ($type) {
-            'ah1', 'ah2', 'draw' => 'ah',
+            'ah1', 'ah2' => 'ah',
             'under', 'over' => 'sum',
-            'default' => '',
+            'win1', 'win2', 'draw' => 'win',
+            default => '',
         };
     }
 }
