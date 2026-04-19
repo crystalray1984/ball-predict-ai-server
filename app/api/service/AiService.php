@@ -21,9 +21,10 @@ class AiService
      */
     public function getPreparingMatches(int $next = 0): array
     {
-        return MatchView::query()
+        $matches = MatchView::query()
             ->whereNotNull('crown_hot_at')
             ->when(!empty($next), fn($query) => $query->where('crown_hot_at', '>', Carbon::createFromTimestampMs($next)->toISOString()))
+            ->where('match_time', '<', MatchView::raw('CURRENT_TIMESTAMP'))
             ->orderBy('crown_hot_at', 'ASC')
             ->get([
                 'id',
@@ -32,10 +33,25 @@ class AiService
                 'match_time',
                 'team1_id',
                 'team1_name',
+                'team1_i18n_name',
                 'team2_id',
                 'team2_name',
+                'team2_i18n_name',
             ])
             ->toArray();
+
+        return array_map(function (array $match) {
+            if (!empty($match['team1_i18n_name'])) {
+                $team1_i18n_name = json_decode($match['team1_i18n_name'], true);
+                $match['team1_name_en'] = $team1_i18n_name['en'] ?? '';
+            }
+            if (!empty($match['team2_i18n_name'])) {
+                $team2_i18n_name = json_decode($match['team2_i18n_name'], true);
+                $match['team2_name_en'] = $team2_i18n_name['en'] ?? '';
+            }
+            unset($match['team1_i18n_name'], $match['team2_i18n_name']);
+            return $match;
+        }, $matches);
     }
 
     /**
