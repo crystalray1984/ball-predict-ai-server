@@ -357,7 +357,7 @@ if (!function_exists('rabbitmq_publish')) {
      * @return void
      * @throws AMQPException
      */
-    function rabbitmq_publish(string $queueName, string|array $content, array $headers = []): void
+    function rabbitmq_publish(string $queueName, string|array $content, array $headers = [], array $args = []): void
     {
         if (empty($content)) return;
 
@@ -375,6 +375,9 @@ if (!function_exists('rabbitmq_publish')) {
             $queue = new AMQPQueue($channel);
             $queue->setName($queueName);
             $queue->setFlags(AMQP_DURABLE);
+            if (!empty($args)) {
+                $queue->setArguments($args);
+            }
             $queue->declareQueue();
 
             //打开默认交换机
