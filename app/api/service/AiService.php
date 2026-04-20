@@ -16,14 +16,12 @@ class AiService
 {
     /**
      * 获取需要预测的比赛
-     * @param int $next
      * @return array
      */
-    public function getPreparingMatches(int $next = 0): array
+    public function getPreparingMatches(): array
     {
         $matches = MatchView::query()
             ->whereNotNull('crown_hot_at')
-            ->when(!empty($next), fn($query) => $query->where('crown_hot_at', '>', Carbon::createFromTimestampMs($next)->toISOString()))
             ->where('match_time', '>', MatchView::raw('CURRENT_TIMESTAMP'))
             ->orderBy('crown_hot_at', 'ASC')
             ->get([
