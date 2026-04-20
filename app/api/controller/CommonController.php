@@ -267,6 +267,6 @@ class CommonController extends Controller
             $next = 0;
         }
 
-        return $this->success($this->aiService->getPreparingMatches($next));
+        return $this->success($this->aiService->getPreparingMatches((int)$next));
     }
 }
