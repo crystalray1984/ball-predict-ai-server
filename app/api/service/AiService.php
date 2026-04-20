@@ -24,7 +24,7 @@ class AiService
         $matches = MatchView::query()
             ->whereNotNull('crown_hot_at')
             ->when(!empty($next), fn($query) => $query->where('crown_hot_at', '>', Carbon::createFromTimestampMs($next)->toISOString()))
-            ->where('match_time', '<', MatchView::raw('CURRENT_TIMESTAMP'))
+            ->where('match_time', '>', MatchView::raw('CURRENT_TIMESTAMP'))
             ->orderBy('crown_hot_at', 'ASC')
             ->get([
                 'id',
