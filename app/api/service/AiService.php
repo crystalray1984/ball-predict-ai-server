@@ -115,7 +115,7 @@ class AiService
             'extra' => [
                 'id' => $id,
             ],
-        ]));
+        ]), [], ['x-max-priority' => 20]);
 
         return [
             'id' => $id,
