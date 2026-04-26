@@ -48,6 +48,7 @@ return [
         'key' => 'rockball5',
         'name' => '滚球',
 //        'use_profit' => true,
+        'type_list' => ['over', 'under'],
     ],
 //    [
 //        'key' => 'direct',
