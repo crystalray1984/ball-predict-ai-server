@@ -331,6 +331,7 @@ class DataService
                 'crown_match_id' => $row['crown_match_id'],
                 'channel' => $row['channel'],
                 'updated_at' => Carbon::parse($row['updated_at'])->toISOString(),
+                'is_rockball' => $row['is_rockball'],
             ];
         }, $list);
     }
@@ -424,6 +425,7 @@ class DataService
                 'crown_match_id' => $row['crown_match_id'],
                 'channel' => $row['channel'],
                 'updated_at' => Carbon::parse($row['updated_at'])->toISOString(),
+                'is_rockball' => $row['is_rockball'],
             ];
         }, $list);
     }
@@ -489,6 +491,7 @@ class DataService
                 'crown_match_id' => $row['crown_match_id'],
                 'channel' => $row['channel'],
                 'updated_at' => Carbon::parse($row['updated_at'])->toISOString(),
+                'is_rockball' => $row['is_rockball'],
             ];
         }, $list);
     }
