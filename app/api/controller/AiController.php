@@ -44,7 +44,7 @@ class AiController extends Controller
         $data = v::input($request->post(), [
             'match_id' => v::intType()->greaterThan(0)->setName('match_id'),
             'period' => v::in(['regularTime', 'period1'])->setName('period'),
-            'type' => v::in(['ah1', 'ah2', 'over', 'under', 'win1', 'win2', 'draw'])->setName('type'),
+            'type' => v::in(['ah1', 'ah2', 'over', 'under', 'win1', 'win2', 'draw', 'btts_yes', 'btts_no'])->setName('type'),
         ]);
 
         if (in_array($data['type'], ['ah1', 'ah2', 'over', 'under'])) {

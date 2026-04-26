@@ -28,14 +28,21 @@ return [
     [
         'key' => 'ai_ah',
         'name' => '让球',
+        'type_list' => ['ah1', 'ah2'],
     ],
     [
         'key' => 'ai_sum',
         'name' => '大小球',
+        'type_list' => ['over', 'under'],
     ],
+//    [
+//        'key' => 'ai_win',
+//        'name' => '胜平负',
+//    ],
     [
-        'key' => 'ai_win',
-        'name' => '胜平负',
+        'key' => 'ai_btts',
+        'name' => '双方进球',
+        'type_list' => ['btts_yes', 'btts_no'],
     ],
     [
         'key' => 'rockball5',
@@ -54,5 +61,6 @@ return [
         'key' => 'model3',
         'name' => '模型3',
         'use_profit' => true,
+        'type_list' => ['over', 'under'],
     ],
 ];
