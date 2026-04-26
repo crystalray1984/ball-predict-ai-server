@@ -168,6 +168,14 @@ if (!function_exists('get_odd_score')) {
             //客队独赢
             $result['score'] = $score['score1'] . ':' . $score['score2'];
             $result['result_value'] = $score['score1'] < $score['score2'] ? '1' : '-1';
+        } elseif ($odd['type'] === 'btts_yes') {
+            //双方有进球
+            $result['score'] = $score['score1'] . ':' . $score['score2'];
+            $result['result_value'] = $score['score1'] > 0 && $score['score2'] > 0 ? '1' : '-1';
+        } elseif ($odd['type'] === 'btts_no') {
+            //双方无进球
+            $result['score'] = $score['score1'] . ':' . $score['score2'];
+            $result['result_value'] = $score['score1'] == 0 && $score['score2'] == 0 ? '1' : '-1';
         }
 
         $result['result'] = bccomp((string)$result['result_value'], '0', 2);
@@ -342,6 +350,18 @@ if (!function_exists('get_reverse_odd')) {
             case 'under':
                 $type = 'over';
                 break;
+            case 'win1':
+                $type = 'win2';
+                break;
+            case 'win2':
+                $type = 'win1';
+                break;
+            case 'btts_yes':
+                $type = 'btts_no';
+                break;
+            case 'btts_no':
+                $type = 'btts_yes';
+                break;
         }
 
         return [$type, $condition];
@@ -433,6 +453,7 @@ if (!function_exists('get_odd_identification')) {
             'ah1', 'ah2' => 'ah',
             'under', 'over' => 'sum',
             'win1', 'win2', 'draw' => 'win',
+            'btts_yes', 'btts_no' => 'btts',
             default => '',
         };
     }
@@ -475,6 +496,10 @@ if (!function_exists('get_odd_type_text')) {
             'under' => '小球',
             'over' => '大球',
             'draw' => '平局',
+            'win1' => '主胜',
+            'win2' => '客胜',
+            'btts_yes' => '双方有进球',
+            'btts_no' => '双方无进球',
             default => '',
         };
     }
@@ -486,7 +511,8 @@ if (!function_exists('get_condition_text')) {
         $condition = floatval($condition);
         return match ($type) {
             'ah1', 'ah2' => $condition <= 0 ? strval($condition) : "+$condition",
-            default => strval($condition),
+            'under', 'over' => strval($condition),
+            default => '',
         };
     }
 }
@@ -651,6 +677,38 @@ if (!function_exists('get_odd_profit')) {
         } elseif ($data['type'] === 'draw') {
             //平球
             if ($data['score1'] === $data['score2']) {
+                $profit = bcadd($profit, $part_win_profit, 6);
+                $win_count += $win_base;
+            } else {
+                $profit = bcsub($profit, $part_loss_profit, 6);
+            }
+        } elseif ($data['type'] === 'win1') {
+            //主队独赢
+            if ($data['score1'] > $data['score2']) {
+                $profit = bcadd($profit, $part_win_profit, 6);
+                $win_count += $win_base;
+            } else {
+                $profit = bcsub($profit, $part_loss_profit, 6);
+            }
+        } else if ($data['type'] === 'win2') {
+            //客队独赢
+            if ($data['score1'] < $data['score2']) {
+                $profit = bcadd($profit, $part_win_profit, 6);
+                $win_count += $win_base;
+            } else {
+                $profit = bcsub($profit, $part_loss_profit, 6);
+            }
+        } else if ($data['type'] === 'btts_yes') {
+            //双方有进球
+            if ($data['score1'] > 0 && $data['score2'] > 0) {
+                $profit = bcadd($profit, $part_win_profit, 6);
+                $win_count += $win_base;
+            } else {
+                $profit = bcsub($profit, $part_loss_profit, 6);
+            }
+        } else if ($data['type'] === 'btts_no') {
+            //双方无进球
+            if ($data['score1'] == 0 && $data['score2'] == 0) {
                 $profit = bcadd($profit, $part_win_profit, 6);
                 $win_count += $win_base;
             } else {
