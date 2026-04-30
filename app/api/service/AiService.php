@@ -21,8 +21,8 @@ class AiService
     public function getPreparingMatches(): array
     {
         $matches = MatchView::query()
-            ->whereNotNull('crown_hot_at')
             ->where('match_time', '>', MatchView::raw('CURRENT_TIMESTAMP'))
+            ->where('match_time', '<', MatchView::raw("CURRENT_TIMESTAMP + interval '12 hours'"))
             ->orderBy('crown_hot_at', 'ASC')
             ->get([
                 'id',
