@@ -50,6 +50,11 @@ return [
 //        'use_profit' => true,
         'type_list' => ['over', 'under'],
     ],
+    [
+        'key' => 'ai2',
+        'name' => 'AI',
+        'type_list' => ['ah1', 'ah2', 'over', 'under', 'btts_yes', 'btts_no'],
+    ],
 //    [
 //        'key' => 'direct',
 //        'name' => '模型1',
