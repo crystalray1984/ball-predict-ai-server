@@ -6,6 +6,7 @@ use app\model\AiPromoted;
 use app\model\Match1;
 use app\model\MatchView;
 use app\model\Promoted;
+use app\model\RockBallOdd;
 use Carbon\Carbon;
 use support\exception\BusinessError;
 
@@ -84,6 +85,53 @@ class AiService
             ->exists();
         if ($exists) {
             throw new BusinessError('已经存在相同类型的推荐');
+        }
+
+        //特殊逻辑，AI推过来的上半场大0.5，进滚球5预测中
+        if ($data['period'] === 'period1' && $data['type'] === 'over' && bccomp($data['condition'], '0.5', 2) === 0) {
+            //先查询盘口是否存在
+            $exists = RockBallOdd::query()
+                ->where('match_id', '=', $data['match_id'])
+                ->where('channel', '=', 'rockball5')
+                ->where('period', '=', 'period1')
+                ->exists();
+            if ($exists) {
+                throw new BusinessError('已经存在相同类型的推荐');
+            }
+
+            //写入记录
+            $id = AiPromoted::insertGetId([
+                'match_id' => $data['match_id'],
+                'odd_type' => $oddType,
+                'type' => $data['type'],
+                'condition' => $data['condition'],
+                'crown_match_id' => $match->crown_match_id,
+                'period' => $data['period'],
+            ]);
+
+            //插入滚球5预测中
+            RockBallOdd::insert([
+                'match_id' => $data['match_id'],
+                'crown_match_id' => $data['crown_match_id'],
+                'source_variety' => 'goal',
+                'source_period' => 'period1',
+                'source_condition' => '0.5',
+                'source_type' => 'over',
+                'source_value' => '0',
+                'variety' => 'goal',
+                'period' => 'period1',
+                'type' => 'over',
+                'condition' => '0.5',
+                'value' => '1.88',
+                'is_open' => 1,
+                'source_channel' => 'ai_promoted',
+                'source_id' => $id,
+                'channel' => 'rockball5',
+            ]);
+
+            return [
+                'id' => $id,
+            ];
         }
 
         //检查频道是否已有相同类型的推荐
