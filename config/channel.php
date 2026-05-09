@@ -53,6 +53,7 @@ return [
     [
         'key' => 'ai2',
         'name' => 'AI',
+        'use_profit' => true,
         'type_list' => ['ah1', 'ah2', 'over', 'under', 'btts_yes', 'btts_no'],
     ],
 //    [
