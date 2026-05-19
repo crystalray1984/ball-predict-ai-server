@@ -39,11 +39,11 @@ return [
 //        'key' => 'ai_win',
 //        'name' => '胜平负',
 //    ],
-    [
-        'key' => 'ai_btts',
-        'name' => '双方进球',
-        'type_list' => ['btts_yes', 'btts_no'],
-    ],
+//    [
+//        'key' => 'ai_btts',
+//        'name' => '双方进球',
+//        'type_list' => ['btts_yes', 'btts_no'],
+//    ],
     [
         'key' => 'rockball5',
         'name' => '滚球',
