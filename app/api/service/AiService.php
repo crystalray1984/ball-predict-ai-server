@@ -135,11 +135,12 @@ class AiService
         }
 
         //检查频道是否已有相同类型的推荐
-        $channel = "ai_$oddType";
+        $channel = "ai2";
 
         $exists = Promoted::query()
             ->where('match_id', '=', $data['match_id'])
             ->where('period', '=', $data['period'])
+            ->where('odd_type', '=', $oddType)
             ->where('channel', '=', $channel)
             ->exists();
         if ($exists) {
