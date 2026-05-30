@@ -62,7 +62,7 @@ class AiService
     {
         $matches = MatchView::query()
             ->join('crown_odd_record', function (JoinClause $join) {
-                $join->on('crown_odd_record.match_id', '=', 'v_match.id')
+                $join->on('crown_odd_record.crown_match_id', '=', 'v_match.crown_match_id')
                     ->where('crown_odd_record.show_type', '=', 'today')
                     ->where('crown_odd_record.is_last', '=', 1)
                     ->where('crown_odd_record.created_at', '<', MatchView::raw("CURRENT_TIMESTAMP - interval '5 minutes'"));
