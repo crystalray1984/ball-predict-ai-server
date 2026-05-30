@@ -141,8 +141,7 @@ class AiService
                         break;
                     case "m":
                         //全场胜平负
-                        $odds['win'][] = [
-                            'primary' => false,
+                        $odds['win'] = [
                             'win1' => $odd['value_h'],
                             'win2' => $odd['value_c'],
                             'draw' => $odd['value_n'],
@@ -150,8 +149,7 @@ class AiService
                         break;
                     case "hm":
                         //上半场胜平负
-                        $odds['win_period1'][] = [
-                            'primary' => false,
+                        $odds['win_period1'] = [
                             'win1' => $odd['value_h'],
                             'win2' => $odd['value_c'],
                             'draw' => $odd['value_n'],
@@ -159,16 +157,14 @@ class AiService
                         break;
                     case "ts":
                         //全场双方进球
-                        $odds['btts'][] = [
-                            'primary' => false,
+                        $odds['btts'] = [
                             'btts_yes' => $odd['value_h'],
                             'btts_no' => $odd['value_c'],
                         ];
                         break;
                     case "hts":
                         //上半场双方进球
-                        $odds['btts_period1'][] = [
-                            'primary' => false,
+                        $odds['btts_period1'] = [
                             'btts_yes' => $odd['value_h'],
                             'btts_no' => $odd['value_c'],
                         ];
@@ -178,7 +174,9 @@ class AiService
 
             //标记主盘
             foreach ($odds as $type => $odd) {
-                $odds[$type][0]['primary'] = true;
+                if (array_is_list($odd)) {
+                    $odds[$type][0]['primary'] = true;
+                }
             }
 
             $match['odd_data'] = $odds;
