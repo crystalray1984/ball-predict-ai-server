@@ -82,7 +82,7 @@ class AiService
                 'v_match.team2_name',
                 'v_match.team2_i18n_name',
                 'crown_odd_record.odd_data',
-                'crown_odd_record.created_at AS odds_updated_at',
+                'crown_odd_record.created_at AS odd_updated_at',
             ])
             ->toArray();
 
