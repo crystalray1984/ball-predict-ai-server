@@ -8,6 +8,7 @@ use app\model\MatchView;
 use app\model\Promoted;
 use app\model\RockBallOdd;
 use Carbon\Carbon;
+use Illuminate\Database\Query\JoinClause;
 use support\exception\BusinessError;
 
 /**
@@ -49,6 +50,139 @@ class AiService
                 $match['team2_name_en'] = $team2_i18n_name['en'] ?? '';
             }
             unset($match['team1_i18n_name'], $match['team2_i18n_name']);
+            return $match;
+        }, $matches);
+    }
+
+    /**
+     * 第二版获取要预测的比赛列表，带皇冠盘口
+     * @return array
+     */
+    public function getPreparingMatchesV2(): array
+    {
+        $matches = MatchView::query()
+            ->join('crown_odd_record', function (JoinClause $join) {
+                $join->on('crown_odd_record.match_id', '=', 'v_match.id')
+                    ->where('crown_odd_record.show_type', '=', 'today')
+                    ->where('crown_odd_record.is_last', '=', 1)
+                    ->where('crown_odd_record.created_at', '<', MatchView::raw("CURRENT_TIMESTAMP - interval '5 minutes'"));
+            })
+            ->where('v_match.match_time', '>', MatchView::raw('CURRENT_TIMESTAMP'))
+            ->where('v_match.match_time', '<', MatchView::raw("CURRENT_TIMESTAMP + interval '2 hours'"))
+            ->orderBy('v_match.crown_hot_at', 'ASC')
+            ->get([
+                'v_match.id',
+                'v_match.tournament_id',
+                'v_match.tournament_name',
+                'v_match.match_time',
+                'v_match.team1_id',
+                'v_match.team1_name',
+                'v_match.team1_i18n_name',
+                'v_match.team2_id',
+                'v_match.team2_name',
+                'v_match.team2_i18n_name',
+                'crown_odd_record.odd_data',
+                'crown_odd_record.created_at AS odds_updated_at',
+            ])
+            ->toArray();
+
+        return array_map(function (array $match) {
+            if (!empty($match['team1_i18n_name'])) {
+                $team1_i18n_name = json_decode($match['team1_i18n_name'], true);
+                $match['team1_name_en'] = $team1_i18n_name['en'] ?? '';
+            }
+            if (!empty($match['team2_i18n_name'])) {
+                $team2_i18n_name = json_decode($match['team2_i18n_name'], true);
+                $match['team2_name_en'] = $team2_i18n_name['en'] ?? '';
+            }
+            unset($match['team1_i18n_name'], $match['team2_i18n_name']);
+
+            //解析盘口数据
+            $odds = [];
+            $rawOdds = json_decode($match['odd_data'], true);
+            foreach ($rawOdds as $odd) {
+                if ($odd['variety'] !== 'goal') continue;
+                switch ($odd['type']) {
+                    case 'r':
+                        //全场让球
+                        $odds['ah'][] = [
+                            'primary' => false,
+                            'condition' => $odd['condition'],
+                            'ah1' => $odd['value_h'],
+                            'ah2' => $odd['value_c'],
+                        ];
+                        break;
+                    case 'hr':
+                        //上半场让球
+                        $odds['ah_period1'][] = [
+                            'primary' => false,
+                            'condition' => $odd['condition'],
+                            'ah1' => $odd['value_h'],
+                            'ah2' => $odd['value_c'],
+                        ];
+                        break;
+                    case 'ou':
+                        //全场大小球
+                        $odds['ou'][] = [
+                            'primary' => false,
+                            'condition' => $odd['condition'],
+                            'under' => $odd['value_h'],
+                            'over' => $odd['value_c'],
+                        ];
+                        break;
+                    case 'hou':
+                        //上半场大小球
+                        $odds['ou_period1'][] = [
+                            'primary' => false,
+                            'condition' => $odd['condition'],
+                            'under' => $odd['value_h'],
+                            'over' => $odd['value_c'],
+                        ];
+                        break;
+                    case "h":
+                        //全场胜平负
+                        $odds['win'][] = [
+                            'primary' => false,
+                            'win1' => $odd['value_h'],
+                            'win2' => $odd['value_c'],
+                            'draw' => $odd['value_n'],
+                        ];
+                        break;
+                    case "hm":
+                        //上半场胜平负
+                        $odds['win_period1'][] = [
+                            'primary' => false,
+                            'win1' => $odd['value_h'],
+                            'win2' => $odd['value_c'],
+                            'draw' => $odd['value_n'],
+                        ];
+                        break;
+                    case "ts":
+                        //全场双方进球
+                        $odds['btts'][] = [
+                            'primary' => false,
+                            'btts_yes' => $odd['value_h'],
+                            'btts_no' => $odd['value_c'],
+                        ];
+                        break;
+                    case "hts":
+                        //上半场双方进球
+                        $odds['btts_period1'][] = [
+                            'primary' => false,
+                            'btts_yes' => $odd['value_h'],
+                            'btts_no' => $odd['value_c'],
+                        ];
+                        break;
+                }
+            }
+
+            //标记主盘
+            foreach ($odds as $type => $odd) {
+                $odds[$type][0]['primary'] = true;
+            }
+
+            $match['odd_data'] = $odds;
+
             return $match;
         }, $matches);
     }

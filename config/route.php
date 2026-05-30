@@ -30,6 +30,8 @@ Route::group('/api', function () {
     Route::group('/ai', function () {
         //获取需要预测的比赛列表
         Route::any('/preparing_matches', [\app\api\controller\AiController::class, 'getPreparingMatches']);
+        //获取需要预测的比赛列表，带皇冠盘口
+        Route::any('/matches_with_odd', [\app\api\controller\AiController::class, 'getPreparingMatchesV2']);
         //创建推荐
         Route::post('/create_promotion', [\app\api\controller\AiController::class, 'createPromotion']);
     });

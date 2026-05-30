@@ -34,6 +34,15 @@ class AiController extends Controller
     }
 
     /**
+     * 第二版获取要预测的比赛列表，带皇冠盘口
+     * @return Response
+     */
+    public function getPreparingMatchesV2(): Response
+    {
+        return $this->success($this->aiService->getPreparingMatchesV2());
+    }
+
+    /**
      * 创建推荐
      * @param Request $request
      * @return Response
