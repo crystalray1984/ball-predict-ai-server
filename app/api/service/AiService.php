@@ -139,7 +139,7 @@ class AiService
                             'over' => $odd['value_c'],
                         ];
                         break;
-                    case "h":
+                    case "m":
                         //全场胜平负
                         $odds['win'][] = [
                             'primary' => false,
